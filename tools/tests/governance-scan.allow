@@ -1,0 +1,20 @@
+# Files scanned by governance-consistency.test.sh for the retired auto-spawn norm.
+# One repo-relative path per line; text after '#' is a comment.
+#
+# Extend this list with any PROJECT-LOCAL doc that could carry the retired norm so
+# coverage tracks your repo. Do NOT add files that merely *describe* the retired
+# norm (e.g. CHANGELOG.md, AI/decisions.md, the upgrade playbook) — they quote the
+# old wording deliberately and would false-positive.
+#
+# Delete this file to fall back to the script's built-in default list.
+
+MEMORY.md
+AI.md
+CLAUDE.md
+AGENTS.md
+.github/copilot-instructions.md
+.claude/agents/README.md
+.codex/agents/README.md
+.github/agents/README.md
+INIT.md
+docs/collaboration-playbook.md
