@@ -101,5 +101,39 @@ grep -qi 'single-writer\|single writer' MEMORY.md || { echo "FAIL - MEMORY.md mi
 grep -q 'DURABLE LESSONS' MEMORY.md || { echo "FAIL - MEMORY.md missing DURABLE LESSONS return block"; fail=1; }
 grep -q 'SOLE-HOLDER' MEMORY.md || { echo "FAIL - MEMORY.md missing SOLE-HOLDER flag rule"; fail=1; }
 
+# Role-roster drift guard (D5). MEMORY.md's Collaboration Model roster is the
+# canonical role-set enumeration; AI.md's Role Agents launcher list must name
+# the same set. Extraction: the backticked token opening each bullet in the
+# named section ("- `PM` — ..." / "- `pm`"). Normalization: lowercase, then
+# fold "om-test" into "om" — the roster names OM and OM-Test as distinct roles
+# but a single `om` launcher serves both, so the script-comparable form is
+# the launcher-level set.
+role_set() { # $1=file  $2=exact "## <heading>" section title
+  awk -v h="## $2" '$0==h{s=1;next} /^## /{s=0} s' "$1" \
+    | sed -n 's/^- `\([A-Za-z][A-Za-z-]*\)`.*/\1/p' \
+    | tr '[:upper:]' '[:lower:]' | sed 's/^om-test$/om/' | sort -u
+}
+
+# Self-test the extractor/normalizer — same rule as has_old_norm above: an
+# untested guard is theater. Normalization must equate an OM-Test/OM roster
+# with a lone om launcher, and a genuinely drifted set must NOT compare equal.
+__ra="$(mktemp)"; __rb="$(mktemp)"
+printf '%b' '## R\n\n- `PM` — plans\n- `OM-Test` — test ops\n- `OM` — prod ops\n' > "$__ra"
+printf '%b' '## R\n\n- `pm`\n- `om`\n' > "$__rb"
+[ "$(role_set "$__ra" R)" = "$(role_set "$__rb" R)" ] \
+  || { echo "FAIL - role_set self-test (om-test/om should normalize equal)"; fail=1; }
+printf '%b' '## R\n\n- `pm`\n- `om`\n- `qa`\n' > "$__rb"
+[ "$(role_set "$__ra" R)" != "$(role_set "$__rb" R)" ] \
+  || { echo "FAIL - role_set self-test (missed drift: extra qa role)"; fail=1; }
+rm -f "$__ra" "$__rb"
+
+mem_roles="$(role_set MEMORY.md 'Collaboration Model')"
+ai_roles="$(role_set AI.md 'Role Agents')"
+[ -n "$mem_roles" ] || { echo "FAIL - no roles extracted from MEMORY.md Collaboration Model roster"; fail=1; }
+[ -n "$ai_roles" ]  || { echo "FAIL - no roles extracted from AI.md Role Agents launcher list"; fail=1; }
+if [ -n "$mem_roles" ] && [ -n "$ai_roles" ] && [ "$mem_roles" != "$ai_roles" ]; then
+  echo "FAIL - role-set drift: MEMORY.md roster [$(echo $mem_roles)] vs AI.md launchers [$(echo $ai_roles)]"; fail=1
+fi
+
 test "$fail" -eq 0 && echo "ok - governance consistent"
 exit "$fail"

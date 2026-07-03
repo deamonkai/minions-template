@@ -76,6 +76,9 @@ minions/
       verdict.md        # optional
 ```
 
+Multi-project coordinators route per-project packets to `projects/<key>/mail/`
+instead — the routing decision tree is in `docs/coordinator-mode.md`.
+
 Recommended packet id format:
 
 `YYYY-MM-DD-<sender>-to-<recipient>-<topic>`

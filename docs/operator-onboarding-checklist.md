@@ -23,10 +23,13 @@ Date: YYYY-MM-DD
 - RM assigned: pending Operator confirmation
 - Copilot custom agents enabled for minion roles: yes/no
 - Copilot agent names accepted (`pm`, `am`, `cm`, `sm`, `dm`, `om`, `rm`): yes/no
+- Copilot launcher-family activation state: `active` / `deferred` / `not exported`
 - Codex custom agents enabled for minion roles: yes/no
 - Codex agent names accepted (`pm`, `am`, `cm`, `sm`, `dm`, `om`, `rm`): yes/no
+- Codex launcher-family activation state: `active` / `deferred` / `not exported`
 - Claude Code subagents enabled for minion roles: yes/no
 - Claude agent names accepted (`pm`, `am`, `cm`, `sm`, `dm`, `om`, `rm`): yes/no
+- Claude launcher-family activation state: `active` / `deferred` / `not exported`
 - PM handoff mode: `commit-only` / `commit-and-push`
 - AM handoff mode: `commit-only` / `commit-and-push`
 - CM handoff mode: `commit-only` / `commit-and-push`

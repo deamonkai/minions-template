@@ -84,6 +84,10 @@ Codex and Claude both expose the same project-local minion roles:
 - `om`
 - `rm`
 
+These are launcher names only; the role set is defined in MEMORY.md's
+Collaboration Model roster (the single `om` launcher serves both `OM` and
+`OM-Test`).
+
 Use one role for focused thinking when the Operator wants a specific lens.
 Use multiple role agents when parallel review is likely to improve the decision.
 

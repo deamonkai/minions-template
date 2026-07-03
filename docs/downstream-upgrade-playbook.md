@@ -311,6 +311,34 @@ you want a durable on-disk review artifact, or for large or multi-release jumps.
 14. Update the base-template portion of `minion-version.md` only after the live
    downstream files and vendored snapshot are aligned.
 
+### Coordinator-mode upgrades
+
+Repos running the coordinator overlay (`docs/coordinator-mode.md`) follow this
+same workflow — coordinator scale changes how classification output is read,
+not the upgrade mechanics. Coordinator field practice sorts upgrade files into
+three categories; each maps onto the existing manifest classes, so no separate
+categorization is needed:
+
+- **copy-directly** ≈ `template-replace` files that are new in the incoming
+  version (no live counterpart yet): apply them directly in step 8.
+- **take-template** ≈ `template-replace`: role charters, agent launchers, and
+  shared docs converge to the template baseline unless a coordinator-specific
+  override was intentional — review divergence before overwriting, per step 8.
+- **preserve** ≈ `manual-merge` / `downstream-owned`: files such as
+  `MEMORY.md` and `AI.md` diverge intentionally; merge only with explicit
+  review, per steps 9 and 11.
+
+Expected intentional divergence: `projects/` (the registry and lane
+scaffolds), the overlay activation state (the coordinator-mode declaration in
+the live `MEMORY.md`), and coordinator role additions are coordinator surfaces
+the template baseline does not carry. Note `tools/upgrade-classify.sh`
+builds its change set from the old/new snapshot union, so coordinator-created
+files (`projects/**`, added role charters) never appear in its output at all;
+the `diverged` reading applies to TEMPLATE files carrying overlay state —
+e.g. the live `MEMORY.md` with the coordinator-mode declaration. Both cases
+are the overlay working as designed — intentional divergence to preserve,
+not drift to reconcile.
+
 ## Manual-Merge Guidance
 
 ### `MEMORY.md`

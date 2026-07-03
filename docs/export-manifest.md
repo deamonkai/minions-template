@@ -63,6 +63,7 @@ template repo.
 | `AI/README.md` | no | `do-not-export` | `n/a` | MM / Operator | template-maintenance layer guide; not for downstream projects |
 | `AI/decisions.md` | no | `do-not-export` | `n/a` | MM / Operator | cross-AI template-maintenance decision register; template-maintainer-local |
 | `AI/open-questions.md` | no | `do-not-export` | `n/a` | MM / Operator | cross-AI template-maintenance open questions; template-maintainer-local |
+| `AI/feedback/` | no | `do-not-export` | `n/a` | MM / Operator | vendored field-feedback packets + evidence triage; template-maintainer-local |
 | `.gitignore` | yes | `manual-merge` | `baseline` | PM / Operator | not auto-managed and outside most merge tooling; merge new template ignore patterns (e.g. `.pipeline/`) while preserving downstream-specific entries. Confirm during every upgrade |
 | `AI.md` | yes | `manual-merge` | `baseline` | PM / Operator | cross-tool coordination notes for AI assistants; preserve downstream-specific handoff guidance |
 | `CLAUDE.md` | yes | `manual-merge` | `feature` | PM / Operator | Claude Code auto-loaded entry point; thin pointer to `AI.md`/`MEMORY.md`. Preserve downstream project-specific guidance |
@@ -148,3 +149,7 @@ template repo.
 | `.issue` sidecars (`minions/mail/*/*.issue`) | no | `downstream-owned` | `n/a` | CM / Operator | Class B / downstream-owned; not exported from template |
 | `docs/memory-recall-model.md` | yes | `template-replace` | `feature` | PM | canonical memory-recall (Mnemoverse) view-layer model |
 | `docs/runbooks/memory-recall-setup.md` | yes | `template-replace` | `reference` | OM | operator setup: `MINION_MEMORY`, extension, API key, smoke test |
+| `docs/runbooks/public-export.md` | yes | `template-replace` | `reference` | PM | publish a privacy-safe public copy (fresh history, neutralization sweep, gitleaks gate) |
+| `docs/coordinator-mode.md` | yes | `template-replace` | `feature` | PM | coordinator-mode overlay (opt-in multi-project) |
+| `docs/runbooks/add-submodule.md` | yes | `template-replace` | `reference` | PM | submodule registration sequence (coordinator overlay) |
+| `.github/instructions/documentation-quality.instructions.md` | yes | `template-replace` | `feature` | DM | submodule doc-quality instructions (coordinator/submodule repos) |

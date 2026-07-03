@@ -2,6 +2,151 @@
 
 All notable changes to this repository are tracked here.
 
+## 2026-07-02 (v1.22.1 — Overlay discipline + drift guards)
+
+- Commit hash: pending (staging→main PR merge)
+- **Provenance:** coordinator feedback triage items 2.1, 2.2, 3.1, 3.2,
+  4.1, 4.3, 6.1, 6.2
+  (`AI/feedback/2026-07-02-coordinator-feedback-triage.md`); design in
+  `docs/superpowers/specs/2026-07-02-overlay-discipline-design.md`.
+- Optional-Layers convention codified (D1): new preamble in `MEMORY.md`'s
+  Communication Model above the Issue Mirror / Memory Recall subsections —
+  optional layers ship default-off behind a `MINION_*` gate, absence is a
+  silent no-op that never blocks a workflow, canonical docs carry an
+  Enabling It section with activation and rollback, governance files
+  reference layers only in gate-conditioned language, and retiring an
+  overlay is doc + pointer removal, never a governance sweep.
+- Multi-session note (D2): `MEMORY.md`'s Single-Writer Durability subsection
+  now states the contention trigger (2+ concurrent sessions committing
+  overlapping files on the same branch) and the first-line answer —
+  partition write sets (one session per feature branch; coordinator
+  session lanes at multi-project scale), never a serialization role.
+- Canonical role list (D5): `MEMORY.md`'s Collaboration Model roster is
+  declared the canonical role-set enumeration; `AI.md`'s Role Agents list
+  now defers to it. `tools/tests/governance-consistency.test.sh` gains a
+  self-tested drift guard comparing the two lists in normalized form
+  (lowercase; `om-test` folds into `om`).
+- Copilot launcher reconciliation (D4): `.github/agents/` bodies for
+  `am`, `cm`, `sm`, `dm`, and `om` realigned to the agreeing
+  Codex/Claude behavioral reference (CM's review/investigation no-edit
+  rule and OM's OM-Test default posture restored, among other
+  role-level drifts); `pm` already matched, `rm` reconciled in this
+  sweep (added the "lead with options and a recommendation" clause to
+  `.codex/agents/rm.toml` and `.github/agents/rm.agent.md`). Copilot-specific
+  frontmatter and tool whitelists kept; the Codex/Claude families are
+  untouched.
+- Cross-family launcher sync line (D4, rule text): `MEMORY.md`'s
+  Instruction-File Audit Rule now requires launcher bodies for the same
+  role to stay behaviorally identical across the `.github/agents/`,
+  `.codex/agents/`, and `.claude/agents/` families, with a cross-family
+  audit on any launcher change.
+- Deferred-state records (D3): `docs/downstream-onboarding-playbook.md`
+  gains the quotable DEFERRED notice for any launcher family exported but
+  not yet active (removed on activation; baseline files are not deferred
+  by default), and `docs/operator-onboarding-checklist.md` gains one
+  activation-state line per launcher family (Copilot / Codex / Claude:
+  `active` / `deferred` / `not exported`).
+- Extending the role set (D6): `docs/downstream-onboarding-playbook.md`
+  gains the minimum touch list for adding a role downstream — role
+  charter, every launcher family in use, downstream `MEMORY.md` roster,
+  the Completion Handoff `NEXT OWNER` enumeration, and the `AI.md` Role
+  Agents list (five mandatory surfaces total) — with the historical `SM`
+  drift named as the precedent.
+- Plan STATUS lifecycle (D7): `minions/plans/milestone-plan-template.md`
+  replaces the hardcoded `Status: Active` with a lifecycle marker —
+  `OPEN`, `CLOSED — COMPLETE`, `CLOSED — SUPERSEDED (superseded-by:
+  <ref>)` — anchored to the Exit Criteria section;
+  `minions/plans/README.md` documents the lifecycle plus the rules that
+  the top-of-file marker (not checkbox completion) is the closure
+  signal, and that a plan must not remain `OPEN` once the execution
+  model it was written against no longer exists — supersede it the
+  same day.
+
+## 2026-07-02 (v1.22.0 — Coordinator-mode overlay: multi-project session lanes)
+
+- Commit hash: pending (staging→main PR merge)
+- **Provenance:** coordinator field feedback — a real multi-project
+  coordinator fork returned a 15-item packet; every item was
+  evidence-verified against template main before triage
+  (`AI/feedback/2026-07-02-coordinator-feedback.md`,
+  `AI/feedback/2026-07-02-coordinator-feedback-triage.md`).
+- New `docs/coordinator-mode.md` — canonical opt-in overlay for running one
+  template-derived repo as a multi-project coordinator (Optional-Layers
+  pattern: single-project baseline unchanged in meaning; a repo that never
+  coordinates multiple projects reads nothing new but two pointer
+  sentences).
+- Session-lane concurrency model: one session = one project lane at a time;
+  a session's writes are confined to `projects/<key>/**`, the project's
+  submodule via its own branch flow, and the session's own topic-scoped
+  `CHANGELOG.d/<topic>.md` fragment; coordinator-shared surfaces (root
+  `MEMORY.md`, `projects/index.md`, coordinator `minions/mail/`,
+  coordinator `CHANGELOG.md`, root `feedback.md` — lane sessions route
+  Operator corrections via lane packet) are written only by the coordinator
+  seat, with lane packets as the request path — the roll-up law applied one
+  level up. Contention is eliminated by partitioning (lanes plus
+  topic-scoped fragments) and single-writer ownership (shared surfaces); no
+  serialization role. Multiple sessions inside one project lane are
+  explicitly out of scope and unsupported.
+- Branch-plane mapping for lane surfaces (When to Scale): lane `MEMORY.md`
+  and `chat/` are Class A — mainline-authoritative, staleness rule applies —
+  and lane `mail/<packet>/` is Class B, per
+  `docs/branching-and-release-model.md`.
+- Project registry: `projects/index.md` with required columns (project key,
+  submodule path, repo URL, default branch, PM owner, risk tier, onboarding
+  status); PM validates every packet's `PROJECT:` field against it and
+  rejects unregistered keys; rows are never deleted (status `retired`).
+- Mail routing: registered project → `projects/<key>/mail/`; coordinator,
+  cross-project, or policy → `minions/mail/`; lane packets carry a
+  `PROJECT: <key>` header field added to the baseline packet structure.
+  Onboarding carve-out: packets about a project whose registry row is still
+  `onboarding` route to `minions/mail/` until the PM gate passes; the
+  add-submodule runbook cites the carve-out for its gate packet placement.
+- New `docs/runbooks/add-submodule.md` — registration sequence: submodule
+  add → lane scaffold (`projects/<key>/MEMORY.md`, `mail/README.md`,
+  `chat/`) → registry row at `onboarding` → PM onboarding gate packet → PM
+  verifies scaffold before `in-progress`; removal via deinit + registry
+  status `retired`, never row deletion.
+- `docs/downstream-upgrade-playbook.md` gains a "Coordinator-mode upgrades"
+  subsection mapping the coordinator's three upgrade categories onto the
+  existing manifest classes (copy-directly ≈ new `template-replace` files;
+  take-template ≈ `template-replace`; preserve ≈
+  `manual-merge`/`downstream-owned`) and naming coordinator surfaces
+  (`projects/`, overlay activation state, coordinator role additions) as
+  expected intentional divergence in `upgrade-classify.sh` output.
+- One-line baseline pointers only: `INIT.md` (before step content) and
+  `docs/project/mailbox-collaboration-model.md` (Directory Layout) link to
+  `docs/coordinator-mode.md`; `MEMORY.md` and `AI.md` untouched.
+- Manifest hygiene rider (D8): registered the previously-unmanifested
+  `.github/instructions/documentation-quality.instructions.md` in
+  `docs/export-manifest.md` (`template-replace` / `feature` / DM), plus
+  rows for the two new overlay docs.
+
+## 2026-07-02 (v1.21.4 — Public-export runbook)
+
+- Commit hash: pending (staging→main PR merge)
+- Codifies the live 2026-07-02 export of a privacy-safe copy of this
+  template to a public repo (github.com/deamonkai/minions-template),
+  publishing fresh history rather than canonical history.
+- New `docs/runbooks/public-export.md` (Operator/PM-owned): manifest-
+  filtered export from a tagged canonical release using
+  `docs/export-manifest.md` rows marked `Initial export: yes`; deliberately
+  adds `README.md` with an "About This Copy" section (source version +
+  divergence list) even though the manifest classes it downstream-owned;
+  tree-wide token-based privacy-neutralization sweep (the live run's
+  single-line pass missed an Operator-specific heading parenthetical heading echoed in `INIT.md`
+  and `CHANGELOG.md` — only the tree-wide grep caught it), with
+  `feedback.md` reset to a clean capture-log stub; mandatory pre-push
+  verification gates (export's own `tools/tests/*.test.sh` suite,
+  `gitleaks detect --no-git`, forbidden-file check for `.mm.md`, `AI/`,
+  `.remember/`, `.superpowers/`); single-commit publish with an annotated
+  tag matching the canonical release; re-publish cadence for later
+  canonical releases the Operator chooses to make public.
+- New `docs/export-manifest.md` row for the runbook itself
+  (`template-replace` / `reference` / PM).
+- Rollback note: public content may be cached or forked the moment it is
+  pushed, so the neutralization sweep and gitleaks gate are pre-push hard
+  gates, never post-push cleanup.
+
 ## 2026-07-02 (v1.21.3 — tea v0.14.1 compat, downstream-authored)
 
 - Commit hash: pending (staging→main PR merge)

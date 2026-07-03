@@ -71,6 +71,9 @@ This project uses multiple AI agents ("minions") that coordinate through git:
 - `OM` — production operations, maintenance, rollback, incident handling
 - `RM` — in-depth research and investigation of build issues; vendor-documentation-grounded options and out-of-box next steps (recommends only, may not create or execute code)
 
+This roster is the canonical role-set enumeration; other surfaces reference
+it.
+
 Copilot custom agents, Codex custom agents, and Claude Code subagents are
 available for these roles as `pm`, `am`, `cm`, `sm`, `dm`, `om`, and `rm`.
 
@@ -132,6 +135,15 @@ Direct return is the default law for every spawn, not a pipeline-only track:
   Return-in-context by default; path-return when the deliverable is bigger
   than the discussion of it.
 
+Multi-session note: concurrent sessions in one repo are each the top of their
+own chain — each is direct-commit compliant on its own. Contention arises only
+under the trigger condition of 2+ concurrent sessions committing overlapping
+files on the same branch. The first-line answer is partitioning the work so
+write sets do not overlap: one session per feature branch, and at
+multi-project scale the coordinator overlay's session lanes
+(`docs/coordinator-mode.md`, Concurrent Sessions). The answer is never a
+serialization role.
+
 Mailbox specifics:
 
 - actionable role-to-role communication belongs in `minions/mail/`
@@ -148,6 +160,23 @@ Mailbox specifics:
   - any new follow-up packet should default to `minions/mail/`
   - `PM` should leave a transition note in legacy packets when follow-up work
     moves to mail
+
+### Optional Layers (convention)
+
+The subsections below describe optional layers. Every optional layer follows
+the same convention:
+
+- Ships default-off behind an explicit activation gate — usually a
+  `MINION_*` environment variable; the coordinator overlay instead gates on
+  its `MEMORY.md` declaration (see `docs/coordinator-mode.md`, Enabling It).
+- Absence of the gate or its tooling is a silent no-op — a missing layer
+  never blocks any minion workflow.
+- The layer's canonical doc carries an Enabling It section covering both
+  activation and rollback.
+- Governance files may reference a layer only in gate-conditioned language
+  ("when `MINION_X=on` ..."), never as an unconditional step.
+- Retiring an overlay means removing its doc and pointer lines — never a
+  multi-file governance sweep.
 
 ### Issue Mirror (optional view layer)
 
@@ -322,6 +351,10 @@ the other instruction files for quality before the work is handed off.**
 - The audit checks for clarity, accuracy, internal consistency, staleness (dead
   commands or paths), and drift from actual repo behavior, then applies the
   targeted fixes or routes them to the owning minion before handoff.
+- Launcher bodies for the same role must stay behaviorally identical across
+  the three launcher families (`.github/agents/`, `.codex/agents/`,
+  `.claude/agents/`); only genuinely tool-specific mechanics may differ. Any
+  launcher change triggers a cross-family audit of that role's launchers.
 - Tooling: the manual audit (subagent + rubric) is the cross-tool baseline every
   vendor can run. Where a tool exposes a built-in prompt analyzer, use it as a
   shortcut — Claude Code has the `/claude-md-improver` skill; Copilot has

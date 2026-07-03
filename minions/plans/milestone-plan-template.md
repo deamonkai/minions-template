@@ -2,7 +2,7 @@
 
 Date: YYYY-MM-DD
 Owner view: Project Manager
-Status: Active
+Status: OPEN (lifecycle defined under Exit Criteria)
 Current phase:
 Next review point:
 Primary objective:
@@ -84,3 +84,14 @@ This plan closes when:
 - condition
 - condition
 - condition
+
+STATUS lifecycle for the top-of-file `Status:` marker:
+
+- `OPEN` — the plan is live and still governs work
+- `CLOSED — COMPLETE` — the exit criteria above are met
+- `CLOSED — SUPERSEDED (superseded-by: <ref>)` — a later plan or
+  decision replaced this one; `<ref>` names the successor
+
+The top-of-file STATUS marker is the closure signal, not checkbox
+completion: a plan with every box checked stays OPEN until the marker
+flips.

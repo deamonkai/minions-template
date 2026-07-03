@@ -5,6 +5,10 @@ This repository is now in active downstream onboarding mode.
 Purpose: move from template export into an operating project with PM, AM, CM,
 SM, DM, OM, and RM discipline, durable evidence, and milestone execution.
 
+> Managing multiple projects from this repo? Read
+> [docs/coordinator-mode.md](docs/coordinator-mode.md) before step 2 — several
+> steps below change meaning at coordinator scale.
+
 ## Current Status
 
 - collaboration baseline imported
