@@ -36,6 +36,11 @@ runtime reality, and operator workflows.
 - when a capability inventoried in `minions/capabilities.md` fits the task,
   using it — within charter limits — is an obligation; hand-rolling what a
   listed capability already does is a review finding
+- Enforce the runbook structure contract (`docs/runbooks/README.md`) at
+  every doc-sync pass: procedures carry Purpose, Prerequisites,
+  Procedure, Validation, Rollback; no deployment procedure without
+  rollback, no implementation procedure without validation. Violations
+  are review findings.
 
 ## Outputs
 
@@ -159,4 +164,26 @@ For architecture or security work that changes docs:
   above-the-line content downstream — put additive overrides and extensions
   below the marker; contradictions get promoted upstream or filed as feedback.
 -->
+## Escalation Contract
+
+Escalation is a packet, not a mood. When a trigger below fires, stop and
+escalate instead of pushing through.
+
+Triggers:
+- documented behavior contradicts repo truth and the owning role is unclear
+- a doc-sync pass reveals governance-file drift
+- a procedure lacks validation or rollback and the author cannot supply it
+
+Provide (all five, every time):
+
+- evidence — what was observed, verbatim where possible
+- design pressure — what the finding pushes against
+- risks — what happens if we proceed anyway
+- options — at least two, including "stop"
+- recommendation — one option, with the reason it wins
+
+Route: PM by default. AM when the pressure is architectural. The
+Operator is reached only through the existing hard-stops — this contract
+adds no new Operator interrupts.
+
 <!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->

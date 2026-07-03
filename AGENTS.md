@@ -13,6 +13,9 @@ Before substantive work, read in this order:
    captured across sessions (if present).
 4. The relevant `minions/roles/*.md` charter for the active role.
 5. `minions/capabilities.md` — what capabilities exist in this environment.
+6. `minions/smes/README.md` and `minions/review-matrix.md` — which SMEs
+   exist here and how reviews route (both may be empty starters; absence
+   of content is normal).
 
 Operating rules:
 

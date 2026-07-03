@@ -53,6 +53,32 @@ complete until every `REQUIRED` item is confirmed present in the live repo. The
 `Criticality` column in `docs/export-manifest.md` marks the `baseline` files
 that most often carry these.
 
+### 1.27.0 — Expertise layer (SMEs, review matrix, escalation contracts)
+
+OPTIONAL — adopt-if-used.
+
+- OPTIONAL: `minions/smes/README.md` + `sme-template.md` starters and
+  `minions/review-matrix.md` starter. Take these if the downstream wants
+  the SME (subject-matter expert) capability — an advisory-only class
+  that recommends but never gates and never writes shared surfaces.
+  Skipping them costs only the SME capability; nothing else depends on
+  their presence.
+- OPTIONAL: `docs/runbooks/README.md` structure contract. Adopt if the
+  downstream maintains runbooks and wants the Purpose/Prerequisites/
+  Procedure/Validation/Rollback shape enforced at doc-sync.
+- The seven role charters' new `## Escalation Contract` sections and the
+  `MEMORY.md` / `INIT.md` / read-order wiring arrive via the normal
+  template-replace (charters) and split-merge (`MEMORY.md`) merge of
+  those files — no separate action beyond the usual upgrade mechanics.
+- NOTHING in this entry is merge-blocking. A downstream that skips all
+  of the above loses only the SME capability and the runbook structure
+  guard; the rest of the baseline stays coherent.
+- CAUTION — governance guard/charter pairing: the new `esc_ok` check in
+  `tools/tests/governance-consistency.test.sh` FAILs unless all seven
+  role charters carry a complete `## Escalation Contract` section. If a
+  downstream re-vendors the updated test file, it must also take the
+  charter updates in the same step — take both together or neither.
+
 ### 1.26.0 — /handoff session snapshots (ephemeral surface)
 
 No required changes — adopt normally.

@@ -133,4 +133,26 @@ For implementation inside the approved architecture:
   above-the-line content downstream — put additive overrides and extensions
   below the marker; contradictions get promoted upstream or filed as feedback.
 -->
+## Escalation Contract
+
+Escalation is a packet, not a mood. When a trigger below fires, stop and
+escalate instead of pushing through.
+
+Triggers:
+- implementation surfaces design pressure the approved plan cannot absorb
+- a fix requires writing outside the assigned lane or branch
+- required test infrastructure is missing and cannot be added in-lane
+
+Provide (all five, every time):
+
+- evidence — what was observed, verbatim where possible
+- design pressure — what the finding pushes against
+- risks — what happens if we proceed anyway
+- options — at least two, including "stop"
+- recommendation — one option, with the reason it wins
+
+Route: PM by default. AM when the pressure is architectural. The
+Operator is reached only through the existing hard-stops — this contract
+adds no new Operator interrupts.
+
 <!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->

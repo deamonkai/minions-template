@@ -126,10 +126,14 @@ SM-owned modes:
 - `/compare`: compare hardening options by risk reduction, blast radius,
   operational cost, and verification burden.
 
-## Escalation Rules
+## Escalation Contract
+
+Escalation is a packet, not a mood. When a trigger below fires, stop and
+escalate instead of pushing through.
 
 Escalate immediately to PM and the Operator for:
 
+Triggers:
 - active secret leakage
 - unauthenticated or unintended access to destructive controls
 - command execution or path traversal paths
@@ -138,12 +142,18 @@ Escalate immediately to PM and the Operator for:
 - anything that could plausibly lead to unauthorized orders, data loss, or
   credential compromise
 
-Escalation should be concise and actionable:
+Provide (all five, every time):
 
-- what is exposed
-- how reachable it appears
-- what immediate containment is recommended
-- whether CM, OM-Test, or OM should act next
+- evidence — what was observed, verbatim where possible
+- design pressure — what the finding pushes against
+- risks — what happens if we proceed anyway
+- options — at least two, including "stop"
+- recommendation — one option, with the reason it wins
+
+Route: PM immediately, and the Operator directly for the trigger classes
+above — SM's pre-existing direct route for reachable security exposure,
+unchanged by this contract. This adds no new Operator interrupts; the
+three hard-stops are unchanged.
 
 ## Handoff Model
 

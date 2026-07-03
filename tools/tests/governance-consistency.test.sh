@@ -135,5 +135,32 @@ if [ -n "$mem_roles" ] && [ -n "$ai_roles" ] && [ "$mem_roles" != "$ai_roles" ];
   echo "FAIL - role-set drift: MEMORY.md roster [$(echo $mem_roles)] vs AI.md launchers [$(echo $ai_roles)]"; fail=1
 fi
 
+# --- Escalation Contract: all seven charters carry the section with the
+# required payload. 7-file conventions are where drift happens (roster
+# precedent). Self-tested below, same rule as the other extractors.
+esc_ok() { # $1=charter file
+  awk '/^## Escalation Contract$/{f=1;next} /^## |^<!-- =/{f=0} f' "$1" \
+    | grep -qi 'Triggers' || return 1
+  awk '/^## Escalation Contract$/{f=1;next} /^## |^<!-- =/{f=0} f' "$1" \
+    | grep -qi 'Provide' || return 1
+  awk '/^## Escalation Contract$/{f=1;next} /^## |^<!-- =/{f=0} f' "$1" \
+    | grep -qi 'recommendation' || return 1
+  awk '/^## Escalation Contract$/{f=1;next} /^## |^<!-- =/{f=0} f' "$1" \
+    | grep -qi 'Route' || return 1
+}
+__ea="$(mktemp)"
+printf '%b' '## Escalation Contract\n\nTriggers:\n- x\n\nProvide:\n- evidence\n- recommendation\n\nRoute: PM\n\n## Next\n' > "$__ea"
+esc_ok "$__ea" || { echo "FAIL - esc_ok self-test (missed valid section)"; fail=1; }
+printf '%b' '## Escalation Contract\n\nTriggers:\n- x\n\n## Next\n' > "$__ea"
+! esc_ok "$__ea" || { echo "FAIL - esc_ok self-test (accepted payload-free section)"; fail=1; }
+printf '%b' '## Escalation Contract\n\n<!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->\n\nTriggers: x\nProvide: evidence, recommendation\nRoute: PM\n' > "$__ea"
+! esc_ok "$__ea" || { echo "FAIL - esc_ok self-test (tokens below delimiter masked a gutted section)"; fail=1; }
+rm -f "$__ea"
+for c in minions/roles/PM.md minions/roles/AM.md minions/roles/CM.md \
+         minions/roles/SM.md minions/roles/DM.md minions/roles/OM.md \
+         minions/roles/RM.md; do
+  esc_ok "$c" || { echo "FAIL - $c missing/incomplete Escalation Contract (Triggers+Provide+recommendation+Route)"; fail=1; }
+done
+
 test "$fail" -eq 0 && echo "ok - governance consistent"
 exit "$fail"

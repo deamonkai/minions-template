@@ -73,6 +73,7 @@ formula:
 | `/research` | RM | An issue or unknown needs in-depth, vendor-documentation-grounded research before a decision | Issue framing, vendor-doc findings, corroborating evidence, ranked options with tradeoffs, recommended next step, sources |
 | `/ship` | PM (orchestrator) | A bounded feature should run the automated plan → implement → test → review pipeline end to end | Stage chain (AM spec, CM changes, CM tests, optional SM, read-only CM verdict), gates, one durable artifact, no merge — see Pipeline Mode below |
 | `/handoff` | PM (orchestrator seat) | The session is ending, compaction is near, or the Operator is handing off with work in flight | Flush of all durability obligations, then one self-contained snapshot in `minions/handoffs/` committed on the active branch; deleted on pickup — see Handoff Mode below |
+| `SME consult` | any consulting role | A change touches a registered SME's Consult When conditions, or a review-matrix row requires one | Findings-only packet (findings, risks, options, recommendation — no DECISION, no NEXT OWNER); consulting role owns the decision — see SME Consult Mode below |
 
 ## Role Mapping
 
@@ -343,6 +344,24 @@ orchestrators reproduce its sections exactly.
 - **Staleness:** an unconsumed snapshot older than the work it describes is
   deleted at the next gate's DM doc-sync pass. Absence of any handoff is
   normal — most sessions end at natural completion.
+
+## SME Consult Mode
+
+Cross-tool prompt pattern for consulting a registered SME
+(`minions/smes/README.md`) from any environment, with or without
+subagent support:
+
+> Act as the <SME name> per `minions/smes/<sme>.md`. Advisory posture:
+> you advise; you do not own, gate, approve, schedule, or write shared
+> surfaces. Evaluate: <the change or question>. Return a findings-only
+> packet — findings, risks, options, recommendation. If the question is
+> outside your Do Not Consult For boundary, say so and name the right
+> SME or RM domain instead of answering.
+
+Selection: review-matrix rows first (deterministic, always win); the
+charter's Consult When / Do Not Consult For sections when no row
+matches. The consulting role transcribes the SME verdict verbatim into
+its own packet per the verdict-distribution law and owns the decision.
 
 ## Closure Additions
 

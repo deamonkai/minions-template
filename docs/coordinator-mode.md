@@ -177,6 +177,26 @@ lane are out of scope and unsupported until field evidence demands it. If two
 work streams must touch the same lane, run them sequentially in one session
 lane, not concurrently.
 
+## Expertise Layer (shared SME bench)
+
+The coordinator repo's `minions/smes/` is the shared expertise bench:
+any project lane may consult any registered SME. Lane-safe by
+construction — SMEs are advisory-only, write no shared surfaces, and
+their findings packets return to the consulting lane's own packet
+surfaces. The bench registry and the root review matrix are
+coordinator-shared surfaces: edits go through the coordinator seat per
+the single-writer law, with lane packets as the request path.
+
+Project-local SMEs may live in `projects/<key>/smes/` under the same
+protocol, consultable only within that lane; for that project's context
+the local registry outranks the shared bench (the same rule as
+root-vs-project MEMORY.md). The root review matrix routes
+coordinator-shared-surface and cross-project policy changes; project
+lanes keep their own matrix. Shared-bench registries may carry the
+advisory `Maturity` column (`experimental | standard | trusted |
+authoritative`) as a tie-breaker when SMEs overlap — advisory only,
+never a mandatory router, never an override of a matrix row.
+
 ## Coordinator Upgrades
 
 Template upgrades at coordinator scale follow the standard

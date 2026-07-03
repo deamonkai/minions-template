@@ -165,3 +165,8 @@ template repo.
 | `minions/capabilities.md` | yes | `downstream-owned` | `baseline` | PM | per-repo capability inventory; bootstrap read + activation record for `docs/minion-plugin-pairings.md`. Template ships the starter (instructions + example rows); downstream fills and owns the content — do not overwrite the filled inventory during upgrades |
 | `minions/handoffs/README.md` | yes | `template-replace` | `feature` | PM | session-handoff surface protocol (ephemeral courier, delete-on-pickup) |
 | `minions/handoffs/*.md` (snapshots) | no | `downstream-owned` | `n/a` | PM | transient session snapshots; never exported; deleted on pickup |
+| `minions/smes/README.md` | yes | `template-replace` | `feature` | PM | expertise-layer surface protocol (SMEs: advisory class, not roles) + downstream-owned registry table |
+| `minions/smes/sme-template.md` | yes | `template-replace` | `feature` | PM | SME charter template (discovery sections required) |
+| `minions/smes/*.md` (SME charters) | no | `downstream-owned` | `n/a` | PM | downstream expertise content; never exported from the template |
+| `minions/review-matrix.md` | yes | `downstream-owned` | `feature` | PM | review-routing starter (change types → required reviewers); template ships generic examples, downstream fills and owns |
+| `docs/runbooks/README.md` | yes | `template-replace` | `reference` | DM | runbook structure contract (required sections + two hard rules) |

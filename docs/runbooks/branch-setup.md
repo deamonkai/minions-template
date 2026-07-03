@@ -484,3 +484,17 @@ blocked.
   fine-grained permissions.
 - Re-run from the protection steps if branch protection is ever accidentally
   removed.
+
+## Validation
+
+- `git ls-remote --heads origin` lists `dev` and `staging`.
+- A test push directly to `main` is rejected; a PR from `staging` to
+  `main` is accepted (create and close one without merging).
+
+## Rollback
+
+Remove the protection rules via the same host UI/API used to create
+them, then delete the branches if truly unwinding:
+`git push origin --delete dev staging`. Protection removal is
+non-destructive; branch deletion loses any unmerged work — check
+`git log origin/dev --not origin/main` first.

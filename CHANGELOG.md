@@ -2,6 +2,58 @@
 
 All notable changes to this repository are tracked here.
 
+## 2026-07-03 (v1.27.0 — Expertise layer: SMEs, review matrix, escalation contracts)
+
+- Commit hash: pending (staging→main PR merge)
+- **Provenance:** field packets #5 + follow-up, Copilot-authored cold
+  review — the first from a different vendor's seat — vendored with
+  evidence triage in `AI/feedback/`, including the recorded
+  hierarchy-misread correction.
+- `minions/smes/` — new SME surface starters (protocol `README.md` +
+  `sme-template.md` charter template). SMEs are an advisory **class, not
+  roles**: recommend-only, no gates, no shared-surface writes,
+  findings-only handoff packets (no DECISION / NEXT OWNER); never listed
+  in the `MEMORY.md` roster. SME = standing domain judgment; RM =
+  external investigation; SME findings needing verification route to RM
+  via the paired research domain.
+- Discovery protocol: required Consult When / Do Not Consult For charter
+  sections (negative discovery prevents expertise creep), registry
+  summary columns, and a precedence rule — review-matrix rows always win
+  over discovery metadata; disagreement between the two is registry-
+  hygiene drift and a review finding.
+- `minions/review-matrix.md` — new downstream-owned review-routing
+  starter (change types → required reviewers). Absence means
+  charter-default routing applies; rows only ever ADD reviewers.
+  Skipping a matrix-required reviewer is a review finding (see
+  `MEMORY.md`, Execution Quality).
+- `## Escalation Contract` added to all seven role charters
+  (generalizing SM's pre-existing shape): role-specific Triggers, a
+  five-part Provide payload (evidence, design pressure, risks, options,
+  recommendation), and Route (PM default / AM for architectural
+  concerns / Operator only via existing hard-stops). New self-tested
+  `esc_ok` governance guard in
+  `tools/tests/governance-consistency.test.sh` asserts the section is
+  present and complete in all seven charters.
+- `docs/runbooks/README.md` — new structure contract (Purpose,
+  Prerequisites, Procedure, Validation, Rollback; an explicit "no
+  rollback — irreversible" note satisfies the field): no deployment
+  procedure may ship without a rollback section, no implementation
+  procedure without a validation section; DM enforces this at doc-sync.
+  Three existing runbooks (add-submodule, branch-setup,
+  issue-board-setup) were brought into compliance; two already complied.
+- Coordinator mode: the coordinator repo's `minions/smes/` acts as the
+  shared bench, lane-safe because SMEs are advisory-only; the registry
+  and root review matrix are coordinator-seat surfaces; projects may add
+  an optional local `projects/<key>/smes/` with local-outranks-shared
+  precedence; an optional advisory Maturity column is available on the
+  registry.
+- Wiring: bootstrap read order updated across all three launcher entry
+  points plus `AI.md`; `INIT.md` gains an onboarding step 7; `docs/
+  minion-prompt-modes.md` gains an SME Consult Mode section; new
+  `docs/export-manifest.md` rows for the added surfaces.
+- Full `tools/tests/` suite green, including the new `esc_ok`
+  self-tests inside `governance-consistency.test.sh`.
+
 ## 2026-07-03 (v1.26.0 — /handoff: flush-then-snapshot session handoffs, ephemeral)
 
 - Commit hash: pending (staging→main PR merge)

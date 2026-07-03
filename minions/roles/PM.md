@@ -41,6 +41,10 @@ gates, and operator-facing decision clarity.
 - keep `minions/capabilities.md` current: re-inventory the environment at
   each milestone/run start and whenever a `DURABLE LESSONS:` or
   `feedback.md` entry flags a capability gap, change, or friction
+- Consult `minions/review-matrix.md` when structuring reviews: matrix
+  rows are deterministic review routing and always ADD reviewers on top
+  of charter defaults; when no row matches, select SMEs by their
+  Consult When / Do Not Consult For sections (`minions/smes/README.md`).
 
 ## Branch Ownership
 
@@ -222,4 +226,27 @@ PM owns the gate, not the deploy.
   above-the-line content downstream — put additive overrides and extensions
   below the marker; contradictions get promoted upstream or filed as feedback.
 -->
+## Escalation Contract
+
+Escalation is a packet, not a mood. When a trigger below fires, stop and
+escalate instead of pushing through.
+
+Triggers:
+- gate evidence is incomplete, contradictory, or truncated
+- two roles' verdicts conflict and evidence does not resolve them
+- milestone acceptance criteria are invalidated mid-flight
+- any hard-stop condition is reached
+
+Provide (all five, every time):
+
+- evidence — what was observed, verbatim where possible
+- design pressure — what the finding pushes against
+- risks — what happens if we proceed anyway
+- options — at least two, including "stop"
+- recommendation — one option, with the reason it wins
+
+Route: PM by default. AM when the pressure is architectural. The
+Operator is reached only through the existing hard-stops — this contract
+adds no new Operator interrupts.
+
 <!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->

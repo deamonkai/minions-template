@@ -92,6 +92,12 @@ guardrails are retained.
 Operator request RM research; RM returns options and a recommendation; the
 requesting owner (or `PM`) decides and routes any implementation to `CM`.
 
+The roster above is the complete role set. Subject-Matter Experts
+(`minions/smes/`) are a separate advisory class, not roles: they supply
+findings-only packets, hold no gates, write no shared surfaces, and are
+routed by `minions/review-matrix.md` plus their charters' Consult When /
+Do Not Consult For sections. Roles own; SMEs advise.
+
 ## Communication Model
 
 This template uses two channels for inter-minion results. Pick the right one so
@@ -409,6 +415,10 @@ the other instruction files for quality before the work is handed off.**
 - Favor simple, low-impact solutions over cleverness when both satisfy the requirement.
 - Review passes flag hand-rolled work where an inventoried capability
   (`minions/capabilities.md`) fit the task and the charter permitted its use.
+- Review routing: when `minions/review-matrix.md` has a row matching a
+  change, every listed reviewer is required — skipping one is a review
+  finding. Matrix rows add reviewers, never remove charter-required
+  ones, and win over SME discovery metadata on any disagreement.
 - Dispatch briefs for runtime-touching work must instruct the agent to
   confirm live state first, never embed a presumed runtime snapshot.
   Embedded state is stale the moment it is written — the brief states what

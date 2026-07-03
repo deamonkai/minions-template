@@ -308,3 +308,15 @@ the real 0.14.1 behavior.
 > running `tea` v0.14.1 against a live Gitea host) and absorbed upstream in
 > template v1.21.3, so downstream clones no longer need to carry it as a
 > local patch.
+
+## Validation
+
+The label checks in the recipes above are the validation: label listing
+shows all `type:*` and `role:*` labels, and re-running the bootstrap is
+a no-op (idempotency is the contract).
+
+## Rollback
+
+Set `MINION_ISSUES` off (or unset) — the mirror layer is default-off and
+goes silently inert; existing issues and labels may be left in place or
+deleted via the host UI. No repo state depends on them.

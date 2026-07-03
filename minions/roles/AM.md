@@ -114,4 +114,27 @@ When implementation or runtime evidence shows the current design no longer fits:
   above-the-line content downstream — put additive overrides and extensions
   below the marker; contradictions get promoted upstream or filed as feedback.
 -->
+## Escalation Contract
+
+Escalation is a packet, not a mood. When a trigger below fires, stop and
+escalate instead of pushing through.
+
+Triggers:
+- a change requires altering system boundaries or data flow beyond the
+  approved design
+- a new dependency would be introduced
+- design assumptions are invalidated by implementation findings
+
+Provide (all five, every time):
+
+- evidence — what was observed, verbatim where possible
+- design pressure — what the finding pushes against
+- risks — what happens if we proceed anyway
+- options — at least two, including "stop"
+- recommendation — one option, with the reason it wins
+
+Route: PM by default. AM when the pressure is architectural. The
+Operator is reached only through the existing hard-stops — this contract
+adds no new Operator interrupts.
+
 <!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->

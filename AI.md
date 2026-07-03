@@ -20,7 +20,9 @@ Use these surfaces in this order:
 3. `minions/capabilities.md` for environment truth — which capabilities
    exist in each AI environment. The inventory is the record of what tools
    exist; absence of a listed capability at call time is a silent skip,
-   never a blocker.
+   never a blocker. The SME registry (`minions/smes/README.md`) and review
+   matrix (`minions/review-matrix.md`) are read with it — SMEs are an
+   advisory class, not roles, and never appear in the Role Agents list.
 4. `minions/mail/` for actionable handoff packets, responses, and verdicts.
 5. `minions/plans/` for milestone scope, acceptance criteria, and gates.
 6. `minions/chat/` for PM-owned continuity summaries.

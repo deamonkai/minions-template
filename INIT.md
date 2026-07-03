@@ -44,9 +44,16 @@ SM, DM, OM, and RM discipline, durable evidence, and milestone execution.
    - enumerate the skills, connectors, and plugin agents available to each AI tool in use, then fill the inventory table
    - each tool enumerates differently: Claude surfaces its session skills and connectors; Codex and Copilot surface their installed tool lists
    - launcher families marked `deferred` in the onboarding checklist enter the inventory with status `deferred`
-7. Wire this project's minion↔plugin pairings: review [docs/minion-plugin-pairings.md](docs/minion-plugin-pairings.md) and add "use-when" lines to the owning role charters for the integrations this project actually uses (plus any scoped whitelist entry a restricted role needs). Skip pairings whose plugin is absent.
-8. Keep [ROADMAP.md](ROADMAP.md), [TODO.md](TODO.md), and [CHANGELOG.md](CHANGELOG.md) updated during execution, and capture Operator feedback in [feedback.md](feedback.md) (promote durable items into [MEMORY.md](MEMORY.md)).
-9. Use [docs/downstream-upgrade-playbook.md](docs/downstream-upgrade-playbook.md) for later template updates.
+7. Decide the expertise bench: if this repo has recurring specialist
+   domains, author SME charters from
+   [minions/smes/sme-template.md](minions/smes/sme-template.md), register
+   them in [minions/smes/README.md](minions/smes/README.md), and give
+   review routing its rows in
+   [minions/review-matrix.md](minions/review-matrix.md). An empty bench
+   is a valid outcome — record the decision either way.
+8. Wire this project's minion↔plugin pairings: review [docs/minion-plugin-pairings.md](docs/minion-plugin-pairings.md) and add "use-when" lines to the owning role charters for the integrations this project actually uses (plus any scoped whitelist entry a restricted role needs). Skip pairings whose plugin is absent.
+9. Keep [ROADMAP.md](ROADMAP.md), [TODO.md](TODO.md), and [CHANGELOG.md](CHANGELOG.md) updated during execution, and capture Operator feedback in [feedback.md](feedback.md) (promote durable items into [MEMORY.md](MEMORY.md)).
+10. Use [docs/downstream-upgrade-playbook.md](docs/downstream-upgrade-playbook.md) for later template updates.
 
 ## Roles and Handoff
 

@@ -136,3 +136,17 @@ the record of every project the coordinator has managed (Project Registry,
 Archive the lane (`projects/<key>/`) rather than deleting it: move it aside
 or rely on git history; do not rewrite it. This matches the overlay's
 rollback posture in `docs/coordinator-mode.md`.
+
+## Validation
+
+- `git submodule status` shows the new path at the expected commit.
+- `projects/index.md` has the new row; `projects/<key>/` contains the
+  lane scaffold (MEMORY.md sections, mail/ marker, chat/ directory).
+- The PM onboarding gate packet exists and PM has marked the row
+  `in-progress` (step 5).
+
+## Rollback
+
+Reverse of registration: `git submodule deinit <path>`, remove the
+submodule entry and lane scaffold in one commit, and set the registry
+row's status to `retired` — rows are never deleted.

@@ -136,4 +136,26 @@ For code moving into a running environment:
   above-the-line content downstream — put additive overrides and extensions
   below the marker; contradictions get promoted upstream or filed as feedback.
 -->
+## Escalation Contract
+
+Escalation is a packet, not a mood. When a trigger below fires, stop and
+escalate instead of pushing through.
+
+Triggers:
+- a deploy or restart is requested without rollback posture
+- runtime health contradicts the expected post-change state
+- recovery would require a destructive action
+
+Provide (all five, every time):
+
+- evidence — what was observed, verbatim where possible
+- design pressure — what the finding pushes against
+- risks — what happens if we proceed anyway
+- options — at least two, including "stop"
+- recommendation — one option, with the reason it wins
+
+Route: PM by default. AM when the pressure is architectural. The
+Operator is reached only through the existing hard-stops — this contract
+adds no new Operator interrupts.
+
 <!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->

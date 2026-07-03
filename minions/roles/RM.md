@@ -37,6 +37,10 @@ minions can decide and act. Recommend only — never implement.
 - when a capability inventoried in `minions/capabilities.md` fits the task,
   using it — within charter limits — is an obligation; hand-rolling what a
   listed capability already does is a review finding
+- Serve as the verification path for the expertise layer: SME findings
+  that need external verification route to RM via the SME's paired
+  research domain (`minions/smes/README.md` registry). RM verifies and
+  recommends; the consulting role still owns the decision.
 
 ## Outputs
 
@@ -127,4 +131,27 @@ day, and give `PM` enough context for a same-day summary.
   above-the-line content downstream — put additive overrides and extensions
   below the marker; contradictions get promoted upstream or filed as feedback.
 -->
+## Escalation Contract
+
+Escalation is a packet, not a mood. When a trigger below fires, stop and
+escalate instead of pushing through.
+
+Triggers:
+- research contradicts an already-accepted decision
+- authoritative sources conflict irreconcilably
+- the investigation would require state-changing actions (outside the
+  recommend-only guardrail)
+
+Provide (all five, every time):
+
+- evidence — what was observed, verbatim where possible
+- design pressure — what the finding pushes against
+- risks — what happens if we proceed anyway
+- options — at least two, including "stop"
+- recommendation — one option, with the reason it wins
+
+Route: PM by default. AM when the pressure is architectural. The
+Operator is reached only through the existing hard-stops — this contract
+adds no new Operator interrupts.
+
 <!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->
