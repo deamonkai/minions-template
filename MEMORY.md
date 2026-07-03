@@ -216,6 +216,19 @@ authority.
 - Model: `docs/memory-recall-model.md`. Operator setup:
   `docs/runbooks/memory-recall-setup.md`.
 
+### Session Handoffs (ephemeral)
+
+`minions/handoffs/` holds session snapshots written by `/handoff` (Handoff
+Mode in `docs/minion-prompt-modes.md`) so a fresh session or post-compaction
+context resumes cleanly. This is **not an optional layer**: it is always
+available, gated by nothing, and its absence needs no explanation — most
+sessions end at natural completion and never write one. Snapshots are
+**temporary couriers, never truth**: `/handoff` flushes every durability
+obligation first, so nothing durable lives only in a snapshot, and the
+resuming session verifies claims against repo truth (files win), then
+DELETES the snapshot — the deletion commit is the pickup receipt. Surface
+protocol: `minions/handoffs/README.md`.
+
 ## Mailbox Bootstrap
 
 When a minion needs to open or answer a mailbox packet, bootstrap in this
@@ -260,6 +273,27 @@ Current rollout rule:
 - Milestone-relevant progress should be made durable in owned mail packets the
   same day, and `PM` should receive enough context to publish a same-day chat
   summary
+
+### Capability Inventory
+
+`minions/capabilities.md` is the downstream-owned record of which skills,
+connectors (MCP), and plugin agents actually exist in this repo's AI
+environments — the activation record for `docs/minion-plugin-pairings.md`.
+
+- Every minion reads it at session bootstrap, alongside this file.
+- When an inventoried capability fits the task and the charter permits its
+  use, using it is an obligation, not a suggestion — hand-rolling what a
+  listed capability already does is a review finding.
+- Charter guardrails always win: "fits the task" includes "permitted by
+  charter", and a pairing never expands a role past its lane.
+- Absence of a listed capability at call time is a silent skip, never a
+  blocker — the same convention that governs the optional layers above.
+- `PM` refreshes the inventory at each milestone/run start and whenever a
+  `DURABLE LESSONS:` or `feedback.md` entry flags a capability gap, change,
+  or friction.
+- Tool/capability observations are a named `DURABLE LESSONS:` category:
+  spawned minions return them with the packet, and the single writer folds
+  them into inventory updates at consolidation.
 
 ### Branch Coordination Plane
 
@@ -373,6 +407,8 @@ the other instruction files for quality before the work is handed off.**
 - If a temporary containment action is necessary, label it clearly as containment and assign follow-up ownership for the final fix.
 - Keep progress durable as checkpoints complete by updating the relevant plan, packet, role file, or PM summary the same day.
 - Favor simple, low-impact solutions over cleverness when both satisfy the requirement.
+- Review passes flag hand-rolled work where an inventoried capability
+  (`minions/capabilities.md`) fit the task and the charter permitted its use.
 - Dispatch briefs for runtime-touching work must instruct the agent to
   confirm live state first, never embed a presumed runtime snapshot.
   Embedded state is stale the moment it is written — the brief states what
@@ -596,10 +632,11 @@ Required structure (in this exact order):
 
 Optional section for spawned minions (returned with the packet, not written):
 
-10. `DURABLE LESSONS:` role-file deltas, `feedback.md` candidates, and
-    comm-stack observations. The single writer batches these into the role
-    files / `feedback.md` during consolidation and disposes of each item
-    explicitly — apply, or drop with reason.
+10. `DURABLE LESSONS:` role-file deltas, `feedback.md` candidates,
+    tool/capability observations, and comm-stack observations. The single
+    writer batches these into the role files / `feedback.md` /
+    `minions/capabilities.md` during consolidation and disposes of each
+    item explicitly — apply, or drop with reason.
 11. `SOLE-HOLDER:` any fact whose only copy is this return — rollback
     anchors, backup/recovery paths, checksums, credentials-adjacent state.
     The packet's single writer persists sole-holder facts immediately on
@@ -644,6 +681,10 @@ SESSION RESET:
 - recommended next action:
 ```
 
+For the durable version of this reset — a committed, self-contained snapshot
+that survives session death — use `/handoff` (Session Handoffs in the
+Communication Model above).
+
 ## Operator Onboarding
 
 - Project onboarding is a PM-owned function and must be completed before normal execution cadence
@@ -657,3 +698,19 @@ SESSION RESET:
 - production-affecting changes require explicit rollback posture
 - runtime truth matters more than commit history
 - for a behavior-changing change to a critical path that has a comparable incumbent, consider the optional shadow-first / dark-ship posture in `docs/risk-posture-shadow-first.md` (ship dark + flag-off, prove no-regression with an isolation test, adopt only on measured evidence, count every divergence). It is opt-in, not required — reach for it only when reversal risk justifies the weight.
+
+## Template/Downstream Split
+
+Everything above the delimiter at the end of this file is the template-managed
+baseline and converges to the template at every upgrade via the split-merge
+procedure in `docs/downstream-upgrade-playbook.md` (Manual-Merge Guidance).
+Project-specific sections — project truth, environments, safety constraints —
+belong below the delimiter.
+
+<!--
+  Project-specific sections — project truth, environments, safety constraints —
+  live BELOW the marker; the template-managed baseline ABOVE it converges to
+  the template at every upgrade. Put additive overrides below the marker;
+  contradictions get promoted upstream or filed as feedback.
+-->
+<!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->

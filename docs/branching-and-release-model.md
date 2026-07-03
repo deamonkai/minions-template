@@ -33,7 +33,11 @@ proceed without Operator approval). Step 7 is the single hard-stop.
    approval needed.
 6. **OM validates + DM doc-sync + PM gate** — OM confirms staging health; DM
    assembles `CHANGELOG.d/` fragments into `CHANGELOG.md` and deletes the
-   fragments; PM confirms the milestone is complete and gate criteria are met.
+   fragments, and **in the same commit** writes the release's entry in
+   `docs/downstream-upgrade-playbook.md` "Version-Specific Required Changes"
+   (even the negative one-liner: "No required changes — adopt normally");
+   PM confirms the milestone is complete and gate criteria are met — an
+   assembly lacking the playbook entry does not pass the gate.
 7. **PM opens the `staging→main` pull request (PR)** on the project's VCS
    host — this is the Operator hard-stop. The Operator reviews the PR,
    confirms everything, and merges. The PR can be opened via that host's

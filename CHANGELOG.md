@@ -2,6 +2,276 @@
 
 All notable changes to this repository are tracked here.
 
+## 2026-07-03 (v1.26.0 — /handoff: flush-then-snapshot session handoffs, ephemeral)
+
+- Commit hash: pending (staging→main PR merge)
+- Design driven by the Operator's downstream session need for a durable,
+  self-contained snapshot so a fresh session (or the post-compaction
+  context) resumes cleanly; the single-writer law already mandated
+  durability "before session end or Operator handoff" but attached no
+  procedure, and the Session Reset template existed only as a
+  conversational reframe — `/handoff` composes existing law (the
+  durability window, `SOLE-HOLDER:` persistence, verdict distribution,
+  live-state verification) into one procedure rather than inventing new
+  rules. Design at
+  `docs/superpowers/specs/2026-07-03-handoff-command-design.md`.
+- `.claude/commands/handoff.md`: new slash command implementing a
+  flush-then-snapshot protocol. Phase 1 (flush) discharges every
+  outstanding durability obligation before anything is written to the
+  snapshot: persist `SOLE-HOLDER:` facts to their canonical home
+  immediately, commit each in-flight deliverable per the durability
+  window, batch pending `DURABLE LESSONS:` to their canonical homes
+  (role charters, `feedback.md`, `minions/capabilities.md`), and note
+  (never await) running background work. Phase 2 (snapshot) writes
+  `minions/handoffs/<YYYY-MM-DD-HHMM>-<topic>.md` from a template
+  covering Session Reset fields, repo state, in-flight work, environment
+  gate readings (marked presumptive), pointers, and memory-recall hints.
+- Ephemeral, delete-on-pickup lifecycle: a handoff snapshot is a
+  **temporary courier, not truth** — it must survive session death (so it
+  is committed on the active branch, Class B), but the receiving session
+  deletes it after pickup and commits the deletion as the consumption
+  receipt. The flush is what makes deletion safe: after it, the snapshot
+  duplicates no canonical content, only a pointer map plus resume
+  narrative. On any conflict between a snapshot and repo truth, repo
+  truth governs (files win); contradictions worth keeping are extracted
+  to `feedback.md`, never written back into a handoff.
+- Supersede rule: a new `/handoff` for the same seat/topic supersedes any
+  prior unconsumed snapshot for that seat/topic — the old snapshot is
+  deleted in the same commit that adds the new one, so at most one live
+  snapshot exists per seat/topic.
+- Staleness sweep: an unconsumed snapshot older than the work it
+  describes is dead weight; DM deletes it at the next gate's doc-sync
+  pass.
+- `minions/handoffs/README.md`: new surface protocol doc — lifecycle
+  (write / ride the branch / pickup / verify / delete + receipt),
+  naming convention, ephemeral-courier framing, staleness sweep, and the
+  "absence is normal" note (most sessions end at natural completion and
+  write no handoff).
+- Cross-tool parity: `docs/minion-prompt-modes.md` gains a "Handoff
+  Mode" entry (command-table row + section) so Codex/Copilot
+  orchestrators run the identical flush-then-snapshot protocol by prompt
+  — the established `/ship` cross-tool pattern.
+- `MEMORY.md`: short "Session handoffs (ephemeral)" note in the
+  Communication Model, beside the optional-layer subsections but
+  explicitly NOT an optional layer — it is always available, gated by
+  nothing — plus a cross-reference from the Session Reset template.
+- Meta: `docs/export-manifest.md` rows for `.claude/commands/handoff.md`
+  (template-replace/feature) and `minions/handoffs/README.md`
+  (template-replace/feature), plus the `minions/handoffs/*.md` glob row
+  (downstream-owned/n/a, never exported, deleted on pickup) so the
+  manifest-completeness guard classifies the whole surface; version
+  bumped to `1.26.0-1.0.0`.
+- Guardrails: `/handoff` never merges, pushes, or promotes anything — it
+  snapshots around whatever gate state exists; snapshots never contain
+  secrets, credentials-adjacent values, or personal data (same exclusion
+  classes as the memory layer); `SOLE-HOLDER:` facts are persisted during
+  flush and only referenced by location in the snapshot. Full 6-file
+  `tools/tests/` suite green, including
+  `manifest-completeness.test.sh` now reporting 0 uncovered files.
+
+## 2026-07-02 (v1.25.0 — Upgrade ergonomics: guard, cross-check, backfill, split-merge)
+
+- Commit hash: pending (staging→main PR merge)
+- **Provenance:** downstream field packet on the 1.21.2 → 1.24.0 upgrade,
+  transcribed verbatim at
+  `AI/feedback/2026-07-02-upgrade-ergonomics-field-feedback.md` and
+  evidence-verified in `AI/feedback/2026-07-02-upgrade-ergonomics-triage.md`.
+  The six-release upgrade landed clean but took substantially more hand-work
+  than the playbook + tooling imply: `upgrade-classify.sh` silently missed 5
+  genuinely changed files (forcing a full `diff -rq` fallback), the
+  living-file hand merge is where the real labor sat (the 1.21.2 first pass
+  clobbered ~4,900 charter lines and needed recovery; a single 1.23.0 charter
+  bullet had to be hand-grafted into 6 charters), and the playbook's
+  Version-Specific Required Changes section had been empty since 1.11.1 —
+  owned as maintainer drift; reverse-engineering merge-blocking items per
+  release from the CHANGELOG was the single biggest time sink. All four
+  friction points CONFIRMED at triage and closed in this release. The
+  packet's what-worked-well is kept on record: the `diff <tag> <tag>` +
+  vendored-snapshot model is sound, the CHANGELOG provenance blocks are
+  genuinely excellent, and the governance role-roster drift guard passed
+  cleanly — the tooling and the required-changes section just had not kept
+  pace with the release cadence.
+- **Friction 1 — required-changes drought:** backfilled one
+  Version-Specific Required Changes entry per release, 1.12.0 → 1.24.0
+  (negatives included — "No required changes — adopt normally" is itself
+  the time-saver), in `docs/downstream-upgrade-playbook.md`. Forward rule:
+  DM writes the release's entry in the **same commit** as the CHANGELOG
+  assembly at the staging gate, every release, checked at the PM gate
+  (DM/PM charters + `docs/branching-and-release-model.md`). The 1.25.0
+  entry itself is written on this feature branch, dogfooding the rule.
+- **Friction 2 — classify under-reporting (root cause deeper than
+  reported):** the export/snapshot pipeline is manifest-row-driven, so
+  unmanifested files were invisible to snapshots *and* classify. Closed
+  from both ends: new `tools/tests/manifest-completeness.test.sh` (the
+  suite's sixth file) FAILs unless every exportable tracked file is
+  classified by a manifest row (glob rows count); and
+  `tools/upgrade-classify.sh` gains a `--repo <git-repo> --from <rev>
+  --to <rev>` git-diff completeness cross-check — any file changed in the
+  real tag-to-tag diff but absent from BOTH snapshots is reported as
+  `UNMANIFESTED-CHANGE` and the script exits 4 (treat as failure in CI).
+  TDD; `upgrade-classify.test.sh` at 34 cases.
+- **Friction 3 — living-file merges had zero mechanical support:**
+  delimiter convention (Operator decision) — the seven role charters and
+  `MEMORY.md` now carry the split-merge marker: template-verbatim content
+  above, downstream-owned content below, upgrades replace above the line
+  only. Playbook Manual-Merge Guidance gains the mechanical split-merge
+  procedure and the merge-blocking one-time migration subsection (first
+  upgrade crossing 1.25.0). Per-release `git apply --3way` patches
+  REJECTED at triage: a per-release maintainer artifact forever, treating
+  the symptom.
+- **Friction 4 — classify noise:** `upgrade-classify.sh --hide-excluded`
+  suppresses `do-not-export` rows (the recurring `AI/` / `.mm.md` noise);
+  default off for back-compat. TDD alongside friction 2.
+- Meta: `docs/export-manifest.md` charter/`MEMORY.md` row notes point at
+  the split-merge; delimiter convention noted in the manifest's
+  criticality preamble; `minion-version.md` annotation.
+- Guardrails: no governance-token changes; full 6-file `tools/tests`
+  suite green.
+
+## 2026-07-02 (v1.24.0 — Model tiering: vendor-neutral capability bands)
+
+- Commit hash: pending (staging→main PR merge)
+- **Provenance:** Network-Inventory downstream field packet
+  (`AI/feedback/2026-07-02-model-tiering-field-feedback.md`), triaged and
+  evidence-verified in `AI/feedback/2026-07-02-model-tiering-triage.md`.
+  The packet's "template says nothing about model tiers" claim was only
+  partly true — pipeline-mode tier guidance already existed
+  (`docs/minion-prompt-modes.md:243-264`, vendor-named Opus/Sonnet) — so
+  the accepted gap was role-level guidance outside pipeline mode, plus
+  reconciling the existing vendor-named text onto vendor-neutral bands.
+  The packet's own wrong-HIGH-finding evidence (a frontier orchestrator's
+  sloppy diff produced a HIGH-severity "diverged duplicates" finding that
+  was wrong — the files were byte-identical once a just-added header was
+  excluded — and it shipped in a PR before correction) is the cited
+  justification for keeping adversarial-verify passes at Frontier even
+  when the rest of a session runs cheaper.
+- Guidance doc (part 1 of this milestone): new `docs/model-tiering.md`
+  canonizes capability bands (Frontier / Mid / Economy, vendor examples
+  as aging orientation only, never requirements), the role/activity →
+  tier map (PM orchestrator / AM architecture / gate decisions and SM
+  security review / adversarial verify at Frontier; CM split by activity
+  — reviewer/final-verifier at Frontier, bounded implementation at Mid
+  via the existing coder/tester pipeline variants; DM runbooks/docs at
+  Mid; mechanical passes at Economy), the target token profile
+  (strong-but-occasional orchestrator over cheap-and-frequent minions),
+  and the escalate-by-session-stakes rule. Explicitly advisory and
+  outside the governance-scanned invariant set — a downstream pinned to
+  a single model loses nothing by ignoring it.
+- Rebanded prompt-modes: `docs/minion-prompt-modes.md`'s existing
+  vendor-named tier language reconciled onto the same Frontier/Mid/
+  Economy band vocabulary as the new doc, closing the packet's own
+  vendor-neutral non-goal violation.
+- Advisory launcher lines (part 2, this fragment): all 21 role launchers
+  across the three families (`.github/agents/*.agent.md`,
+  `.codex/agents/*.toml`, `.claude/agents/*.md`) gain an identical
+  `Recommended tier: ...` prose line placed next to the role-charter
+  read reference, one per role, matching the doc's map exactly. Pure
+  advisory prose — no `model:` frontmatter or Codex/Copilot functional
+  field was added or changed; Claude's seven existing pins (six
+  `model: opus`, `dm` at `model: sonnet` — together implementing the tier
+  map exactly) are untouched and documented as that family's optional
+  enforcement mechanism on top of the shared advisory default.
+- Pointers: `docs/export-manifest.md` gains a row for the new doc
+  (`yes` / `template-replace` / `reference` / PM); this fragment is the
+  changelog pointer; `minion-version.md` bumped to `1.24.0-1.0.0` with a
+  dense annotation scoped to both commits on this branch.
+- Guardrails unchanged: no governance-token changes, no new functional
+  model pins, `tools/tests/governance-consistency.test.sh` does not (and
+  per the new doc, should not) check tier compliance. Full
+  `tools/tests` suite green.
+
+## 2026-07-02 (v1.23.0 — Capability discovery & utilization)
+
+- Commit hash: pending (staging→main PR merge)
+- **Provenance:** work-fork field bug — minions did not know which
+  skills, connectors, or plugin agents existed in their environment and
+  therefore did not use them, despite `docs/minion-plugin-pairings.md`
+  already documenting "Access ≠ use". The gap sat upstream of the
+  pairings: no inventory, no bootstrap read, no refresh loop, no
+  utilization instruction in cross-tool calls. Design in
+  `docs/superpowers/specs/2026-07-02-capability-discovery-design.md`.
+- Inventory artifact (D1): new `minions/capabilities.md` starter — a
+  downstream-owned, per-repo table of capabilities (name; kind
+  `skill`/`connector`/`agent`; per-environment availability for Claude,
+  Codex, and Copilot; status `active`/`deferred`/`absent`; paired roles
+  per the pairings doc; one-line use-for). The template ships
+  instructions plus clearly-marked example rows; each repo fills and
+  owns its own copy. It is the activation record for
+  `docs/minion-plugin-pairings.md`.
+- Onboarding step (D2): `INIT.md` gains an explicit step — enumerate
+  each AI tool's skills/connectors/agents and fill the inventory
+  (launcher families marked deferred in the checklist enter with status
+  `deferred`); `docs/operator-onboarding-checklist.md` gains a
+  filled-inventory completion line; the pairings doc backlinks the
+  inventory as the record that activation condition 1 (present in the
+  environment) holds.
+- Bootstrap read + utilization obligation (D3): `minions/capabilities.md`
+  joins the session read lists in `CLAUDE.md`, `AGENTS.md`, and
+  `.github/copilot-instructions.md`, and ranks in `AI.md`'s
+  source-of-truth order as environment truth (absence of a listed
+  capability at call time is a silent skip, never a blocker).
+  `MEMORY.md` gains a Capability Inventory subsection under Shared
+  Rules, and all seven role charters carry an identical obligation
+  line: when an inventoried capability fits the task, using it — within
+  charter limits — is an obligation, and hand-rolling what a listed
+  capability already does is a review finding. Execution Quality gains
+  the matching review-lens bullet, and the review-stage prompts carry
+  the same check: the `/ship` stage-7 read-only reviewer and stage-8
+  cross-vendor prompts flag hand-rolled work where an inventoried
+  capability fit the task, per the Pipeline Mode review guidance in
+  `docs/minion-prompt-modes.md`. `docs/minion-plugin-pairings.md`
+  reframes its former "use-if-available" language to the obligation,
+  scoping its conditionality to absent or non-inventoried integrations.
+- Refresh loop (D4, PM-owned): PM re-inventories at each milestone/run
+  start and whenever a `DURABLE LESSONS:` or `feedback.md` entry flags
+  a capability gap, change, or friction. Tool/capability observations
+  are a named `DURABLE LESSONS:` category batched into inventory
+  updates at consolidation — the Completion Handoff Contract's item 10
+  names the category and adds `minions/capabilities.md` to the batching
+  destinations — and PM-authored dispatch briefs distribute the
+  relevant inventory rows to spawned minions — stable decision
+  records, handled like reviewer verdicts.
+- Cross-tool utilization line (D5): every `tools/xtool-call.sh` prompt
+  — codex and copilot, review and delegate — now carries a standing
+  envelope line, mode-aware so review stays read-only: delegate prompts
+  carry "Enumerate your available skills/tools first and utilize any
+  that fit the task; report which you used."; review prompts carry the
+  READ-ONLY-qualified variant ("...utilize any READ-ONLY ones that fit
+  the task; make no state-changing tool calls during review...")
+  because the review contract is read-only (codex `-s read-only`;
+  copilot deny write/shell) but side-effectful MCP connectors remain
+  invocable there. One exact string per mode, each defined once so the
+  strings cannot drift between paths. TDD: argv-capture cases in
+  `tools/tests/xtool-call.test.sh` assert presence per mode, that the
+  unqualified line never reaches review argv, placement after the
+  caller prompt, and the review-mode Target suffix; suite 65/65.
+  The delegate-mode instruction is also part of PM's dispatch-brief
+  guidance for spawned minions (`minions/roles/PM.md`), carried in the
+  brief alongside the D4 inventory-row distribution.
+- Minor sweep (same version): `minions/capabilities.md` starter example
+  rows brought into compliance with the file's own legend (the `absent`
+  example row no longer claims Claude availability), and all 21 role
+  launchers across the three families (`.github/agents/*.agent.md`,
+  `.codex/agents/*.toml`, `.claude/agents/*.md`) add
+  `Read minions/capabilities.md.` to the bootstrap read preamble,
+  matching the MEMORY.md/capabilities.md session-bootstrap claim
+  (behaviorally identical wording per the Instruction-File Audit Rule).
+- Known test-fidelity gap (deferred, not implemented): the fake
+  provider's argv capture (`printf '%s\n' "$@"`) cannot distinguish
+  argument boundaries from newlines inside prompts; acceptable for
+  today's assertions, future work if multi-line assertion precision is
+  ever needed.
+- Guardrails unchanged: the utilization obligation never overrides
+  charter lanes (RM stays recommend-only; SM and PM still produce no
+  product code), and no governance tokens moved. Export-manifest row
+  for the new file (initial export yes, `downstream-owned`, `baseline`
+  — the starter must land at first export because the bootstrap read
+  depends on it; upgrades never overwrite the filled inventory).
+- Known limitation: in copilot review mode, read-only is enforced by
+  write/shell deny-flags which cannot reach side-effectful MCP connectors;
+  the READ-ONLY-qualified utilization line is a prompt-level mitigation,
+  not an enforcement boundary.
+
 ## 2026-07-02 (v1.22.1 — Overlay discipline + drift guards)
 
 - Commit hash: pending (staging→main PR merge)

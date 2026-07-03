@@ -59,7 +59,9 @@ result before starting the next. Do not skip ahead. Do not merge anything.
 7. **Review (CM, read-only).** Spawn a fresh `cm` subagent in read-only review
    posture: "You are read-only. Do NOT edit code. Run `git diff`. Assess: does
    the code match the spec, are the tests meaningful, any correctness /
-   security / performance issues? Return a verdict: SHIP / NEEDS WORK / BLOCK,
+   security / performance issues, and is any of the work hand-rolled where an
+   inventoried capability (`minions/capabilities.md`) fit the task and the
+   charter permitted its use? Return a verdict: SHIP / NEEDS WORK / BLOCK,
    with exact fixes and locations for anything other than SHIP." Pass the spec,
    changes summary, test results, and any SM findings. The read-only constraint
    is load-bearing — a reviewer that can patch its own findings papers over
@@ -67,7 +69,7 @@ result before starting the next. Do not skip ahead. Do not merge anything.
 
 8. **Independent cross-vendor review (optional).** Run an independent review from
    a *different vendor* than the one running `/ship`:
-   `bash tools/xtool-call.sh --provider <other> --mode review --target . --prompt "Independently review this change against the spec; flag correctness, security, and scope issues. Verdict: SHIP / NEEDS WORK / BLOCK." --out .pipeline`
+   `bash tools/xtool-call.sh --provider <other> --mode review --target . --prompt "Independently review this change against the spec; flag correctness, security, and scope issues, plus hand-rolled work where a capability inventoried in minions/capabilities.md fit the task. Verdict: SHIP / NEEDS WORK / BLOCK." --out .pipeline`
    Fold its verdict into the closeout evidence chain. If the wrapper exits `3`
    (no other provider installed), **skip this stage and note that you skipped
    it** — never fail the run for a missing provider. If the cross-vendor verdict

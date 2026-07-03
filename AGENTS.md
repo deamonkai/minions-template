@@ -12,6 +12,7 @@ Before substantive work, read in this order:
 3. `feedback.md` — Operator corrections, preferences, and working-style learnings
    captured across sessions (if present).
 4. The relevant `minions/roles/*.md` charter for the active role.
+5. `minions/capabilities.md` — what capabilities exist in this environment.
 
 Operating rules:
 

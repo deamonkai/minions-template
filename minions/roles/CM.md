@@ -23,6 +23,9 @@ PM, AM, and the operator.
   DM packet when documentation changes need dedicated ownership
 - make milestone-relevant progress durable in owned mail packets the same day
   and ensure `PM` has enough context for a same-day summary
+- when a capability inventoried in `minions/capabilities.md` fits the task,
+  using it — within charter limits — is an obligation; hand-rolling what a
+  listed capability already does is a review finding
 - distinguish between:
   - code merged
   - code deployed
@@ -123,3 +126,11 @@ For implementation inside the approved architecture:
 4. `DM`
 5. `PM`
 6. `Operator`
+
+<!--
+  Downstream-authored content (Learned Context, project deltas) lives BELOW the
+  marker; template upgrades replace everything ABOVE it wholesale. Never edit
+  above-the-line content downstream — put additive overrides and extensions
+  below the marker; contradictions get promoted upstream or filed as feedback.
+-->
+<!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->

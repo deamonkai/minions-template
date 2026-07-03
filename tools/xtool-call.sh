@@ -6,6 +6,19 @@ set -uo pipefail
 
 PROVIDER=""; MODE=""; ROLE=""; TARGET=""; TOPIC="adhoc"; OUTDIR=".pipeline"; PROMPT=""
 
+# D5 (capability discovery, v1.23.0): standing envelope line appended to every
+# cross-tool prompt — both providers, both modes — so the callee enumerates and
+# uses its OWN environment's capabilities (Claude/Codex/Copilot carry different
+# sets; the caller cannot know the callee's). Mode-aware (v1.23.0 minor sweep):
+# the REVIEW path is read-only by contract (codex -s read-only; copilot
+# deny-tool write/shell), but side-effectful MCP connectors remain invocable
+# there, so the review line qualifies utilization to READ-ONLY tools and
+# forbids state-changing calls; the DELEGATE line stays unqualified (delegates
+# have write scope by design). Tests assert these exact strings reach the
+# provider argv: keep each byte-identical and defined only here, one per mode.
+UTIL_LINE_DELEGATE='Enumerate your available skills/tools first and utilize any that fit the task; report which you used.'
+UTIL_LINE_REVIEW='Enumerate your available skills/tools first and utilize any READ-ONLY ones that fit the task; make no state-changing tool calls during review; report which you used.'
+
 usage() { echo "usage: xtool-call.sh --provider <codex|copilot|gemini> --mode <review|delegate> --prompt <text|-> [--role r] [--target p] [--topic s] [--out d]   ('-' reads the prompt from stdin)" >&2; }
 
 parse_args() {
@@ -100,6 +113,7 @@ run_review() {
     codex)
       # read-only enforced by -s read-only (--sandbox read-only)
       codex exec -s read-only "${PROMPT}
+${UTIL_LINE_REVIEW}
 Target: ${TARGET}" >"$raw" 2>&1 || rc=$?
       ;;
     copilot)
@@ -107,6 +121,7 @@ Target: ${TARGET}" >"$raw" 2>&1 || rc=$?
       # (verified: copilot help permissions); write+shell denied = read-only;
       # no write paths granted (no --allow-all-paths, no --add-dir).
       copilot -p "${PROMPT}
+${UTIL_LINE_REVIEW}
 Target: ${TARGET}" --allow-all-tools --deny-tool 'write' --deny-tool 'shell' >"$raw" 2>&1 || rc=$?
       ;;
     gemini) echo "gemini provider not wired yet" >&2; emit_envelope "provider-unavailable" 3 "" "" "" >/dev/null; return 3;;
@@ -176,12 +191,14 @@ run_delegate() {
   case "$PROVIDER" in
     codex)
       # -s workspace-write: allow writes inside the worktree sandbox
-      ( cd "$wt" && codex exec -s workspace-write "$PROMPT" ) >"$raw" 2>&1 || rc=$?
+      ( cd "$wt" && codex exec -s workspace-write "${PROMPT}
+${UTIL_LINE_DELEGATE}" ) >"$raw" 2>&1 || rc=$?
       ;;
     copilot)
       # --add-dir scopes write access to worktree abs path only (no --allow-all-paths)
       local wt_abs; wt_abs="$(cd "$wt" && pwd)"
-      ( cd "$wt" && copilot -p "$PROMPT" --allow-all-tools --add-dir "$wt_abs" ) >"$raw" 2>&1 || rc=$?
+      ( cd "$wt" && copilot -p "${PROMPT}
+${UTIL_LINE_DELEGATE}" --allow-all-tools --add-dir "$wt_abs" ) >"$raw" 2>&1 || rc=$?
       ;;
     gemini) echo "gemini provider not wired yet" >&2; git worktree remove --force "$wt" 2>/dev/null; git branch -D "$branch" 2>/dev/null || true; emit_envelope "provider-unavailable" 3 "" "" "" >/dev/null; return 3;;
   esac

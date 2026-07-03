@@ -29,6 +29,9 @@ and operational recovery.
 - report when runtime evidence shows the architecture or design is missing project goals
 - provide DM with runtime procedures, verification steps, rollback facts, and
   operational caveats needed for accurate runbooks
+- when a capability inventoried in `minions/capabilities.md` fits the task,
+  using it — within charter limits — is an obligation; hand-rolling what a
+  listed capability already does is a review finding
 
 ## Branch Ownership
 
@@ -126,3 +129,11 @@ For code moving into a running environment:
 5. `DM`
 6. `PM`
 7. `Operator`
+
+<!--
+  Downstream-authored content (Learned Context, project deltas) lives BELOW the
+  marker; template upgrades replace everything ABOVE it wholesale. Never edit
+  above-the-line content downstream — put additive overrides and extensions
+  below the marker; contradictions get promoted upstream or filed as feedback.
+-->
+<!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->

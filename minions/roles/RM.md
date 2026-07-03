@@ -34,6 +34,9 @@ minions can decide and act. Recommend only — never implement.
   recommend-only guardrail and source-authority discipline still apply. See
   `docs/minion-plugin-pairings.md`. If no such integration is present, rely on
   native web search/fetch and `deep-research`.
+- when a capability inventoried in `minions/capabilities.md` fits the task,
+  using it — within charter limits — is an obligation; hand-rolling what a
+  listed capability already does is a review finding
 
 ## Outputs
 
@@ -117,3 +120,11 @@ needs deeper external research or a fresh angle:
 When RM research changes shared truth (a chosen approach, a confirmed
 constraint), make it durable in an owned mail packet or the active plan the same
 day, and give `PM` enough context for a same-day summary.
+
+<!--
+  Downstream-authored content (Learned Context, project deltas) lives BELOW the
+  marker; template upgrades replace everything ABOVE it wholesale. Never edit
+  above-the-line content downstream — put additive overrides and extensions
+  below the marker; contradictions get promoted upstream or filed as feedback.
+-->
+<!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->

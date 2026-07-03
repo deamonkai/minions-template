@@ -30,7 +30,10 @@ much it matters that you do*. This is the stable, file-level signal; the
   tool and role depends on. Dropping or skipping a `baseline` merge breaks
   cross-role coherence — treat these as merge-blocking. Several are
   `manual-merge` (e.g. `MEMORY.md`, `.gitignore`), so a `template-replace` pass
-  will not bring them across on its own.
+  will not bring them across on its own. Delimiter-bearing files (the role
+  charters, `MEMORY.md`) use split-merge per the playbook's Manual-Merge
+  Guidance — take the template above the marker, preserve downstream content
+  below it — making their manual merge mechanical.
 - `feature`: adopt only if the project uses that capability (a specific AI tool's
   agent launchers, the `/ship` pipeline, plugin pairings). Required *if* the
   capability is in use; safely skipped otherwise.
@@ -38,7 +41,10 @@ much it matters that you do*. This is the stable, file-level signal; the
   current but safe to adopt lazily; lagging one does not break the operating
   model.
 - `n/a`: `do-not-export` and `downstream-owned` files — not adopted from the
-  template, so file-level criticality does not apply.
+  template, so file-level criticality does not apply. One exception:
+  `minions/capabilities.md` is `downstream-owned` yet rated `baseline`,
+  because the session bootstrap read order depends on it — its starter must
+  land at first export even though upgrades never touch the filled inventory.
 
 > **Note:** Class-A files (`MEMORY.md`, `AI.md`, `CLAUDE.md`, `AGENTS.md`,
 > `minions/roles/*`, `ROADMAP.md`, `TODO.md`, `minions/chat/`) are
@@ -99,10 +105,11 @@ template repo.
 | `CHANGELOG.md` | yes | `downstream-owned` | `n/a` | PM / DM | keep downstream project history; do not overwrite with template history |
 | `feedback.md` | seed only | `downstream-owned` | `n/a` | Operator / PM | ship the seed (purpose, capture-vs-curated rule, promotion path, format); downstream keeps its own Operator-feedback content — do not overwrite with template examples |
 | `INIT.md` | yes | `manual-merge` | `baseline` | PM | preserve project-specific onboarding context while merging new baseline workflow rules |
-| `MEMORY.md` | yes | `manual-merge` | `baseline` | PM | merge new template guardrails while preserving project-specific truth; carries the two-channel comm model |
+| `MEMORY.md` | yes | `manual-merge` | `baseline` | PM | merge new template guardrails while preserving project-specific truth; carries the two-channel comm model; split-merge per delimiter (see playbook) |
 | `minion-version.md` | yes | `manual-merge` | `baseline` | PM | update base-template version after upgrade; preserve downstream version suffix |
 | `docs/collaboration-playbook.md` | yes | `template-replace` | `baseline` | PM | baseline workflow doc |
 | `docs/minion-prompt-modes.md` | yes | `template-replace` | `baseline` | PM | baseline operator prompt-mode and advisor-posture guidance; carries Pipeline Mode |
+| `docs/model-tiering.md` | yes | `template-replace` | `reference` | PM | advisory model-tier guidance (vendor-neutral bands) |
 | `docs/minion-plugin-pairings.md` | yes | `template-replace` | `feature` | PM | recommended (conditional) minion-to-plugin/connector/skill pairings; adjust to the downstream stack |
 | `docs/project/mailbox-collaboration-model.md` | yes | `template-replace` | `baseline` | PM | baseline mailbox-first coordination model |
 | `docs/operator-onboarding-checklist.md` | yes | `manual-merge` | `reference` | PM | preserve completed downstream decisions |
@@ -110,13 +117,13 @@ template repo.
 | `docs/downstream-upgrade-playbook.md` | yes | `template-replace` | `reference` | PM | baseline downstream-upgrade procedure; holds Version-Specific Required Changes |
 | `docs/export-manifest.md` | yes | `template-replace` | `reference` | PM | baseline export/merge strategy |
 | `minions/README.md` | yes | `template-replace` | `reference` | PM | directory structure guidance |
-| `minions/roles/PM.md` | yes | `template-replace` | `baseline` | PM | review local role customizations before overwrite |
-| `minions/roles/AM.md` | yes | `template-replace` | `baseline` | PM / AM | review local role customizations before overwrite |
-| `minions/roles/CM.md` | yes | `template-replace` | `baseline` | PM / CM | review local role customizations before overwrite |
-| `minions/roles/SM.md` | yes | `template-replace` | `baseline` | PM / SM | review local role customizations before overwrite |
-| `minions/roles/DM.md` | yes | `template-replace` | `baseline` | PM / DM | review local role customizations before overwrite |
-| `minions/roles/OM.md` | yes | `template-replace` | `baseline` | PM / OM | review local role customizations before overwrite |
-| `minions/roles/RM.md` | yes | `template-replace` | `baseline` | PM / RM | review local role customizations before overwrite |
+| `minions/roles/PM.md` | yes | `template-replace` | `baseline` | PM | review local role customizations before overwrite; split-merge per delimiter (see playbook) |
+| `minions/roles/AM.md` | yes | `template-replace` | `baseline` | PM / AM | review local role customizations before overwrite; split-merge per delimiter (see playbook) |
+| `minions/roles/CM.md` | yes | `template-replace` | `baseline` | PM / CM | review local role customizations before overwrite; split-merge per delimiter (see playbook) |
+| `minions/roles/SM.md` | yes | `template-replace` | `baseline` | PM / SM | review local role customizations before overwrite; split-merge per delimiter (see playbook) |
+| `minions/roles/DM.md` | yes | `template-replace` | `baseline` | PM / DM | review local role customizations before overwrite; split-merge per delimiter (see playbook) |
+| `minions/roles/OM.md` | yes | `template-replace` | `baseline` | PM / OM | review local role customizations before overwrite; split-merge per delimiter (see playbook) |
+| `minions/roles/RM.md` | yes | `template-replace` | `baseline` | PM / RM | review local role customizations before overwrite; split-merge per delimiter (see playbook) |
 | `minions/plans/README.md` | yes | `template-replace` | `reference` | PM | baseline planning guidance |
 | `minions/plans/milestone-plan-template.md` | yes | `template-replace` | `reference` | PM | baseline planning template |
 | `minions/mail/README.md` | yes | `template-replace` | `reference` | PM | baseline mailbox workflow guidance |
@@ -131,13 +138,15 @@ template repo.
 | `TODO.md` | downstream required | `downstream-owned` | `n/a` | PM / DM | currently required by the workflow but not shipped as a template file |
 | `tools/xtool-call.sh` | yes | `template-replace` | `feature` | PM / CM | cross-tool orchestration wrapper (Codex / Copilot, review / delegate postures); adopt if project uses cross-vendor review |
 | `tools/upgrade-classify.sh` | yes | `template-replace` | `reference` | PM / CM | upgrade helper: classifies a template change-set (manifest class + live-vs-snapshot divergence) for downstream upgrades; see `docs/downstream-upgrade-playbook.md` |
-| `tools/tests/` | yes | `template-replace` | `feature` | CM | test suites (`xtool-call`, `governance-consistency`, `upgrade-classify`), fixtures, and the `governance-scan.allow` scan list; adopt as reference and regression harness |
+| `tools/tests/` | yes | `template-replace` | `feature` | CM | test suites (`xtool-call`, `governance-consistency`, `upgrade-classify`, `issue-sync`, `issue-board-bootstrap`, `manifest-completeness`), fixtures, and the `governance-scan.allow` scan list; adopt as reference and regression harness |
 | `.claude/commands/second-opinion.md` | yes | `template-replace` | `feature` | PM | `/second-opinion` slash command; read-only cross-vendor review via `tools/xtool-call.sh` |
 | `.claude/commands/delegate.md` | yes | `template-replace` | `feature` | PM | `/delegate` slash command; isolated-worktree cross-vendor implementation via `tools/xtool-call.sh` |
+| `.claude/commands/handoff.md` | yes | `template-replace` | `feature` | PM | `/handoff` slash command; flush-then-snapshot session handoff (ephemeral, deleted on pickup) |
 | `docs/cross-tool-orchestration.md` | yes | `template-replace` | `feature` | PM / DM | exported cross-tool orchestration protocol doc; operator reference for the review/delegate/ship workflow |
 | `docs/risk-posture-shadow-first.md` | yes | `template-replace` | `feature` | PM / AM | optional shadow-first / dark-ship risk posture for behavior-changing changes with a comparable incumbent; opt-in, no code shipped |
 | `AI/specs/` | no | `do-not-export` | `n/a` | MM / Operator | template-maintenance design specs; template-maintainer-local only |
 | `AI/plans/` | no | `do-not-export` | `n/a` | MM / Operator | template-maintenance implementation plans; template-maintainer-local only |
+| `docs/superpowers/` | no | `do-not-export` | `n/a` | MM / Operator | superpowers session artifacts (design specs + implementation plans); template-maintainer-local only |
 | `docs/branching-and-release-model.md` | yes | `template-replace` | `baseline` | PM | canonical branching model; downstream adopts |
 | `docs/runbooks/branch-setup.md` | yes | `template-replace` | `reference` | OM | one-time branch-protection + PR setup (host-agnostic: Gitea & GitHub recipes) |
 | `CHANGELOG.d/README.md` | yes | `template-replace` | `feature` | DM | changelog fragment convention |
@@ -153,3 +162,6 @@ template repo.
 | `docs/coordinator-mode.md` | yes | `template-replace` | `feature` | PM | coordinator-mode overlay (opt-in multi-project) |
 | `docs/runbooks/add-submodule.md` | yes | `template-replace` | `reference` | PM | submodule registration sequence (coordinator overlay) |
 | `.github/instructions/documentation-quality.instructions.md` | yes | `template-replace` | `feature` | DM | submodule doc-quality instructions (coordinator/submodule repos) |
+| `minions/capabilities.md` | yes | `downstream-owned` | `baseline` | PM | per-repo capability inventory; bootstrap read + activation record for `docs/minion-plugin-pairings.md`. Template ships the starter (instructions + example rows); downstream fills and owns the content — do not overwrite the filled inventory during upgrades |
+| `minions/handoffs/README.md` | yes | `template-replace` | `feature` | PM | session-handoff surface protocol (ephemeral courier, delete-on-pickup) |
+| `minions/handoffs/*.md` (snapshots) | no | `downstream-owned` | `n/a` | PM | transient session snapshots; never exported; deleted on pickup |

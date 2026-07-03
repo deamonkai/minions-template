@@ -26,6 +26,9 @@ project.
 - keep architecture decisions durable in plans, docs, or owned mail packets the
   same day they change and ensure `PM` has enough context for a same-day
   summary
+- when a capability inventoried in `minions/capabilities.md` fits the task,
+  using it — within charter limits — is an obligation; hand-rolling what a
+  listed capability already does is a review finding
 
 ## Outputs
 
@@ -104,3 +107,11 @@ When implementation or runtime evidence shows the current design no longer fits:
 5. `DM` when documentation or runbooks changed
 6. `PM`
 7. `Operator`
+
+<!--
+  Downstream-authored content (Learned Context, project deltas) lives BELOW the
+  marker; template upgrades replace everything ABOVE it wholesale. Never edit
+  above-the-line content downstream — put additive overrides and extensions
+  below the marker; contradictions get promoted upstream or filed as feedback.
+-->
+<!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->

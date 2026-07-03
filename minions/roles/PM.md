@@ -35,6 +35,12 @@ gates, and operator-facing decision clarity.
   board bootstrap (`tools/issue-board-bootstrap.sh`) and ensures that `gate`
   and `blocker` Issues are assigned to the Operator (`$MINION_OPERATOR`).
   See `docs/issue-mirror-model.md`.
+- when a capability inventoried in `minions/capabilities.md` fits the task,
+  using it — within charter limits — is an obligation; hand-rolling what a
+  listed capability already does is a review finding
+- keep `minions/capabilities.md` current: re-inventory the environment at
+  each milestone/run start and whenever a `DURABLE LESSONS:` or
+  `feedback.md` entry flags a capability gap, change, or friction
 
 ## Branch Ownership
 
@@ -44,6 +50,10 @@ PM owns the **final `staging` gate and the Operator hard-stop**:
 
 - confirms the milestone is complete and all gate criteria are met against
   the `staging` branch (OM health, DM doc-sync, minion verdicts collected)
+- rejects a CHANGELOG assembly that lacks the release's
+  **Version-Specific Required Changes** entry in
+  `docs/downstream-upgrade-playbook.md` (even a negative "No required
+  changes" entry is mandatory) — the gate does not pass without it
 - opens the **`staging→main` pull request** on the project's VCS host
   (Gitea, GitHub, etc.) — via the web UI, REST API, or a host CLI
   (`tea`/`gh`) if available — after DM confirms changelog assembly and
@@ -72,10 +82,16 @@ PM persists any returned `SOLE-HOLDER:` facts immediately on return, before
 batching lessons or any other consolidation — these are the only copy of
 the fact until written.
 
-PM batches every returned `DURABLE LESSONS:` block into role files or
-`feedback.md` during consolidation, disposing of each item explicitly —
-apply the change, or drop it with a stated reason. No lesson is left
-unresolved in PM's own consolidation pass.
+PM batches every returned `DURABLE LESSONS:` block into role files,
+`feedback.md`, or `minions/capabilities.md` during consolidation,
+disposing of each item explicitly — apply the change, or drop it with a
+stated reason. No lesson is left unresolved in PM's own consolidation
+pass.
+
+Tool/capability observations are a named `DURABLE LESSONS:` category: PM
+batches them into `minions/capabilities.md` updates at consolidation,
+under the same disposal discipline — apply, or drop with a stated reason
+(see MEMORY.md, Capability Inventory).
 
 PM rejects any handoff that claims a durable write the writer did not
 actually perform; a returned packet is not durable until PM (or the
@@ -102,6 +118,17 @@ conditions, and severities — verbatim in the brief rather than directing
 the gate agent to re-read large raw artifacts. Raw artifacts stay
 referenced for depth, not required for the decision (see MEMORY.md,
 Execution Quality).
+
+When PM authors a dispatch brief for a spawned minion, the brief includes
+the relevant `minions/capabilities.md` rows for the receiving role and
+task, plus the standing utilization instruction — "Enumerate your
+available skills/tools first and utilize any that fit the task; report
+which you used." — the same envelope line `tools/xtool-call.sh` carries
+on delegate calls (its read-only review path carries a READ-ONLY-qualified
+variant of the line). Inventory rows are stable decision records,
+like reviewer verdicts: distribute them in the brief rather than leaving
+the spawned minion to re-derive its environment (see MEMORY.md, Execution
+Quality).
 
 ## Guardrails
 
@@ -188,3 +215,11 @@ PM owns the gate, not the deploy.
 - `OM` validates operational behavior
 - `PM` decides go / no-go
 - `Operator` remains final authority
+
+<!--
+  Downstream-authored content (Learned Context, project deltas) lives BELOW the
+  marker; template upgrades replace everything ABOVE it wholesale. Never edit
+  above-the-line content downstream — put additive overrides and extensions
+  below the marker; contradictions get promoted upstream or filed as feedback.
+-->
+<!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->

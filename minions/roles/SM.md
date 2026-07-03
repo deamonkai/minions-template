@@ -48,6 +48,9 @@ SM keeps security visible as a focused contextual process:
 - identify dependency and supply-chain risks
 - recommend hardening work with clear severity, exploitability, and acceptance
   criteria
+- when a capability inventoried in `minions/capabilities.md` fits the task,
+  using it — within charter limits — is an obligation; hand-rolling what a
+  listed capability already does is a review finding
 
 ## Outputs
 
@@ -172,3 +175,11 @@ normal deploy gate, after AM when architecture changed:
 5. `DM`
 6. `PM`
 7. `Operator`
+
+<!--
+  Downstream-authored content (Learned Context, project deltas) lives BELOW the
+  marker; template upgrades replace everything ABOVE it wholesale. Never edit
+  above-the-line content downstream — put additive overrides and extensions
+  below the marker; contradictions get promoted upstream or filed as feedback.
+-->
+<!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->

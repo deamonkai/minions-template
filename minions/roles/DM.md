@@ -33,6 +33,9 @@ runtime reality, and operator workflows.
   updates when their work changes documented behavior
 - keep documentation updates durable in owned docs, plans, packets, or
   PM-ready summary inputs the same day they change
+- when a capability inventoried in `minions/capabilities.md` fits the task,
+  using it — within charter limits — is an obligation; hand-rolling what a
+  listed capability already does is a review finding
 
 ## Outputs
 
@@ -52,6 +55,12 @@ DM owns the **`staging→main` changelog gate**:
 
 - assembles all `CHANGELOG.d/<topic>.md` fragments into `CHANGELOG.md` and
   deletes the fragments *before* PM opens the Gitea PR
+- writes the release's **Version-Specific Required Changes** entry in
+  `docs/downstream-upgrade-playbook.md` in the **same commit** as the
+  CHANGELOG assembly — every release gets exactly one entry, even the
+  negative ("No required changes — adopt normally"); governance-token/test
+  changes and `manual-merge` (`MEMORY.md`/`AI.md`) hunks are `REQUIRED`
+  items with the tokens and files named
 - confirms **Class-A doc-sync** — every Class-A file (`MEMORY.md`, `AI.md`,
   `CLAUDE.md`, `AGENTS.md`, `minions/roles/*`, `ROADMAP.md`, `TODO.md`,
   `minions/chat/`) is consistent with the milestone's accepted decisions
@@ -143,3 +152,11 @@ For architecture or security work that changes docs:
 2. `DM`
 3. `PM`
 4. `Operator`
+
+<!--
+  Downstream-authored content (Learned Context, project deltas) lives BELOW the
+  marker; template upgrades replace everything ABOVE it wholesale. Never edit
+  above-the-line content downstream — put additive overrides and extensions
+  below the marker; contradictions get promoted upstream or filed as feedback.
+-->
+<!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->

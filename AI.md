@@ -17,11 +17,15 @@ Use these surfaces in this order:
 
 1. `MEMORY.md` for shared project truth, guardrails, and workflow rules.
 2. `minions/roles/*.md` for role-specific behavior.
-3. `minions/mail/` for actionable handoff packets, responses, and verdicts.
-4. `minions/plans/` for milestone scope, acceptance criteria, and gates.
-5. `minions/chat/` for PM-owned continuity summaries.
-6. `CHANGELOG.md`, `TODO.md`, and `ROADMAP.md` for durable project state.
-7. `.github/agents/`, `.codex/agents/`, and `.claude/agents/` for
+3. `minions/capabilities.md` for environment truth — which capabilities
+   exist in each AI environment. The inventory is the record of what tools
+   exist; absence of a listed capability at call time is a silent skip,
+   never a blocker.
+4. `minions/mail/` for actionable handoff packets, responses, and verdicts.
+5. `minions/plans/` for milestone scope, acceptance criteria, and gates.
+6. `minions/chat/` for PM-owned continuity summaries.
+7. `CHANGELOG.md`, `TODO.md`, and `ROADMAP.md` for durable project state.
+8. `.github/agents/`, `.codex/agents/`, and `.claude/agents/` for
   tool-specific launch config only.
 
 `feedback.md` sits outside this ranking: read it at session start for Operator

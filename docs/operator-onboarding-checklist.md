@@ -50,6 +50,7 @@ Date: YYYY-MM-DD
 - `AI.md` reviewed for cross-tool Copilot / Codex / Claude collaboration
 - prompt mode guidance reviewed (`docs/minion-prompt-modes.md`)
 - minion↔plugin pairings reviewed (`docs/minion-plugin-pairings.md`) and the project's actual pairings wired into the relevant role charters (e.g. a "use-when" line for an issue tracker on `PM`, a research integration on `RM`)
+- capabilities inventory filled (`minions/capabilities.md`): yes/no, date: YYYY-MM-DD
 - Copilot custom-agent guidance reviewed (`.github/agents/README.md`)
 - Codex custom-agent guidance reviewed (`.codex/agents/README.md`)
 - Claude Code subagent guidance reviewed (`.claude/agents/README.md`)

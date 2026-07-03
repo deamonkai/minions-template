@@ -10,6 +10,7 @@ minions/
   plans/   # Formal plans and milestone docs
   mail/    # Mailbox packets and handoffs
   chat/    # PM-owned summaries and continuity
+  handoffs/ # Ephemeral session snapshots (/handoff) — couriers, deleted on pickup
 ```
 
 ## Rules

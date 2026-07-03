@@ -72,6 +72,7 @@ formula:
 | `/devops` | OM | Preparing deployment, CI/CD, monitoring, rollback, or reliability work | Deployment architecture, workflow, health checks, rollback plan |
 | `/research` | RM | An issue or unknown needs in-depth, vendor-documentation-grounded research before a decision | Issue framing, vendor-doc findings, corroborating evidence, ranked options with tradeoffs, recommended next step, sources |
 | `/ship` | PM (orchestrator) | A bounded feature should run the automated plan → implement → test → review pipeline end to end | Stage chain (AM spec, CM changes, CM tests, optional SM, read-only CM verdict), gates, one durable artifact, no merge — see Pipeline Mode below |
+| `/handoff` | PM (orchestrator seat) | The session is ending, compaction is near, or the Operator is handing off with work in flight | Flush of all durability obligations, then one self-contained snapshot in `minions/handoffs/` committed on the active branch; deleted on pickup — see Handoff Mode below |
 
 ## Role Mapping
 
@@ -197,6 +198,12 @@ The posture constraints (implement-only, test-only, read-only review) travel in
 the **spawn prompt**, not in the agent files. The `.claude/agents/` launchers
 stay general-purpose; `/ship` supplies the constraint per stage.
 
+Both review stages (5 and 6) also apply the Execution Quality capability
+lens: the reviewer flags hand-rolled work where an inventoried capability
+(`minions/capabilities.md`) fit the task and the charter permitted its use
+(see MEMORY.md, Execution Quality). The check travels in the review-stage
+prompts the same way the posture constraints do.
+
 Two constraints are load-bearing and must not be relaxed:
 
 - **The test stage does not fix code.** A failing test pauses the run for an
@@ -234,33 +241,108 @@ independent durable packets at each step.
 
 ### Phase 2 (Planned, Not Yet Built): Dedicated Cost-Tier Stage Agents
 
-The current pipeline runs the implement and test stages on `cm` (Opus,
-`effort: xhigh`). That is correct for quality but is the most expensive option
-for the highest-token stages. Phase 2 introduces optional dedicated launchers
-that swap the model tier for the mechanical stages **without** changing the
-architecture:
+See `docs/model-tiering.md` for the general role-level tier guidance this
+section is one application of.
 
-- `coder` (Sonnet) — implement-only. Slots into stage 2 in place of `cm`.
-- `tester` (Sonnet) — write-and-run-tests-only. Slots into stage 3 in place of
+The current pipeline runs the implement and test stages on `cm` (Frontier —
+e.g. Opus, `effort: xhigh`). That is correct for quality but is the most
+expensive option for the highest-token stages. Phase 2 introduces optional
+dedicated launchers that swap the model tier for the mechanical stages
+**without** changing the architecture:
+
+- `coder` (Mid — e.g. Sonnet) — implement-only. Slots into stage 2 in place of
   `cm`.
+- `tester` (Mid — e.g. Sonnet) — write-and-run-tests-only. Slots into stage 3
+  in place of `cm`.
 
 Design intent for Phase 2:
 
-- AM stays on Opus (planning sets the quality ceiling). The read-only review
-  stage stays on Opus / `cm` (final correctness gate). Only the bounded,
-  spec-driven middle stages move to Sonnet.
+- AM stays on Frontier (planning sets the quality ceiling). The read-only
+  review stage stays on Frontier / `cm` (final correctness gate). Only the
+  bounded, spec-driven middle stages move to Mid.
 - These are **thin launchers** like the existing `.claude/agents/` files — the
   implement-only and test-only postures already live in the `/ship` spawn
   prompts, so Phase 2 is mostly a model-tier swap plus two launcher files and a
   `/ship` update to prefer them when present.
 - The two-channel model, the gates, and the read-only review constraint are
   unchanged. Phase 2 is purely a cost optimization, expected to push roughly the
-  Anthropic-internal 70/30 Sonnet/Opus token split.
+  Anthropic-internal 70/30 Mid/Frontier token split.
 - It stays optional: a project can run the whole pipeline on `cm` if it prefers
   uniform quality over cost.
 
 Phase 2 is deferred to a separate session and is documented here so the intent
 is durable and not re-litigated.
+
+## Handoff Mode (`/handoff`)
+
+Handoff mode writes a durable, self-contained session snapshot so a fresh
+session — or the post-compaction context — resumes cleanly. It is the
+procedure behind the single-writer law's "durable before session end or
+Operator handoff" mandate, and the durable counterpart of the conversational
+Session Reset template in `MEMORY.md`. For Claude the command is
+`.claude/commands/handoff.md`; Codex and Copilot orchestrators run the
+identical protocol by prompt from this section. The surface protocol
+(lifecycle, naming, staleness) is `minions/handoffs/README.md`.
+
+The seat is the session orchestrator — the packet's single writer, usually
+PM. A snapshot is a **temporary courier, not truth**: it is committed (it
+must survive session death) but the receiving session deletes it on pickup.
+Two phases, strictly in order:
+
+### Phase 1 — Flush
+
+Discharge every durability obligation before writing anything to
+`minions/handoffs/`. The flush is what makes deletion safe: afterwards the
+snapshot duplicates no canonical content — it is a pointer map plus resume
+narrative.
+
+1. Persist `SOLE-HOLDER:` facts immediately to their canonical homes; the
+   snapshot references them by persisted location only.
+2. Commit every in-flight deliverable per the durability window (Git Handoff
+   Discipline in `MEMORY.md`).
+3. Batch pending `DURABLE LESSONS:` to their canonical homes (role files,
+   `feedback.md`, `minions/capabilities.md`), disposing of each item
+   explicitly — apply, or drop with reason.
+4. Note — do not await — running background work: what it is, where output
+   lands, how the resumer verifies completion.
+
+### Phase 2 — Snapshot
+
+Write `minions/handoffs/<YYYY-MM-DD-HHMM>-<topic>.md`, self-contained (a
+resumer must need nothing from the dead conversation), with these sections:
+
+- the Session Reset fields (where started / completed / open / priorities /
+  blockers / next action);
+- repo state — branch, HEAD, unpushed commits, open PRs/gates with URLs,
+  position in the `feature → dev → staging → main` flow;
+- in-flight work — running background tasks, and unconsumed review findings
+  transcribed **verbatim** per the verdict-distribution law;
+- environment gates as last verified, marked **presumptive** (runtime claims
+  age; the resumer re-verifies);
+- pointers — active spec, plan, ledger, packet dirs;
+- recall hints — memory-layer query terms, when `MINION_MEMORY=on`;
+- `WRITTEN-BY:` + timestamp;
+- a **pickup footer** telling the resumer to verify claims against repo
+  truth first (files win), resume, then DELETE the snapshot and commit the
+  deletion as the pickup receipt; on contradiction repo truth governs and
+  useful residue goes to `feedback.md`.
+
+The full template lives in `.claude/commands/handoff.md`; non-Claude
+orchestrators reproduce its sections exactly.
+
+### Rules
+
+- **Supersede:** a new handoff for the same seat/topic deletes any prior
+  unconsumed snapshot in the same commit — at most one live snapshot per
+  seat/topic.
+- **Commit:** on the active branch (Class B — the snapshot rides the work it
+  describes). Handoff mode never merges, pushes, or promotes anything; it
+  snapshots around whatever gate state exists.
+- **Exclusions:** never secrets, credentials-adjacent values, or personal
+  data — the same exclusion classes as the memory layer.
+- **Staleness:** an unconsumed snapshot older than the work it describes is
+  deleted at the next gate's DM doc-sync pass. Absence of any handoff is
+  normal — most sessions end at natural completion.
 
 ## Closure Additions
 

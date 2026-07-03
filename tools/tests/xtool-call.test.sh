@@ -210,5 +210,47 @@ check "C (copilot) empty output -> exit 4" test $? -eq 4
 check "C (copilot) empty output -> status review-empty-output" bash -c "grep -q 'review-empty-output' '$OUT'/xtool-copilot-review-*.json"
 rm -rf "$TMP"
 
+# --- D5: every cross-tool prompt carries the standing utilization line, so the
+#     callee enumerates and uses its OWN environment's capabilities (capability
+#     discovery, v1.23.0). Mode-aware (v1.23.0 minor sweep): REVIEW is read-only
+#     by contract, but side-effectful MCP connectors remain invocable there, so
+#     the review line qualifies utilization to READ-ONLY tools and forbids
+#     state-changing calls; DELEGATE keeps the unqualified line. One exact
+#     string per mode, each defined once; asserted verbatim in the provider
+#     argv capture for BOTH providers in BOTH modes. Placement: after the
+#     caller PROMPT, with the review-mode Target suffix retained. ---
+UTIL_LINE_DELEGATE='Enumerate your available skills/tools first and utilize any that fit the task; report which you used.'
+UTIL_LINE_REVIEW='Enumerate your available skills/tools first and utilize any READ-ONLY ones that fit the task; make no state-changing tool calls during review; report which you used.'
+
+# review mode: codex + copilot (read-only qualified line; unqualified line must NOT appear)
+TMP="$(mktemp -d)"; OUT="$TMP/out"; BIN="$TMP/bin"
+bash "$MKFAKE" "$BIN" codex
+bash "$MKFAKE" "$BIN" copilot
+( cd "$TMP" && git init -q && git commit -q --allow-empty -m init )
+( cd "$TMP" && PATH="$BIN:$PATH" "$SUT" --provider codex --mode review --target . --prompt "CALLER_PROMPT_MARK" --out "$OUT" >/dev/null 2>&1 )
+( cd "$TMP" && PATH="$BIN:$PATH" "$SUT" --provider copilot --mode review --target . --prompt "CALLER_PROMPT_MARK" --out "$OUT" >/dev/null 2>&1 )
+check "D5 codex review -> read-only utilization line in provider argv" bash -c "grep -qF '$UTIL_LINE_REVIEW' '$BIN/codex.args'"
+check "D5 codex review -> unqualified line NOT in review argv" bash -c "! grep -qF '$UTIL_LINE_DELEGATE' '$BIN/codex.args'"
+check "D5 codex review -> line placed after caller prompt" bash -c "grep -A1 -F 'CALLER_PROMPT_MARK' '$BIN/codex.args' | grep -qF '$UTIL_LINE_REVIEW'"
+check "D5 codex review -> Target suffix retained after line" bash -c "grep -A1 -F '$UTIL_LINE_REVIEW' '$BIN/codex.args' | grep -q '^Target: '"
+check "D5 copilot review -> read-only utilization line in provider argv" bash -c "grep -qF '$UTIL_LINE_REVIEW' '$BIN/copilot.args'"
+check "D5 copilot review -> unqualified line NOT in review argv" bash -c "! grep -qF '$UTIL_LINE_DELEGATE' '$BIN/copilot.args'"
+check "D5 copilot review -> line placed after caller prompt" bash -c "grep -A1 -F 'CALLER_PROMPT_MARK' '$BIN/copilot.args' | grep -qF '$UTIL_LINE_REVIEW'"
+check "D5 copilot review -> Target suffix retained after line" bash -c "grep -A1 -F '$UTIL_LINE_REVIEW' '$BIN/copilot.args' | grep -q '^Target: '"
+rm -rf "$TMP"
+
+# delegate mode: codex + copilot (no Target suffix in this path; line ends the prompt)
+TMP="$(mktemp -d)"; OUT="$TMP/out"; BIN="$TMP/bin"
+bash "$MKFAKE" "$BIN" codex
+bash "$MKFAKE" "$BIN" copilot
+( cd "$TMP" && git init -q && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m init )
+( cd "$TMP" && PATH="$BIN:$PATH" "$SUT" --provider codex --mode delegate --role cm --topic d5 --prompt "CALLER_PROMPT_MARK" --out "$OUT" >/dev/null 2>&1 )
+( cd "$TMP" && PATH="$BIN:$PATH" "$SUT" --provider copilot --mode delegate --role cm --topic d5 --prompt "CALLER_PROMPT_MARK" --out "$OUT" >/dev/null 2>&1 )
+check "D5 codex delegate -> utilization line in provider argv" bash -c "grep -qF '$UTIL_LINE_DELEGATE' '$BIN/codex.args'"
+check "D5 codex delegate -> line placed after caller prompt" bash -c "grep -A1 -F 'CALLER_PROMPT_MARK' '$BIN/codex.args' | grep -qF '$UTIL_LINE_DELEGATE'"
+check "D5 copilot delegate -> utilization line in provider argv" bash -c "grep -qF '$UTIL_LINE_DELEGATE' '$BIN/copilot.args'"
+check "D5 copilot delegate -> line placed after caller prompt" bash -c "grep -A1 -F 'CALLER_PROMPT_MARK' '$BIN/copilot.args' | grep -qF '$UTIL_LINE_DELEGATE'"
+rm -rf "$TMP"
+
 echo "----- $pass passed, $fail failed -----"
 test "$fail" -eq 0

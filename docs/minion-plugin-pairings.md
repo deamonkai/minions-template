@@ -2,10 +2,14 @@
 
 Recommended pairings between the minion roles and external integrations
 (plugins, MCP connectors / "connectors", and skills). All pairings are
-**conditional**: use the integration **if it is present in the operating
-environment**, and fall back to native repo surfaces and tools if it is not.
-Nothing here is required, and the template hard-wires no specific vendor — these
-are guidance, and they degrade gracefully where a plugin is absent.
+**conditional on presence**: use the integration **if it is present in the
+operating environment**, and fall back to native repo surfaces and tools if it
+is not. No specific integration is required to exist, and the template
+hard-wires no specific vendor — these are guidance, and they degrade gracefully
+where a plugin is absent or not yet inventoried. Once an integration **is**
+present and inventoried in `minions/capabilities.md`, though, using it where it
+fits the task — within charter limits — is an obligation, not a suggestion
+(see MEMORY.md, Capability Inventory).
 
 ## Principles
 
@@ -15,8 +19,12 @@ are guidance, and they degrade gracefully where a plugin is absent.
   high-quality engine; do not let it fork ownership of the lane.
 - **Access ≠ use.** A minion that has access to a skill/connector can *discover*
   it (capabilities surface by their description) but will only *reliably* use it
-  when its charter says to. That is why the confirmed pairings below are also
-  written as "use-if-available" lines in the relevant role charters.
+  when its charter says to. That is why every role charter carries a
+  capability-utilization obligation: when a capability inventoried in
+  `minions/capabilities.md` fits the task and the charter permits its use,
+  using it is an obligation, not a suggestion — hand-rolling what a listed
+  capability already does is a review finding (see MEMORY.md, Capability
+  Inventory).
 - **Stay in lane and keep the guardrail.** A pairing must not expand a role past
   its charter. `RM` using a research connector is still recommend-only; `PM`
   updating an issue tracker is still coordination, not product code.
@@ -46,6 +54,9 @@ connectors by default, so a pairing activates as soon as:
 1. the integration is present in the environment, and
 2. the minion's charter tells it to use it (the confirmed `PM` and `RM` lines are
    already in their charters).
+
+The capability's row in `minions/capabilities.md` is the record that
+condition 1 holds — pairings activate per that inventory.
 
 **Restricted minions** (currently only `RM`, which has a `tools:` allowlist) must
 *also* have the capability added to that allowlist, or they cannot reach it even

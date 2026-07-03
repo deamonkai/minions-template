@@ -53,6 +53,307 @@ complete until every `REQUIRED` item is confirmed present in the live repo. The
 `Criticality` column in `docs/export-manifest.md` marks the `baseline` files
 that most often carry these.
 
+### 1.26.0 — /handoff session snapshots (ephemeral surface)
+
+No required changes — adopt normally.
+
+- OPTIONAL: `.claude/commands/handoff.md` + `minions/handoffs/` surface
+  (flush-then-snapshot, delete-on-pickup). Adopt if the project uses
+  session handoffs; Codex/Copilot run the same protocol via the Handoff
+  Mode section of `docs/minion-prompt-modes.md`.
+- NOTE: `MEMORY.md` gains two small additive notes (Session Handoffs
+  subsection + Session Reset cross-reference) in the template-managed
+  half — the 1.25.0 split-merge migration makes this a mechanical
+  replace-above adoption.
+
+### 1.25.0 — Upgrade ergonomics (delimiter split-merge, completeness guards)
+
+**REQUIRED — one-time delimiter migration (charters + `MEMORY.md`):**
+
+- The seven role charters (`minions/roles/*.md`) and `MEMORY.md` now carry
+  the split-merge marker. On the first upgrade that crosses 1.25.0, perform
+  the merge-blocking migration in this playbook's
+  **"One-time migration to the split (first upgrade to ≥ 1.25.0) — REQUIRED"**
+  subsection (under Manual-Merge Guidance): move all downstream-authored
+  content (charter Learned Context, project-specific `MEMORY.md` sections)
+  below the marker once. Every later upgrade of these files then becomes the
+  mechanical replace-above/preserve-below split — no more hand-grafting
+  template bullets into charters full of downstream content.
+
+**REQUIRED — adopt the manifest-completeness guard:**
+
+- Re-vendor `tools/tests/` (`template-replace`): the suite gains a sixth
+  file, `tools/tests/manifest-completeness.test.sh`, which FAILs unless
+  every exportable tracked file is classified by a row in the live
+  `docs/export-manifest.md` (glob rows count). A downstream's first run may
+  fail until its downstream-added files get manifest rows — that is the
+  guard working, not a regression; add the rows rather than skipping the
+  test. This is the guard that makes silently-unmanifested files (invisible
+  to snapshots *and* to `upgrade-classify.sh`) impossible.
+
+**NOTE — `upgrade-classify.sh` new flags (additive, no back-compat break):**
+
+- `--repo <git-repo> --from <rev> --to <rev>` (all three together)
+  cross-checks the real `git diff` change set against the snapshot union
+  and exits `4` on any `UNMANIFESTED-CHANGE` row — treat exit 4 as a
+  failure in CI and upgrade scripts; it means the export/snapshot pipeline
+  missed a genuinely changed file.
+- `--hide-excluded` suppresses `do-not-export` rows from the report
+  (default off for back-compat), silencing the recurring `AI/` / `.mm.md`
+  noise.
+
+### 1.24.0 — Model tiering (vendor-neutral capability bands)
+
+No required changes — adopt normally. `docs/model-tiering.md` and the
+`Recommended tier:` launcher lines are explicitly advisory (`template-replace`),
+outside the governance-scanned invariant set; a downstream pinned to a single
+model loses nothing by ignoring them. No governance tokens moved.
+
+### 1.23.0 — Capability discovery & utilization
+
+**REQUIRED — capability-inventory baseline (tool-neutral):**
+
+- Land `minions/capabilities.md` (`downstream-owned`, rated `baseline`): the
+  session bootstrap reads added in this version depend on the file existing.
+  Take the template starter and fill it for this project — upgrades never
+  overwrite the filled inventory.
+- Merge the manual-merge hunks that wire it in: the
+  `Read minions/capabilities.md.` session-read line in `CLAUDE.md`,
+  `AGENTS.md`, and `.github/copilot-instructions.md`; the Capability
+  Inventory subsection under Shared Rules in `MEMORY.md`; and the
+  environment-truth ranking in `AI.md`'s source-of-truth order. All five are
+  `manual-merge` files, so a hand merge can silently drop them. Not
+  governance-scanned — verify by hand.
+- The utilization obligation itself (role charters, review-lens bullet,
+  `/ship` review prompts, `tools/xtool-call.sh` envelope lines) arrives via
+  `template-replace`; re-vendor those files normally. Absence of a listed
+  capability at call time is a silent skip, never a blocker.
+
+### 1.22.1 — Overlay discipline + drift guards
+
+**REQUIRED — governance test gains a role-roster drift guard:**
+
+- Re-vendor `tools/tests/governance-consistency.test.sh` (`template-replace`).
+  It now extracts the backticked role tokens from the live `MEMORY.md`
+  `## Collaboration Model` roster and the `AI.md` `## Role Agents` list and
+  FAILs on drift (normalized: lowercase, `om-test` folds into `om`). It also
+  FAILs if either section extracts **no** roles — the downstream `MEMORY.md`
+  must carry a `## Collaboration Model` section whose role bullets open with
+  a backticked token (``- `PM` — ...``) and `AI.md` a `## Role Agents` list,
+  under exactly those headings.
+  A downstream that added or renamed roles must have both surfaces agree.
+- Merge the `manual-merge` hunks: `MEMORY.md` Optional-Layers convention
+  preamble (Communication Model, above the Issue Mirror / Memory Recall
+  subsections), the multi-session contention note in Single-Writer
+  Durability, the canonical-roster declaration in Collaboration Model, the
+  cross-family launcher sync line in the Instruction-File Audit Rule, and
+  `AI.md`'s Role Agents deferral to the roster.
+
+**OPTIONAL:** deferred-state notices and the add-a-role touch list live in
+`template-replace` docs (`docs/downstream-onboarding-playbook.md`,
+`docs/operator-onboarding-checklist.md`); adopt normally.
+
+### 1.22.0 — Coordinator-mode overlay (multi-project session lanes)
+
+No required changes for a single-project downstream — adopt normally. The
+overlay (`docs/coordinator-mode.md`, `docs/runbooks/add-submodule.md`) is
+opt-in; the baseline gains only one-line pointers in `INIT.md`
+(`manual-merge` — carry the pointer line if merging `INIT.md`) and
+`docs/project/mailbox-collaboration-model.md`. `MEMORY.md` and `AI.md` are
+untouched.
+
+**OPTIONAL — adopt if the repo coordinates multiple projects:** take the
+overlay docs and this playbook's "Coordinator-mode upgrades" subsection;
+`projects/**` and the coordinator declaration in the live `MEMORY.md` are
+expected intentional divergence in `upgrade-classify.sh` output.
+
+### 1.21.4 — Public-export runbook
+
+No required changes — adopt normally. New `docs/runbooks/public-export.md`
+(`template-replace`) is a reference runbook; relevant only when publishing a
+privacy-safe public copy.
+
+### 1.21.3 — tea v0.14.1 compat (issue-mirror tooling)
+
+No required changes for downstreams not using the issue mirror.
+
+**OPTIONAL — adopt if the issue mirror (`MINION_ISSUES=on`) runs against
+Gitea via `tea`:** re-vendor `tools/issue-sync.sh`,
+`tools/issue-board-bootstrap.sh`, and their tests (`template-replace`). On
+tea v0.14.1 the old scripts soft-fail every sync (`--body` was renamed) and
+blind label re-creation silently doubles the label set; the new versions
+detect the installed tea's flags and bootstrap idempotently.
+
+### 1.21.2 — Memory gate shell-profile fix (.zshenv, not .zshrc)
+
+No required changes for downstreams not using the memory recall layer.
+
+**OPTIONAL — adopt if the memory recall layer (`MINION_MEMORY=on`) is
+enabled:** re-vendor `docs/runbooks/memory-recall-setup.md` and re-check the
+gate. An `export MINION_MEMORY=on` placed in `~/.zshrc` per the old runbook
+is invisible to non-interactive agent shells — move it to `~/.zshenv` (zsh)
+and verify from a fresh agent tool shell (`echo ${MINION_MEMORY:-<unset>}`),
+never from the interactive terminal.
+
+### 1.21.1 — Verdict distribution in gate briefs
+
+**REQUIRED — small `manual-merge` hunk, not governance-scanned:**
+
+- Merge the verdict-distribution bullet into `MEMORY.md` Execution Quality
+  (sibling to the 1.20.1 live-state bullet): PM-authored gate briefs embed
+  reviewer verdicts — verdict, conditions, severities — verbatim; raw
+  artifacts stay reference, never the gate's primary input. The matching
+  `minions/roles/PM.md` hunk arrives via `template-replace`. The suite will
+  not catch its absence — verify by hand.
+
+### 1.21.0 — Memory recall layer (Mnemoverse, optional)
+
+No required changes — the layer is default-off; with `MINION_MEMORY` unset,
+every memory step is a silent no-op.
+
+**OPTIONAL — adopt if the project wants semantic recall
+(`MINION_MEMORY=on`):** take `docs/memory-recall-model.md` and
+`docs/runbooks/memory-recall-setup.md` (`template-replace`) and merge the
+gate-conditioned wiring hunks in `MEMORY.md` and `AI.md` (`manual-merge`).
+Files always win; recall output is input, not authority. Note the 1.21.2
+`.zshenv` fix before following the setup runbook.
+
+### 1.20.1 — Live-state briefs (confirm runtime state, don't embed snapshots)
+
+**REQUIRED — small `manual-merge` hunk, not governance-scanned:**
+
+- Merge the live-state bullet into `MEMORY.md` Execution Quality: dispatch
+  briefs for runtime-touching work instruct the agent to confirm live state
+  first, never embed a presumed runtime snapshot. The matching
+  `minions/roles/OM.md` and `PM.md` hunks arrive via `template-replace`. The
+  suite will not catch its absence — verify by hand.
+
+### 1.20.0 — Single-writer durability for the comm model
+
+**REQUIRED — governance tokens + comm-model law (tool-neutral, every
+downstream):**
+
+- Merge the **single-writer durability** law into the live `MEMORY.md`
+  Communication Model: spawned minions do not commit or push; they return
+  the Completion Handoff packet verbatim to whoever spawned them, and only
+  the top of the spawn chain commits — plus the scope split (coordination
+  artifacts roll up; code deliverables stay in-lane), the durability window
+  (at most one in-flight deliverable), `WRITTEN-BY:` attribution, the
+  optional `DURABLE LESSONS:` handoff section, and the `SOLE-HOLDER:`
+  return flag with its persist-first rule.
+- **Merge-blocking:** `tools/tests/governance-consistency.test.sh` now FAILs
+  unless the live `MEMORY.md` carries the tokens `single-writer` (or
+  `single writer`), `DURABLE LESSONS`, and `SOLE-HOLDER`. A hand merge that
+  drops any of these breaks the downstream's own suite.
+- The same law is normalized across all seven `minions/roles/*.md` charters,
+  `AI.md`, and Pipeline Mode — the charters are `template-replace`
+  (re-vendor; review local customizations); the `AI.md` hunk is
+  `manual-merge`.
+
+### 1.19.1 — issue-sync test-hardening + soft-fail diagnostic
+
+No required changes — adopt normally. Re-vendor `tools/issue-sync.sh` and its
+tests (`template-replace`) if the issue mirror is adopted; syncs now surface
+backend stderr on soft-fail (exit 4) instead of hiding it.
+
+### 1.19.0 — Issue/project mirror (optional, default-off)
+
+No required changes — the layer is default-off; with `MINION_ISSUES` unset or
+the host CLI absent, `tools/issue-sync.sh` is a no-op (exit 0) and nothing
+blocks.
+
+**OPTIONAL — adopt if the project wants Issue-board visibility
+(`MINION_ISSUES=on`):** take `tools/issue-sync.sh`,
+`tools/issue-board-bootstrap.sh`, `docs/issue-mirror-model.md`, and
+`docs/runbooks/issue-board-setup.md` (`template-replace`); merge the
+gate-conditioned Communication Model wiring in `MEMORY.md` (`manual-merge`).
+Git files remain the source of truth; `.issue` sidecars are
+downstream-owned and never exported.
+
+### 1.18.0 — Branching & release model
+
+**REQUIRED — relocated hard-stop + coordination plane (governance-scanned):**
+
+- Merge the 4-tier branching model's governance hunks into the live
+  `MEMORY.md` **and** `AI.md`: the single Operator hard-stop moves to
+  **`staging→main`** (a pull request); `feature→dev` and `dev→staging` are
+  autonomous CLI merges (still exactly three hard-stops), and the
+  **Class-A / Class-B coordination plane** (Class A mainline-authoritative;
+  Class B travels with the branch). `AI.md` also gains "Reading Truth in a
+  Multi-Branch World".
+- **Merge-blocking:** the governance test now FAILs unless **both**
+  `MEMORY.md` and `AI.md` contain `staging→main` (or `staging->main`) and
+  `Class A`/`Class-A`. Both files are `manual-merge`; a hand merge that
+  keeps the old main-hard-stop wording breaks the downstream's own suite.
+- Merge the CHANGELOG-fragment mechanism into `MEMORY.md`'s CHANGELOG
+  Maintenance Rule (feature branches write `CHANGELOG.d/<topic>.md`; DM
+  assembles at the staging gate) and add `CHANGELOG.d/` to the repo.
+- Re-vendor (`template-replace`): `docs/branching-and-release-model.md`,
+  `docs/runbooks/branch-setup.md`, and the CM/OM/DM/PM role charters (they
+  gain Branch Ownership sections).
+
+### 1.17.0 — Shadow-first / dark-ship risk posture
+
+No required changes — the posture is optional and ships no code.
+
+**OPTIONAL — adopt if the project replaces incumbent decision logic:** take
+`docs/risk-posture-shadow-first.md` (`template-replace`) and carry the
+opt-in pointer in `MEMORY.md` Deployment Discipline when merging that file.
+Greenfield / no-incumbent projects skip it by design.
+
+### 1.16.0 — Review-ergonomics quick wins
+
+**REQUIRED — small `manual-merge` hunk, not governance-scanned:**
+
+- Merge the operator-facing-surfaces bullet into `MEMORY.md` Execution
+  Quality: a change that adds/alters a config flag, journal/log event,
+  metric, or feature must review the operator-facing surfaces (config
+  editor, dashboard, runbooks) before done. The suite will not catch its
+  absence — verify by hand.
+
+**Routine (`template-replace`):** deltas-only review posture in
+`minions/roles/SM.md`/`DM.md`, dual-vendor-on-security-diffs guidance in
+`docs/cross-tool-orchestration.md`, worktree-pruning notes, and the
+onboarding-checklist line — re-vendor normally.
+
+### 1.15.0 — Triaged Copilot .github prompt-eval findings
+
+No required changes — adopt normally. Three clarifications to
+`.github/instructions/documentation-quality.instructions.md`
+(`template-replace`); the governance-scanned files are unchanged.
+
+### 1.14.0 — xtool-call.sh review-path hardening
+
+No required changes — adopt normally. Re-vendor `tools/xtool-call.sh` and
+`tools/tests/` (`template-replace`) if cross-tool review is used: `--prompt -`
+now reads stdin, review envelopes report `review-failed` on provider failure
+instead of a false `ok`, and empty prompt/output fail loudly.
+
+### 1.13.0 — Instruction-File Audit Standard
+
+**REQUIRED — small `manual-merge` hunk, not governance-scanned:**
+
+- Merge the **Instruction-File Audit Rule** into the live `MEMORY.md`: when
+  `CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`,
+  `minions/roles/*.md`, any agent-launcher family, or slash-command / skill
+  prompt files change, audit them for clarity, accuracy, consistency,
+  staleness, and drift before handoff (manual subagent+rubric audit is the
+  cross-tool baseline; DM owns instruction-file truth). The suite will not
+  catch its absence — verify by hand.
+
+### 1.12.0 — Upgrade-Process Tooling
+
+No required changes — adopt normally. New `tools/upgrade-classify.sh` + tests
+and the release-tag convention are `template-replace`; the governance test
+gains `--root`/`GOV_ROOT` and a ROOT banner (pure ergonomics, no new token
+assertions).
+
+**RECOMMENDED:** the governance scan list is externalized to
+`tools/tests/governance-scan.allow` (`template-replace`, falls back to the
+built-in default when absent). A downstream that extended the scan file list
+inside the test itself should migrate those additions into the allow file
+before re-vendoring the test, or the extensions are silently lost.
+
 ### 1.11.1 — Hardening (governance-test detector, delegate safety, doc precision)
 
 A correctness/security hardening pass from downstream upgrade feedback. No new
@@ -275,7 +576,14 @@ you want a durable on-disk review artifact, or for large or multi-release jumps.
    <old-snapshot> --new <new-snapshot> --live <repo>` automates steps 4, 6, and 7 in
    one pass** — it prints each changed file's manifest class and live-vs-snapshot
    divergence (identical / diverged / missing / error), so the front half of the upgrade is a
-   reproducible command rather than manual cross-referencing.
+   reproducible command rather than manual cross-referencing. Add
+   `--repo <git-repo> --from <rev> --to <rev>` (all three together) for a
+   git-diff completeness cross-check: every exported file changed between the
+   two revs must appear in the snapshot union, and any that does not is
+   reported as `UNMANIFESTED-CHANGE` with **exit 4 — treat that as a failure**
+   (the export/snapshot pipeline missed a change), not as noise to scroll
+   past. `--hide-excluded` suppresses `do-not-export` rows so the work list
+   shows only files that can actually reach the downstream.
 7. Use `docs/export-manifest.md` to classify each affected live file as:
    - `template-replace`
    - `manual-merge`
@@ -341,13 +649,67 @@ not drift to reconcile.
 
 ## Manual-Merge Guidance
 
+### Split-merge for delimiter-bearing files
+
+Since template version 1.25.0, the seven role charters (`minions/roles/*.md`)
+and `MEMORY.md` carry a split-merge delimiter. The exact marker line
+(referenced below simply as "the marker") is:
+
+`<!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->`
+
+For any file carrying the marker, the upgrade procedure is mechanical, not a
+judgment call:
+
+1. take the incoming template version's above-the-line half **verbatim**
+2. keep the live downstream file's below-the-line half **verbatim**
+3. concatenate the two halves
+
+The template ships nothing below the marker; everything downstream-authored
+(charter Learned Context, project deltas, project-specific `MEMORY.md`
+sections) lives below it and survives every upgrade untouched. Never edit
+above-the-line content downstream — additive overrides and extensions go
+below the marker; anything that contradicts above-the-line content gets
+promoted upstream (feedback packet) instead of edited in place.
+
+### One-time migration to the split (first upgrade to ≥ 1.25.0) — REQUIRED
+
+On the first upgrade that crosses 1.25.0, the downstream performs a one-time,
+merge-blocking migration of each charter and `MEMORY.md` — this is what makes
+every later upgrade a clean split:
+
+- move all downstream-authored content below the marker: charter
+  `Learned Context` blocks, project-specific `MEMORY.md` sections (project
+  truth, environments, safety constraints), and any other local additions
+- re-express inline modifications the downstream made to template text as
+  additive below-the-line overrides/extensions
+- anything above the line that the downstream changed and cannot express
+  additively must be either promoted upstream (feedback packet to the
+  template) or dropped in favor of the template wording
+
+After migration, above-the-line content is template-verbatim forever: every
+subsequent upgrade replaces it wholesale via the mechanical split above, and
+no downstream edit made above the line survives.
+
 ### `MEMORY.md`
 
 - preserve project-specific facts, constraints, environments, and operating
-  history
-- merge new template guardrails, role definitions, and workflow rules
-- if the file is later split into template-managed and project-managed sections,
-  restrict template upgrades to the template-managed sections
+  history — these live below the marker
+- the "later split into template-managed and project-managed sections" this
+  guidance once anticipated now exists (since 1.25.0) for `MEMORY.md` and the
+  role charters: apply the mechanical split-merge above — replace the
+  template-managed half above the marker with the incoming template's,
+  preserve the project-managed half below it
+- new template guardrails, role definitions, and workflow rules arrive in the
+  above-the-line half; run `tools/tests/governance-consistency.test.sh` after
+  the merge to confirm the governance tokens survived
+
+### `minions/roles/*.md` (role charters)
+
+- delimiter-bearing: apply the mechanical split-merge above — take the
+  incoming charter's above-the-line half verbatim, preserve the downstream's
+  below-the-line Learned Context and project deltas
+- never hand-graft individual template bullets into a locally modified
+  charter; the split-merge replaces hand-merging entirely
 
 ### `INIT.md`
 

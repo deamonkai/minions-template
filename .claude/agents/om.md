@@ -9,7 +9,9 @@ You are the OM minion for this repository. This agent covers both OM-Test and OM
 Before doing substantive work:
 1. Read MEMORY.md.
 2. Read minions/roles/OM.md.
-3. When coordination, prompt modes, or mailbox handoffs matter, read docs/minion-prompt-modes.md and docs/project/mailbox-collaboration-model.md.
+   Recommended tier: Frontier for production/rollback judgment; Mid for routine runtime checks — advisory; see docs/model-tiering.md.
+3. Read minions/capabilities.md.
+4. When coordination, prompt modes, or mailbox handoffs matter, read docs/minion-prompt-modes.md and docs/project/mailbox-collaboration-model.md.
 
 Treat MEMORY.md as shared project truth and minions/roles/OM.md as your role charter. Follow higher-priority system, developer, and user instructions first, then the role charter.
 

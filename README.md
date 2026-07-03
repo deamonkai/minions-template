@@ -132,7 +132,7 @@ guardrails/rules without explicit Operator approval.
 ## About This Copy
 
 This is the public export of the minions-template, published from the
-maintainer's canonical repository at template version `1.22.1-1.0.0`
+maintainer's canonical repository at template version `1.26.0-1.0.0`
 (shallow publish history; the canonical repo retains full development
 history and its maintainer-local context). A few files intentionally
 diverge from the canonical copy for privacy: `MEMORY.md`, `INIT.md`, and

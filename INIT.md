@@ -33,15 +33,20 @@ SM, DM, OM, and RM discipline, durable evidence, and milestone execution.
    - read [.github/agents/README.md](.github/agents/README.md) when using Copilot custom agents
    - read [.codex/agents/README.md](.codex/agents/README.md) when using Codex custom agents
    - read [.claude/agents/README.md](.claude/agents/README.md) when using Claude Code subagents
+   - model-tier guidance for spawning minions: [docs/model-tiering.md](docs/model-tiering.md) — advisory
    - read [docs/minion-prompt-modes.md](docs/minion-prompt-modes.md)
    - read [docs/project/mailbox-collaboration-model.md](docs/project/mailbox-collaboration-model.md)
    - read [minions/mail/README.md](minions/mail/README.md)
    - read [minions/mail/packet-template.md](minions/mail/packet-template.md)
    - use [minions/mail/](minions/mail/) for new actionable packets
    - use [minions/chat/](minions/chat/) for PM daily summaries
-6. Wire this project's minion↔plugin pairings: review [docs/minion-plugin-pairings.md](docs/minion-plugin-pairings.md) and add "use-when" lines to the owning role charters for the integrations this project actually uses (plus any scoped whitelist entry a restricted role needs). Skip pairings whose plugin is absent.
-7. Keep [ROADMAP.md](ROADMAP.md), [TODO.md](TODO.md), and [CHANGELOG.md](CHANGELOG.md) updated during execution, and capture Operator feedback in [feedback.md](feedback.md) (promote durable items into [MEMORY.md](MEMORY.md)).
-8. Use [docs/downstream-upgrade-playbook.md](docs/downstream-upgrade-playbook.md) for later template updates.
+6. Inventory this environment's capabilities and fill [minions/capabilities.md](minions/capabilities.md):
+   - enumerate the skills, connectors, and plugin agents available to each AI tool in use, then fill the inventory table
+   - each tool enumerates differently: Claude surfaces its session skills and connectors; Codex and Copilot surface their installed tool lists
+   - launcher families marked `deferred` in the onboarding checklist enter the inventory with status `deferred`
+7. Wire this project's minion↔plugin pairings: review [docs/minion-plugin-pairings.md](docs/minion-plugin-pairings.md) and add "use-when" lines to the owning role charters for the integrations this project actually uses (plus any scoped whitelist entry a restricted role needs). Skip pairings whose plugin is absent.
+8. Keep [ROADMAP.md](ROADMAP.md), [TODO.md](TODO.md), and [CHANGELOG.md](CHANGELOG.md) updated during execution, and capture Operator feedback in [feedback.md](feedback.md) (promote durable items into [MEMORY.md](MEMORY.md)).
+9. Use [docs/downstream-upgrade-playbook.md](docs/downstream-upgrade-playbook.md) for later template updates.
 
 ## Roles and Handoff
 

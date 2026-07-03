@@ -51,7 +51,9 @@ Use `minions/roles/` for durable role policy, `docs/minion-prompt-modes.md` for
 named postures, and `.github/agents/`, `.codex/agents/`, or `.claude/agents/`
 only for custom-agent launch config. See `.github/agents/README.md`,
 `.codex/agents/README.md`, and `.claude/agents/README.md` for tool-specific
-Operator prompt patterns.
+Operator prompt patterns. See `docs/model-tiering.md` for advisory guidance on
+which model capability tier to run a given role or activity at when spawning
+these agents.
 
 `RM` (Research Manager) is a consult role: spawn it when an issue needs in-depth,
 vendor-documentation-grounded research and option analysis. RM returns ranked
