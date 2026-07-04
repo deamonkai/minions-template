@@ -138,6 +138,7 @@ template repo.
 | `TODO.md` | downstream required | `downstream-owned` | `n/a` | PM / DM | currently required by the workflow but not shipped as a template file |
 | `tools/xtool-call.sh` | yes | `template-replace` | `feature` | PM / CM | cross-tool orchestration wrapper (Codex / Copilot, review / delegate postures); adopt if project uses cross-vendor review |
 | `tools/upgrade-classify.sh` | yes | `template-replace` | `reference` | PM / CM | upgrade helper: classifies a template change-set (manifest class + live-vs-snapshot divergence) for downstream upgrades; see `docs/downstream-upgrade-playbook.md` |
+| `tools/export-seed-check.sh` | yes | `template-replace` | `feature` | PM / OM | public-export pre-push gate (runbook Step 3, gate 4): asserts Local Registry / Local Matrix are header-only below the split-merge delimiter in the export tree; point `SEED_FILES` at the downstream's own delimited local sections |
 | `tools/tests/` | yes | `template-replace` | `feature` | CM | test suites (`xtool-call`, `governance-consistency`, `upgrade-classify`, `issue-sync`, `issue-board-bootstrap`, `manifest-completeness`), fixtures, and the `governance-scan.allow` scan list; adopt as reference and regression harness |
 | `.claude/commands/second-opinion.md` | yes | `template-replace` | `feature` | PM | `/second-opinion` slash command; read-only cross-vendor review via `tools/xtool-call.sh` |
 | `.claude/commands/delegate.md` | yes | `template-replace` | `feature` | PM | `/delegate` slash command; isolated-worktree cross-vendor implementation via `tools/xtool-call.sh` |
@@ -165,8 +166,11 @@ template repo.
 | `minions/capabilities.md` | yes | `downstream-owned` | `baseline` | PM | per-repo capability inventory; bootstrap read + activation record for `docs/minion-plugin-pairings.md`. Template ships the starter (instructions + example rows); downstream fills and owns the content — do not overwrite the filled inventory during upgrades |
 | `minions/handoffs/README.md` | yes | `template-replace` | `feature` | PM | session-handoff surface protocol (ephemeral courier, delete-on-pickup) |
 | `minions/handoffs/*.md` (snapshots) | no | `downstream-owned` | `n/a` | PM | transient session snapshots; never exported; deleted on pickup |
-| `minions/smes/README.md` | yes | `template-replace` | `feature` | PM | expertise-layer surface protocol (SMEs: advisory class, not roles) + downstream-owned registry table |
+| `minions/smes/README.md` | yes | `template-replace` | `feature` | PM | expertise-layer surface protocol (SMEs: advisory class, not roles) + downstream-owned registry table; seed only below delimiter (local registry resets at export) |
 | `minions/smes/sme-template.md` | yes | `template-replace` | `feature` | PM | SME charter template (discovery sections required) |
 | `minions/smes/*.md` (SME charters) | no | `downstream-owned` | `n/a` | PM | downstream expertise content; never exported from the template |
-| `minions/review-matrix.md` | yes | `downstream-owned` | `feature` | PM | review-routing starter (change types → required reviewers); template ships generic examples, downstream fills and owns |
+| `minions/review-matrix.md` | yes | `downstream-owned` | `feature` | PM | review-routing starter (change types → required reviewers); template ships generic examples, downstream fills and owns; seed only below delimiter (local matrix resets at export) |
 | `docs/runbooks/README.md` | yes | `template-replace` | `reference` | DM | runbook structure contract (required sections + two hard rules) |
+| `.claude/agents/sme-*.md` (SME launchers) | no | `downstream-owned` | `n/a` | PM | SME launchers are expertise content owned by each repo — canonical's bench included; never exported from the template |
+| `.codex/agents/sme-*.toml` (SME launchers) | no | `downstream-owned` | `n/a` | PM | SME launchers are expertise content owned by each repo — canonical's bench included; never exported from the template |
+| `.github/agents/sme-*.agent.md` (SME launchers) | no | `downstream-owned` | `n/a` | PM | SME launchers are expertise content owned by each repo — canonical's bench included; never exported from the template |

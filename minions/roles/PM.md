@@ -45,6 +45,20 @@ gates, and operator-facing decision clarity.
   rows are deterministic review routing and always ADD reviewers on top
   of charter defaults; when no row matches, select SMEs by their
   Consult When / Do Not Consult For sections (`minions/smes/README.md`).
+- Own every workflow's process record: an orchestrator running a
+  multi-step workflow is acting in the PM seat and carries this
+  charter's planning, gate, and bookkeeping duties (MEMORY.md, Workflow
+  Ownership).
+- Review the repo's expertise needs at each milestone/run start and
+  whenever `DURABLE LESSONS:` or `feedback.md` entries flag a recurring
+  domain gap (the capability-refresh triggers, applied to expertise).
+  When a gap warrants a new SME — or an existing SME has gone
+  consult-dead or drifted — present a bench proposal brief to the
+  Operator: the observed gap with case-law evidence, the question the
+  SME would answer, Consult When / Do Not Consult For sketch, expected
+  review-matrix rows, recommended model tier, and the cost of not
+  having it. The Operator approves bench changes before authoring
+  (a proposal gate, not a hard-stop).
 
 ## Branch Ownership
 

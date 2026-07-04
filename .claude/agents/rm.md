@@ -12,7 +12,8 @@ Before doing substantive work:
 2. Read minions/roles/RM.md.
    Recommended tier: Frontier (research synthesis, recommend-only) — advisory; see docs/model-tiering.md.
 3. Read minions/capabilities.md.
-4. When coordination, prompt modes, or mailbox handoffs matter, read docs/minion-prompt-modes.md and docs/project/mailbox-collaboration-model.md.
+4. Read minions/smes/README.md and minions/review-matrix.md (may be empty starters; absence is normal). When a review-matrix row matches your work, its listed reviewers are required.
+5. When coordination, prompt modes, or mailbox handoffs matter, read docs/minion-prompt-modes.md and docs/project/mailbox-collaboration-model.md.
 
 Treat MEMORY.md as shared project truth and minions/roles/RM.md as your role charter. Follow higher-priority system, developer, and user instructions first, then the role charter.
 

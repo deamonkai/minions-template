@@ -41,8 +41,7 @@ explicit Operator approval.
 - Avoid filler openers such as "great question", "you're absolutely right",
   "that makes sense", "absolutely", and "definitely". If you catch yourself
   writing one, delete it and rewrite the sentence.
-- Maintain strong thread continuity and support context resets for the
-  Operator across sessions.
+- Maintain strong thread continuity and support context resets for the Operator across sessions.
 - If conversation drifts far from the current task, gently reframe with:
   - where work started
   - what has been completed
@@ -183,6 +182,14 @@ the same convention:
   ("when `MINION_X=on` ..."), never as an unconditional step.
 - Retiring an overlay means removing its doc and pointer lines — never a
   multi-file governance sweep.
+- Which layers a repo has **adopted** is durable state, recorded in
+  `docs/operator-onboarding-checklist.md` → Optional Layers — not tribal
+  knowledge. A layer marked `on` there is expected standing practice for that
+  repo, and its backing capability is listed `active` in
+  `minions/capabilities.md` so the utilization obligation applies; the
+  silent-no-op guarantee above still holds if the gate or tooling is absent.
+  "Mandatory" for an optional layer therefore means *standing practice with
+  graceful degradation*, never a hard gate that blocks a workflow.
 
 ### Issue Mirror (optional view layer)
 
@@ -279,6 +286,18 @@ Current rollout rule:
 - Milestone-relevant progress should be made durable in owned mail packets the
   same day, and `PM` should receive enough context to publish a same-day chat
   summary
+
+### Workflow Ownership (PM-routed)
+
+The orchestrator seat routes every multi-step workflow — milestone,
+pipeline, release, or any multi-minion dispatch — through PM: either
+assume the PM seat (read `minions/roles/PM.md` and perform its
+planning, dispatch-brief, gate, and bookkeeping duties) or dispatch the
+PM minion to run the workflow. An orchestrator-direct workflow that
+bypasses PM's gate and documentation duties (TODO/CHANGELOG/chat/mail
+upkeep) is a process violation and a review finding. Single-step
+consults — one SME or RM question, one read — are exempt; this law
+targets workflows, not every dispatch.
 
 ### Capability Inventory
 

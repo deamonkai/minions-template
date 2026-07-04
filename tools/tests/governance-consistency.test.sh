@@ -54,6 +54,45 @@ _neg "new autonomous posture (spawn freely)"    'Spawn role agents and advance s
 _neg "'task ... explicitly' (substring 'task')" 'Do this unless the task explicitly requires otherwise.\n'
 rm -f "$__t"
 
+# Expand one allowlist entry to zero or more repo-relative paths. An entry with
+# glob metacharacters (* ? [) is expanded against a base dir (nullglob: no match ->
+# nothing emitted, never the literal pattern); a plain path passes through verbatim.
+# This lets the allowlist cover whole SME surfaces (minions/smes/*.md, sme-* launchers)
+# so a future SME is scanned automatically without editing this file. Selectivity
+# matters: '.claude/agents/sme-*.md' must match SME launchers but NOT role launchers.
+# IFS= in the glob branch stops word-splitting from shredding a pattern (or a match)
+# that contains a space before pathname expansion runs — a spaced path must expand
+# whole, never be silently dropped as broken fragments (a silent coverage hole).
+expand_scan_entry() { # $1=entry (repo-relative, may contain globs)  $2=base dir (default ".")
+  local base="${2:-.}"
+  case "$1" in
+    *[\*\?\[]*) ( cd "$base" 2>/dev/null && shopt -s nullglob; IFS=; for m in $1; do printf '%s\n' "$m"; done ) ;;
+    *)          printf '%s\n' "$1" ;;
+  esac
+}
+
+# Self-test the expander — an untested guard is theater (same rule as the detectors
+# above). Prove: glob expands to every match, sme-* is selective (no role launchers),
+# a literal passes through, and a no-match glob yields NOTHING (nullglob, not the
+# literal pattern — a literal pattern would silently WARN-skip and mask real coverage).
+__ge="$(mktemp -d)"
+mkdir -p "$__ge/minions/smes" "$__ge/.claude/agents"
+: > "$__ge/minions/smes/governance-invariant.md"; : > "$__ge/minions/smes/README.md"
+: > "$__ge/.claude/agents/sme-foo.md"; : > "$__ge/.claude/agents/pm.md"
+[ "$(expand_scan_entry 'minions/smes/*.md' "$__ge" | sort | tr '\n' ',')" \
+    = "minions/smes/README.md,minions/smes/governance-invariant.md," ] \
+  || { echo "FAIL - expand_scan_entry self-test (glob did not expand to all matches)"; fail=1; }
+[ "$(expand_scan_entry '.claude/agents/sme-*.md' "$__ge")" = ".claude/agents/sme-foo.md" ] \
+  || { echo "FAIL - expand_scan_entry self-test (sme-* not selective — matched a role launcher)"; fail=1; }
+[ "$(expand_scan_entry 'MEMORY.md' "$__ge")" = "MEMORY.md" ] \
+  || { echo "FAIL - expand_scan_entry self-test (literal path did not pass through)"; fail=1; }
+[ -z "$(expand_scan_entry 'minions/smes/zzz-*.md' "$__ge")" ] \
+  || { echo "FAIL - expand_scan_entry self-test (no-match glob emitted the literal pattern)"; fail=1; }
+mkdir -p "$__ge/dir with space"; : > "$__ge/dir with space/x.md"
+[ "$(expand_scan_entry 'dir with space/*.md' "$__ge")" = "dir with space/x.md" ] \
+  || { echo "FAIL - expand_scan_entry self-test (spaced glob path word-split into fragments)"; fail=1; }
+rm -rf "$__ge"
+
 # Files to scan for the retired norm. Default = the bootstrap/operative surfaces
 # where the norm must NOT appear. A repo-local allowlist
 # (tools/tests/governance-scan.allow, one path per line, '#' comments) overrides the
@@ -62,19 +101,40 @@ rm -f "$__t"
 # files that legitimately *describe* the retired norm (CHANGELOG.md, AI/decisions.md,
 # the upgrade playbook) would false-positive under a blind glob.
 SCAN_LIST="$ROOT/tools/tests/governance-scan.allow"
-scan_files=()
+raw_entries=()
 if [ -f "$SCAN_LIST" ]; then
   while IFS= read -r line; do
     line="${line%%#*}"; line="$(printf '%s' "$line" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
-    [ -n "$line" ] && scan_files+=("$line")
+    [ -n "$line" ] && raw_entries+=("$line")
   done < "$SCAN_LIST"
 fi
-if [ "${#scan_files[@]}" -eq 0 ]; then
-  scan_files=(MEMORY.md AI.md CLAUDE.md AGENTS.md .github/copilot-instructions.md \
-              .claude/agents/README.md .codex/agents/README.md .github/agents/README.md \
-              INIT.md docs/collaboration-playbook.md)
+if [ "${#raw_entries[@]}" -eq 0 ]; then
+  # Default = bootstrap/operative surfaces + the SME surfaces (charters + sme-*
+  # launchers in every family, as globs). The globs mean a repo with no allowlist
+  # still scans its whole bench, and future SMEs are covered automatically.
+  raw_entries=(MEMORY.md AI.md CLAUDE.md AGENTS.md .github/copilot-instructions.md \
+               .claude/agents/README.md .codex/agents/README.md .github/agents/README.md \
+               INIT.md docs/collaboration-playbook.md \
+               'minions/smes/*.md' '.claude/agents/sme-*.md' \
+               '.codex/agents/sme-*.toml' '.github/agents/sme-*.agent.md')
 fi
+# Expand glob entries (SME surfaces) to concrete repo-relative paths.
+scan_files=()
+for entry in "${raw_entries[@]}"; do
+  while IFS= read -r p; do [ -n "$p" ] && scan_files+=("$p"); done < <(expand_scan_entry "$entry")
+done
 echo "governance scan files (${#scan_files[@]}): ${scan_files[*]}"
+# Guard the guard (portable, filesystem-derived — not hardcoded to this repo's
+# bench): every SME surface that EXISTS must be in the scan set. If the allowlist's
+# SME globs are ever removed or a family's launcher glob stops matching, coverage
+# silently shrinks and the retired-norm scan would skip norm-bearing SME docs — this
+# catches that. A repo with no SMEs iterates nothing here and is unaffected.
+while IFS= read -r must; do
+  [ -n "$must" ] || continue
+  printf '%s\n' "${scan_files[@]}" | grep -qxF "$must" \
+    || { echo "FAIL - governance scan omits an existing SME surface: $must"; fail=1; }
+done < <( { ls minions/smes/*.md .claude/agents/sme-*.md \
+               .codex/agents/sme-*.toml .github/agents/sme-*.agent.md 2>/dev/null; } )
 # Old norm must be gone from every scanned surface.
 for f in "${scan_files[@]}"; do
   [ -f "$f" ] || { echo "WARN - scan target not found (skipped): $f" >&2; continue; }
@@ -161,6 +221,31 @@ for c in minions/roles/PM.md minions/roles/AM.md minions/roles/CM.md \
          minions/roles/RM.md; do
   esc_ok "$c" || { echo "FAIL - $c missing/incomplete Escalation Contract (Triggers+Provide+recommendation+Route)"; fail=1; }
 done
+
+# --- Launcher bootstrap surfaces: every role launcher in every family must
+# instruct the three bootstrap reads (capability inventory, SME registry,
+# review matrix). v1.27.0 wired the expertise surfaces into entry-point
+# files only, and spawned minions never saw them — this guard makes the
+# three-layer wiring rule mechanical. Self-tested below.
+launcher_ok() { # $1=launcher file
+  grep -q 'capabilities\.md'  "$1" || return 1
+  grep -q 'smes/README\.md'   "$1" || return 1
+  grep -q 'review-matrix\.md' "$1" || return 1
+}
+__la="$(mktemp)"
+printf '%b' 'Read minions/capabilities.md.\nRead minions/smes/README.md and minions/review-matrix.md.\n' > "$__la"
+launcher_ok "$__la" || { echo "FAIL - launcher_ok self-test (missed valid launcher)"; fail=1; }
+printf '%b' 'Read minions/capabilities.md.\nRead minions/smes/README.md.\n' > "$__la"
+! launcher_ok "$__la" || { echo "FAIL - launcher_ok self-test (accepted launcher missing review-matrix)"; fail=1; }
+rm -f "$__la"
+for r in pm am cm sm dm om rm; do
+  for f in ".claude/agents/$r.md" ".codex/agents/$r.toml" ".github/agents/$r.agent.md"; do
+    launcher_ok "$f" || { echo "FAIL - $f missing a bootstrap-surface read (capabilities/smes-README/review-matrix)"; fail=1; }
+  done
+done
+
+# --- Workflow Ownership: the PM-routed-workflows law must stay present.
+grep -q 'Workflow Ownership' MEMORY.md || { echo "FAIL - MEMORY.md missing Workflow Ownership (PM-routed) rule"; fail=1; }
 
 test "$fail" -eq 0 && echo "ok - governance consistent"
 exit "$fail"

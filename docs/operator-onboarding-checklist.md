@@ -61,7 +61,24 @@ Date: YYYY-MM-DD
 - downstream template-upgrade owner confirmed (default `PM`)
 - `minion-version.md` reviewed and downstream version format confirmed
 
-## 4. Escalation Policy (Operator Optional)
+## 4. Optional Layers (Operator Decision)
+
+Optional layers ship default-off; a missing gate or its tooling is always a
+silent no-op that never blocks a workflow (see `MEMORY.md` → Optional Layers).
+Record which layers this repo has **adopted** so a fresh session knows they are
+expected standing practice — not merely available — and where the gate is set.
+An adopted layer's backing capability should also be listed `active` in
+`minions/capabilities.md`, so the utilization obligation makes using it standing
+practice while the silent-no-op guarantee still covers absence at call time.
+
+- Memory recall (`MINION_MEMORY`): on / off — date: YYYY-MM-DD; gate persisted
+  in: `~/.zshenv` / direnv / CI env / other (non-interactive agent shells do
+  **not** read `~/.zshrc` — verify from a fresh tool shell)
+- Issue mirror (`MINION_ISSUES`): on / off — date: YYYY-MM-DD
+- Coordinator mode (`projects/` + `MEMORY.md` declaration): on / off — date: YYYY-MM-DD
+- Adopted layers' backing capabilities listed `active` in `minions/capabilities.md`: yes/no
+
+## 5. Escalation Policy (Operator Optional)
 
 Enabled by Operator: yes/no
 
@@ -71,7 +88,7 @@ If enabled:
 - non-critical blocker response expectation:
 - incident communication expectation:
 
-## 5. Guardrail Confirmation
+## 6. Guardrail Confirmation
 
 - base guardrails accepted
 - project-specific guardrails added:
@@ -79,7 +96,7 @@ If enabled:
 - machine-specific metadata hygiene confirmed (example: .DS_Store stays untracked)
 - rollback posture expectation confirmed
 
-## 6. Sign-Off
+## 7. Sign-Off
 
 Operator decision: pending
 

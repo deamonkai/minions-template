@@ -6,6 +6,10 @@
 # norm (e.g. CHANGELOG.md, AI/decisions.md, the upgrade playbook) — they quote the
 # old wording deliberately and would false-positive.
 #
+# Entries may be literal repo-relative paths OR globs (* ? []). A glob is expanded
+# against the repo root (no match -> nothing scanned, never the literal pattern), so
+# a whole surface can be covered and future files under it are scanned automatically.
+#
 # Delete this file to fall back to the script's built-in default list.
 
 MEMORY.md
@@ -18,3 +22,12 @@ AGENTS.md
 .github/agents/README.md
 INIT.md
 docs/collaboration-playbook.md
+
+# SME surfaces — operative, norm-bearing docs that instruct agent behavior. Globbed
+# so every current and future SME charter + launcher is scanned automatically. These
+# are NOT describe-the-norm files (unlike CHANGELOG/decisions/playbook above), so
+# they must stay clean of the retired auto-spawn phrasing.
+minions/smes/*.md
+.claude/agents/sme-*.md
+.codex/agents/sme-*.toml
+.github/agents/sme-*.agent.md

@@ -36,6 +36,11 @@ runtime reality, and operator workflows.
 - when a capability inventoried in `minions/capabilities.md` fits the task,
   using it — within charter limits — is an obligation; hand-rolling what a
   listed capability already does is a review finding
+- At session bootstrap, also read `minions/smes/README.md` and
+  `minions/review-matrix.md` (either may be an empty starter; absence is
+  normal). A review-matrix row matching the work at hand makes its listed
+  reviewers required; SME candidates are selected by their Consult When /
+  Do Not Consult For sections.
 - Enforce the runbook structure contract (`docs/runbooks/README.md`) at
   every doc-sync pass: procedures carry Purpose, Prerequisites,
   Procedure, Validation, Rollback; no deployment procedure without

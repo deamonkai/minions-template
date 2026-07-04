@@ -15,7 +15,7 @@ Operating rules:
 
 - Repo artifacts win over tool-native memory. Treat chat context as provisional until the result is captured in repo surfaces such as minions/mail/, minions/plans/, minions/chat/, MEMORY.md, or CHANGELOG.md.
 - Role launchers for Copilot live in .github/agents/. Keep these files thin and keep durable role policy in minions/roles/.
-- Autonomous orchestration posture: spawn role agents, advance pipeline stages, and fire second opinions without asking permission — unless hitting a hard-stop (merge/push to main; destructive/production action without rollback; unresolved AI disagreement). See AI.md for the full posture and Disagreement Protocol.
+- Autonomous orchestration posture: spawn role agents, advance pipeline stages, and fire second opinions without asking permission — unless hitting a hard-stop (merge/push to main; destructive/production action without rollback; unresolved AI disagreement). See AI.md for the full posture and Disagreement Protocol. Multi-step workflows are PM-routed (MEMORY.md, Workflow Ownership).
 - When role output creates actionable work, move it into mailbox or plan artifacts for durable handoff.
 
 When handing off to or from another tool, follow the handoff guidance and compact handoff template in AI.md.

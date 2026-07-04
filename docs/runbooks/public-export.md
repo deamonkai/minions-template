@@ -64,7 +64,7 @@ marked `Initial export: yes` that downstream onboarding uses (see
 Do this **tree-wide and token-based**, not as a single targeted edit.
 
 The live 2026-07-02 run first tried a single-line pass (fix the one known
-personal line in `MEMORY.md`) and it was incomplete: an Operator-specific heading parenthetical
+personal line in `MEMORY.md`) and it was incomplete: an Operator-specific
 section heading echoed in `INIT.md` and `CHANGELOG.md` referenced the same
 personal context and was missed by the single-line pass. Only a tree-wide
 grep for the underlying token caught every occurrence, including the
@@ -84,6 +84,13 @@ Procedure:
    curated rule, promotion path, format — no Operator-specific examples or
    history), matching the seed style `docs/export-manifest.md` already
    specifies for downstream onboarding.
+5. Reset content BELOW the split-merge delimiter in
+   `minions/smes/README.md` and `minions/review-matrix.md` to the seed
+   state: an empty "Local Registry (this repo)" / "Local Matrix (this
+   repo)" section with the table header only. The canonical repo's own
+   SME bench and routing rows are maintainer content and never publish —
+   the feedback.md-stub treatment, generalized. Step 3 gate 4 enforces
+   this mechanically — skipping this reset fails the pre-push gates.
 
 **Verify** — for each neutralized token:
 
@@ -139,7 +146,35 @@ pushed. These are pre-push hard gates, not optional checks.
    its equivalent private-context files, its untracked scratch, and
    anything its own manifest or conventions mark as not-for-export.
 
-If any gate fails, fix it in the export tree and re-run all three gates
+4. **Seed-state guard** — the Local Registry / Local Matrix sections
+   below the split-merge delimiter must be header-only in the export
+   tree (Step 2, item 5). This is the one gate that catches a skipped
+   reset before it publishes private bench/routing rows:
+
+   ```bash
+   bash tools/export-seed-check.sh <export-tree>
+   # Expected: ok - export seed state clean + classification complete
+   ```
+
+   Run against canonical (intentionally filled) the header-only leg
+   fails by design — it is an export-tree check, run after the Step 2
+   reset. A downstream with its own delimited local sections points it
+   at its own files by editing `SEED_FILES` in the script.
+
+   The same gate also runs a **classification-completeness** leg: every
+   file carrying the structural delimiter marker that the manifest marks
+   `export=yes` must be either a `SEED_FILES` entry (reset here) or a
+   `WAIVER` entry (its below-delimiter content legitimately publishes —
+   e.g. `MEMORY.md`, the role charters). A new delimited exportable file
+   in neither list fails the gate, so `SEED_FILES` can never silently go
+   stale. This leg also runs standalone in CI as a live-repo invariant:
+
+   ```bash
+   bash tools/export-seed-check.sh --completeness .
+   # Expected: ok - export seed classification complete
+   ```
+
+If any gate fails, fix it in the export tree and re-run all four gates
 from the top — do not push on a partial pass.
 
 ---

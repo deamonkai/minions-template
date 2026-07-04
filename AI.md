@@ -97,6 +97,9 @@ Collaboration Model roster (the single `om` launcher serves both `OM` and
 Use one role for focused thinking when the Operator wants a specific lens.
 Use multiple role agents when parallel review is likely to improve the decision.
 
+The orchestrator runs multi-step workflows through the PM seat per
+MEMORY.md's Workflow Ownership (PM-routed) rule.
+
 **Autonomous orchestration posture:** keep the workflow moving — spawn role
 agents/subagents, advance pipeline stages, and fire independent second opinions
 WITHOUT asking permission first. Three hard-stops require interrupting the

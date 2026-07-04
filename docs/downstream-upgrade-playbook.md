@@ -53,6 +53,98 @@ complete until every `REQUIRED` item is confirmed present in the live repo. The
 `Criticality` column in `docs/export-manifest.md` marks the `baseline` files
 that most often carry these.
 
+### 1.28.2 — Optional-layer adoption record
+
+OPTIONAL — docs-only, no baseline or governance-token change.
+
+- OPTIONAL: the new "## 4. Optional Layers (Operator Decision)" section in
+  `docs/operator-onboarding-checklist.md` (per-repo `MINION_MEMORY` /
+  `MINION_ISSUES` / coordinator-mode activation state, plus where the
+  gate is persisted) and the new bullet in `MEMORY.md`'s Optional Layers
+  convention. Both arrive via the normal manual-merge of those files;
+  adopt when re-vendoring them. Skipping them costs only the durable
+  adoption record.
+- NOTE: `operator-onboarding-checklist.md` section numbers shifted
+  (Escalation 4→5, Guardrail 5→6, Sign-Off 6→7). No repo reference cites
+  the checklist by section number, so nothing else needs updating.
+- NOTHING in this entry is merge-blocking.
+
+### 1.28.1 — Guard hardening (SME-surface norm scan + public-export seed guard)
+
+OPTIONAL — test/guard-only, no baseline or governance-token change.
+
+- OPTIONAL: the extended retired-norm scan (`tools/tests/governance-consistency.test.sh`
+  + the `governance-scan.allow` SME-surface globs) and the new
+  `tools/export-seed-check.sh` public-export gate. Adopt if the
+  downstream runs the `tools/tests/` suite as its regression harness
+  and/or publishes a public mirror. Both are additive; skipping them
+  costs only the added CI coverage.
+- REQUIRED TOGETHER (if re-vendoring the test): a repo that takes the
+  updated `tools/tests/governance-consistency.test.sh` must also take
+  the updated `tools/tests/governance-scan.allow` — the test reads the
+  allowlist and the new `expand_scan_entry` glob handling and SME-surface
+  globs work as a pair.
+- Repos that do not publish a public mirror can skip
+  `tools/export-seed-check.sh` entirely; it is inert unless run by the
+  public-export runbook.
+- NOTHING in this entry is merge-blocking.
+
+### 1.28.0 — Canonical SME bench + PM bench-review loop
+
+OPTIONAL — adopt-if-used; with one REQUIRED-IF-ADOPTED delimiter migration.
+
+- OPTIONAL: the five canonical SME charters (`minions/smes/*.md`) and
+  their `sme-*` launchers in all three families are canonical-repo
+  expertise content — classified `downstream-owned` / never-exported. A
+  downstream builds its OWN bench from its OWN failure history; do not
+  adopt these charters verbatim. Skipping them costs only the example
+  bench; nothing forces adoption.
+- REQUIRED (if the 1.27.0 expertise layer's Local Registry was filled):
+  1.28.0 adds a split-merge delimiter to `minions/smes/README.md`. A
+  repo that filled a Local Registry under 1.27.0 (where no delimiter
+  existed) MUST move its filled rows BELOW the new delimiter ONCE
+  before taking the new `minions/smes/README.md` — exactly as 1.25.0
+  required for charters/`MEMORY.md`. After the one-time move, future
+  upgrades are mechanical replace-above. A naive whole-file
+  `template-replace` WITHOUT this migration silently drops the filled
+  rows — treat it as merge-blocking.
+- `minions/review-matrix.md` stays `downstream-owned`: a
+  `template-replace` should never run against it, so its new delimiter
+  is belt-and-suspenders — note only, no action for repos that already
+  own their matrix.
+- The PM bench-review loop (PM charter + `minions/smes/README.md`
+  "Growing the bench" / Adding-an-SME step 0) arrives via the normal
+  manual-merge/template-replace of those files — no separate action.
+- Repos that skipped the v1.27.0 expertise layer entirely: all of the
+  above is OPTIONAL — there is no registry to migrate and nothing goes
+  inert.
+
+### 1.27.1 — Expertise-layer wiring fix + PM-routed workflows
+
+REQUIRED IF 1.27.0's expertise layer was adopted; otherwise OPTIONAL.
+
+- REQUIRED (if the 1.27.0 expertise layer was adopted): the 21 launcher
+  read-steps + 6 charter bootstrap lines that make spawned minions
+  actually read `minions/smes/README.md` + `minions/review-matrix.md`.
+  Without this wiring the SME registry and review matrix stay inert —
+  minions never see them. Repos that skipped the expertise layer
+  entirely can treat this as OPTIONAL (nothing to wire).
+- REQUIRED TOGETHER (if adopting the wiring): the updated
+  `tools/tests/governance-consistency.test.sh` (new `launcher_ok` +
+  Workflow Ownership guards) must be taken together with the
+  launcher/charter updates above and the new `MEMORY.md` Workflow
+  Ownership subsection. Taking the updated test alone — without the
+  launcher/charter wiring and the `MEMORY.md` law it checks for —
+  fails the suite.
+- The Workflow Ownership (PM-routed) law and the "Adding an SME"
+  checklist in `minions/smes/README.md` arrive via the normal
+  manual-merge/template-replace of `MEMORY.md`, entry-point files, the
+  PM charter, and `minions/smes/README.md` — no separate action beyond
+  the usual upgrade mechanics.
+- Repos that skipped the v1.27.0 expertise layer entirely: all of the
+  above is OPTIONAL — there is nothing to wire and nothing goes
+  inert.
+
 ### 1.27.0 — Expertise layer (SMEs, review matrix, escalation contracts)
 
 OPTIONAL — adopt-if-used.

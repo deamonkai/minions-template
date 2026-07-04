@@ -28,7 +28,15 @@ finding (MEMORY.md, Execution Quality).
 | _example: infra provisioning change_ | Infra SME, SM | SME advises; SM reviews |
 | _example: production migration_ | AM, SM, OM | packet precedent |
 
-Rows are downstream content — replace the examples. In coordinator mode
-the root matrix routes coordinator-shared-surface and cross-project
+Rows are downstream content — replace the examples. Live rows belong
+below the split-merge delimiter at the end of this file. In coordinator
+mode the root matrix routes coordinator-shared-surface and cross-project
 policy changes; project lanes keep their own matrix (in the lane or in
 the project submodule).
+
+<!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->
+
+## Local Matrix (this repo)
+
+| Change type | Required reviewers | Notes |
+| --- | --- | --- |

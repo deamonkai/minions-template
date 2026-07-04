@@ -29,6 +29,11 @@ project.
 - when a capability inventoried in `minions/capabilities.md` fits the task,
   using it — within charter limits — is an obligation; hand-rolling what a
   listed capability already does is a review finding
+- At session bootstrap, also read `minions/smes/README.md` and
+  `minions/review-matrix.md` (either may be an empty starter; absence is
+  normal). A review-matrix row matching the work at hand makes its listed
+  reviewers required; SME candidates are selected by their Consult When /
+  Do Not Consult For sections.
 
 ## Outputs
 

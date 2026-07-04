@@ -132,9 +132,17 @@ guardrails/rules without explicit Operator approval.
 ## About This Copy
 
 This is the public export of the minions-template, published from the
-maintainer's canonical repository at template version `1.27.0-1.0.0`
+maintainer's canonical repository at template version `1.28.2-1.0.0`
 (shallow publish history; the canonical repo retains full development
 history and its maintainer-local context). A few files intentionally
-diverge from the canonical copy for privacy: `MEMORY.md`, `INIT.md`, and
-`CHANGELOG.md` generalize Operator-specific phrasing, and `feedback.md` is
-reset to a clean capture-log stub.
+diverge from the canonical copy:
+
+- `MEMORY.md`, `INIT.md`, `CHANGELOG.md`, `minion-version.md`, and
+  `docs/runbooks/public-export.md` generalize Operator-specific phrasing.
+- `feedback.md` is reset to a clean capture-log stub.
+- The Local Registry in `minions/smes/README.md` and the Local Matrix in
+  `minions/review-matrix.md` are reset to their empty template seed (header
+  only) below the split-merge delimiter — the maintainer's own subject-matter
+  experts and review-routing rows are repo-local and do not publish.
+- Maintainer-local files (`.mm.md`, the `AI/` maintenance layer) and local
+  scratch (`.remember/`, `.superpowers/`) are excluded entirely.

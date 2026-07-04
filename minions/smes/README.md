@@ -58,6 +58,9 @@ Keep every SME listed here. Summary columns are a few keywords each,
 distilled from the charter, so an orchestrator selects candidates
 without opening every charter.
 
+Live rows belong in the Local Registry below the split-merge delimiter
+at the end of this file; the table here is the schema and example.
+
 | SME | Charter | Domain | Consult when | Do not consult | Paired roles | RM domain | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | _example: Payments SME_ | `payments.md` | payment flows | checkout, refunds, PCI scope | infra sizing, UI copy | AM, CM, SM | payments-vendors | active |
@@ -67,6 +70,48 @@ Coordinator-mode benches may add an advisory `Maturity` column:
 `experimental | standard | trusted | authoritative` — a tie-breaker when
 SMEs overlap, never a mandatory router, never an override of a matrix
 row.
+
+## Growing the bench
+
+The bench is PM-curated, Operator-approved. PM reviews the repo's
+expertise needs at each milestone/run start and whenever `DURABLE
+LESSONS:` or `feedback.md` entries flag a recurring domain gap — the
+same triggers as the capability refresh (MEMORY.md, Capability
+Inventory). A gap that warrants a new SME gets a **bench proposal
+brief** to the Operator: observed gap with case-law evidence, the
+question the SME would answer, Consult When / Do Not Consult For
+sketch, expected review-matrix rows, recommended model tier, and the
+cost of not having it. Retirement works the same way (consult history +
+where the domain's duties land). The Operator approves before anything
+is authored.
+
+## Adding an SME
+
+Every new SME lands through this checklist — partial deployment is the
+known failure mode (a charter with no launchers is invisible to spawned
+minions; a launcher with no registry row is invisible to routing):
+
+An SME lands only after a PM bench proposal brief and Operator approval (see Growing the bench).
+
+1. Copy `sme-template.md` to `minions/smes/<key>.md` and fill every
+   section (Consult When and Do Not Consult For are required).
+2. Add the row to the Local Registry below the split-merge delimiter —
+   charter, domain, both summary columns, paired roles, RM domain,
+   status `active`.
+3. Author launchers in EVERY AI option tree this repo uses —
+   `.claude/agents/<key>.md`, `.codex/agents/<key>.toml`,
+   `.github/agents/<key>.agent.md` — from the snippets below, bodies
+   behaviorally identical per the Instruction-File Audit Rule
+   (MEMORY.md). A family that is exported but not yet active carries the
+   DEFERRED notice per `docs/downstream-onboarding-playbook.md`.
+4. Add `minions/review-matrix.md` rows for any change types this SME
+   must review deterministically (optional — discovery covers the rest).
+5. In coordinator mode, bench registry edits go through the coordinator
+   seat, with lane packets as the request path.
+
+Removing an SME: set its registry status to `retired` (rows are never
+deleted), remove its launchers from every family, and drop its matrix
+rows in the same commit.
 
 ## Consulting an SME
 
@@ -104,3 +149,10 @@ in `projects/<key>/smes/` under the same protocol, consultable only
 within that lane; for that project's context the local registry outranks
 the shared bench (the root-vs-project MEMORY.md split rule, applied to
 expertise).
+
+<!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->
+
+## Local Registry (this repo)
+
+| SME | Charter | Domain | Consult when | Do not consult | Paired roles | RM domain | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |

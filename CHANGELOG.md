@@ -2,6 +2,102 @@
 
 All notable changes to this repository are tracked here.
 
+## 2026-07-04 (v1.28.2 — Optional-layer adoption record)
+
+- Commit hash: pending (staging→main PR merge)
+- New "## 4. Optional Layers (Operator Decision)" section in
+  `docs/operator-onboarding-checklist.md` (Escalation → 5, Guardrail → 6,
+  Sign-Off → 7): per-repo activation state for the `MINION_*` overlays —
+  Memory recall (`MINION_MEMORY`) on/off + date + where the gate is
+  persisted (with the `.zshenv`-not-`.zshrc` verification note), Issue
+  mirror (`MINION_ISSUES`), Coordinator mode — plus a line confirming
+  adopted layers' backing capabilities are listed `active` in
+  `minions/capabilities.md`. Extends the v1.22.1 launcher-family
+  activation-state precedent to the overlay layers it skipped.
+- New bullet in `MEMORY.md`'s Optional Layers convention making adoption
+  durable state and stating the contract explicitly: "mandatory" for an
+  optional layer means standing practice with graceful degradation,
+  never a hard gate that blocks a workflow.
+- Full `tools/tests/` suite green.
+
+## 2026-07-04 (v1.28.1 — Guard hardening: SME-surface norm scan + public-export seed guard)
+
+- Commit hash: pending (staging→main PR merge)
+- Retired-norm scan now covers the SME surfaces (finding B): the
+  auto-spawn-norm detector in `tools/tests/governance-consistency.test.sh`
+  previously scanned a fixed allowlist that excluded `minions/smes/*.md`
+  charters and `sme-*` launchers, so a future edit reintroducing the
+  retired phrasing there would have passed CI. A self-tested
+  `expand_scan_entry` glob expander (nullglob; `IFS=` guards spaced paths)
+  plus new SME-surface globs in `governance-scan.allow` close the gap,
+  with a "guard the guard" assertion that every existing SME surface is
+  scanned. Describe-the-norm files (`minion-version.md`, CHANGELOG-class)
+  stay excluded by design.
+- Mechanical public-export seed-state guard (R2 + F3 + R1): the Step 2
+  seed-reset (blanking Local Registry / Local Matrix rows below the
+  split-merge delimiter) was manual prose with no gate, so a skipped
+  reset could silently ship private bench/routing rows to the
+  irreversible public mirror. New `tools/export-seed-check.sh` is
+  public-export Step 3 gate 4 — a positive header-only assertion (prose,
+  bullets, post-separator data rows, and separator-less malformed rows
+  all fail) plus a classification-completeness leg that fails any
+  delimited exportable file not enrolled as a `SEED_FILES` reset target
+  or a `WAIVER` entry (`--completeness` runs it as a live-repo CI
+  invariant). WAIVER files (`MEMORY.md` + the role charters) are
+  header-only-checked too, so future below-delimiter content there is
+  caught, not published.
+- Full `tools/tests/` suite green (7 suites).
+
+## 2026-07-04 (v1.28.0 — Canonical SME bench + PM bench-review loop)
+
+- Commit hash: pending (staging→main PR merge)
+- Five SME charters in `minions/smes/` — Governance-Invariant,
+  Cross-Family Launcher, Export/Privacy, Upgrade-Path, Shell/Test-Harness —
+  derived from 22 releases of failure-class history, the first live
+  execution of the v1.27.1 Adding-an-SME checklist.
+- Launchers for all five SMEs in all three families (`sme-*` prefix),
+  tier-pinned per the model-tiering map.
+- Canonical-as-its-own-downstream filtering: local registry and local
+  matrix now live BELOW new split-merge delimiters in
+  `minions/smes/README.md` and `minions/review-matrix.md`; SME
+  launchers carry downstream-owned manifest globs; the public-export
+  runbook resets below-delimiter content to seed state (the
+  `feedback.md` treatment, generalized). Canonical bench content never
+  exports.
+- PM bench-review loop (Operator-driven addition): PM reviews expertise
+  needs at milestone/run start and on flagged lesson gaps, and presents
+  bench proposal briefs to the Operator (gap evidence, question
+  answered, discovery sketch, matrix rows, tier, cost of absence);
+  Operator approval gates bench changes — a proposal gate, not a
+  hard-stop. Wired into the PM charter and the smes README (Growing the
+  bench + Adding-an-SME step 0).
+- Full `tools/tests/` suite green: governance-consistency,
+  issue-board-bootstrap (20), issue-sync (50), manifest-completeness
+  (10), upgrade-classify (34), xtool-call (65).
+
+## 2026-07-04 (v1.27.1 — Expertise-layer wiring fix + PM-routed workflows)
+
+- Commit hash: pending (staging→main PR merge)
+- **Provenance:** two Operator field reports, same-day fixes.
+- Spawned minions never read the v1.27.0 expertise surfaces (launcher
+  read lists stopped at `capabilities.md`) — all 21 role launchers and
+  the six non-PM charters now instruct the `minions/smes/README.md` +
+  `minions/review-matrix.md` bootstrap read; new self-tested
+  `launcher_ok` governance guard makes the three-layer wiring rule
+  (entry-points, launchers, charters) mechanical.
+- New "Adding an SME" deployment checklist in `minions/smes/README.md`:
+  charter + registry row + launchers in EVERY AI option tree in use +
+  optional matrix rows; removal = retire, never delete.
+- New Workflow Ownership (PM-routed) law in `MEMORY.md` Shared Rules:
+  every multi-step workflow runs through the PM seat (assume it or
+  dispatch it); orchestrator-direct workflows that bypass PM's gate and
+  documentation duties are a review finding. Posture lines updated in
+  `CLAUDE.md`/`AGENTS.md`/`copilot-instructions`/`AI.md` + PM charter;
+  guarded by a `MEMORY.md` token check.
+- Full `tools/tests/` suite green, including the new `launcher_ok` and
+  Workflow Ownership self-tests inside
+  `governance-consistency.test.sh`.
+
 ## 2026-07-03 (v1.27.0 — Expertise layer: SMEs, review matrix, escalation contracts)
 
 - Commit hash: pending (staging→main PR merge)
@@ -455,7 +551,7 @@ All notable changes to this repository are tracked here.
   adds `README.md` with an "About This Copy" section (source version +
   divergence list) even though the manifest classes it downstream-owned;
   tree-wide token-based privacy-neutralization sweep (the live run's
-  single-line pass missed an Operator-specific heading parenthetical heading echoed in `INIT.md`
+  single-line pass missed an Operator-specific heading echoed in `INIT.md`
   and `CHANGELOG.md` — only the tree-wide grep caught it), with
   `feedback.md` reset to a clean capture-log stub; mandatory pre-push
   verification gates (export's own `tools/tests/*.test.sh` suite,

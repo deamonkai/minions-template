@@ -28,6 +28,7 @@ Operating rules:
   advance pipeline stages, and fire second opinions without asking permission —
   unless hitting a hard-stop (merge/push to `main`; destructive/production
   action without rollback; unresolved AI disagreement). See `.codex/agents/README.md` and `AI.md`.
+  Multi-step workflows are PM-routed (MEMORY.md, Workflow Ownership).
 - Keep durable role policy in `minions/roles/`, never in this file.
 
 When handing off to or from Claude, follow the handoff steps and the compact
