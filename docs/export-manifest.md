@@ -110,6 +110,7 @@ template repo.
 | `docs/collaboration-playbook.md` | yes | `template-replace` | `baseline` | PM | baseline workflow doc |
 | `docs/minion-prompt-modes.md` | yes | `template-replace` | `baseline` | PM | baseline operator prompt-mode and advisor-posture guidance; carries Pipeline Mode |
 | `docs/model-tiering.md` | yes | `template-replace` | `reference` | PM | advisory model-tier guidance (vendor-neutral bands) |
+| `docs/designing-an-sme.md` | yes | `template-replace` | `reference` | PM | SME design craft (consultable-expertise-vs-process test, disjoint-domain drawing, tier selection, evidence discipline); precedes the Adding-an-SME mechanics and `tools/sme-charter-check.sh` |
 | `docs/minion-plugin-pairings.md` | yes | `template-replace` | `feature` | PM | recommended (conditional) minion-to-plugin/connector/skill pairings; adjust to the downstream stack |
 | `docs/project/mailbox-collaboration-model.md` | yes | `template-replace` | `baseline` | PM | baseline mailbox-first coordination model |
 | `docs/operator-onboarding-checklist.md` | yes | `manual-merge` | `reference` | PM | preserve completed downstream decisions |
@@ -139,6 +140,7 @@ template repo.
 | `tools/xtool-call.sh` | yes | `template-replace` | `feature` | PM / CM | cross-tool orchestration wrapper (Codex / Copilot, review / delegate postures); adopt if project uses cross-vendor review |
 | `tools/upgrade-classify.sh` | yes | `template-replace` | `reference` | PM / CM | upgrade helper: classifies a template change-set (manifest class + live-vs-snapshot divergence) for downstream upgrades; see `docs/downstream-upgrade-playbook.md` |
 | `tools/export-seed-check.sh` | yes | `template-replace` | `feature` | PM / OM | public-export pre-push gate (runbook Step 3, gate 4): asserts Local Registry / Local Matrix are header-only below the split-merge delimiter in the export tree; point `SEED_FILES` at the downstream's own delimited local sections |
+| `tools/sme-charter-check.sh` | yes | `template-replace` | `feature` | PM / CM | mechanical SME-charter validator (required sections, non-empty negative discovery, Local Registry row, launcher parity in all three families); not a domain-merit judge — see `docs/designing-an-sme.md` |
 | `tools/tests/` | yes | `template-replace` | `feature` | CM | test suites (`xtool-call`, `governance-consistency`, `upgrade-classify`, `issue-sync`, `issue-board-bootstrap`, `manifest-completeness`), fixtures, and the `governance-scan.allow` scan list; adopt as reference and regression harness |
 | `.claude/commands/second-opinion.md` | yes | `template-replace` | `feature` | PM | `/second-opinion` slash command; read-only cross-vendor review via `tools/xtool-call.sh` |
 | `.claude/commands/delegate.md` | yes | `template-replace` | `feature` | PM | `/delegate` slash command; isolated-worktree cross-vendor implementation via `tools/xtool-call.sh` |

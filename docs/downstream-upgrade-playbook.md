@@ -53,6 +53,26 @@ complete until every `REQUIRED` item is confirmed present in the live repo. The
 `Criticality` column in `docs/export-manifest.md` marks the `baseline` files
 that most often carry these.
 
+### 1.29.0 — SME design support (guide + validator + review hook)
+
+OPTIONAL — adopt-if-used; no baseline or governance-token change.
+
+- OPTIONAL: `docs/designing-an-sme.md` (SME design craft),
+  `tools/sme-charter-check.sh` (mechanical charter validator; joins the
+  `tools/tests/` suite via its self-test), and the new
+  Governance-Invariant SME `Consult When` line. Adopt if the downstream
+  runs an SME bench; all additive. Skipping them costs only the
+  SME-design guidance and the mechanical validator.
+- REQUIRED TOGETHER (if re-vendoring the validator):
+  `tools/sme-charter-check.sh` and
+  `tools/tests/sme-charter-check.test.sh` must be taken together (the
+  test self-tests the script). The validator asserts every
+  `minions/smes/<key>.md` charter has launchers in all three families
+  and a Local Registry row; a downstream with a filled bench must have
+  those present, or the guard fails — which is the guard doing its job.
+  A downstream with no authored charters passes vacuously.
+- NOTHING in this entry is merge-blocking.
+
 ### 1.28.2 — Optional-layer adoption record
 
 OPTIONAL — docs-only, no baseline or governance-token change.

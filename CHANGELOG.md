@@ -2,6 +2,27 @@
 
 All notable changes to this repository are tracked here.
 
+## 2026-07-05 (v1.29.0 — SME design support: guide + validator + review hook)
+
+- Commit hash: pending (staging→main PR merge)
+- An Operator proposal to add an "SME-creation SME" was pressure-tested by
+  a four-seat consult (AM + RM + Codex + Copilot) before any build. All
+  four independently recommended against a standing meta-SME.
+- **`docs/designing-an-sme.md`** — the design craft: the consultable-
+  expertise-vs-PM-process filter, the SME-vs-RM-vs-role test, evidence
+  discipline, disjoint-domain drawing, and tier-follows-judgment-vs-
+  mechanical.
+- **`tools/sme-charter-check.sh`** — a mechanical validator only:
+  required sections, non-empty negative discovery, a Local Registry row,
+  and launcher parity in all three families. Not a domain-merit judge;
+  runs against the live repo as a drift guard.
+- **Governance-Invariant SME** gains one `Consult When` line — review a
+  new charter's domain boundaries as advisory-on-text (PM + Operator own
+  existence; not a second gate). README pointer + manifest rows.
+- The `designing-an-sme` skill is deferred until cross-project reuse is
+  real.
+- Full `tools/tests/` suite green (8 suites).
+
 ## 2026-07-04 (v1.28.2 — Optional-layer adoption record)
 
 - Commit hash: pending (staging→main PR merge)

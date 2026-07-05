@@ -85,6 +85,14 @@ cost of not having it. Retirement works the same way (consult history +
 where the domain's duties land). The Operator approves before anything
 is authored.
 
+For the design craft behind a good proposal — the consultable-expertise-
+vs-process test, drawing a disjoint domain, tier selection, and the
+evidence discipline — see `docs/designing-an-sme.md`. The mechanical
+checks (required sections, non-empty negative discovery, a registry row,
+launcher parity in every family) are enforced by
+`tools/sme-charter-check.sh`; the Governance-Invariant SME reviews a new
+charter's domain boundaries as advisory-on-text (not a second gate).
+
 ## Adding an SME
 
 Every new SME lands through this checklist — partial deployment is the
