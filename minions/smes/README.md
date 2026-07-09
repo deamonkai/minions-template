@@ -1,10 +1,11 @@
 # minions/smes/ — Expertise Layer (SMEs)
 
-Downstream-owned. This directory holds Subject-Matter Expert charters:
-advisory expertise modules that roles consult for domain findings. The
-template ships this README and `sme-template.md` as starters; each
-downstream repo authors and owns its own SMEs. An empty bench is normal —
-absence of SMEs never blocks any workflow.
+This directory holds Subject-Matter Expert charters: advisory expertise
+modules that roles consult for domain findings. The template ships this
+README, `sme-template.md`, and a default bench of infrastructure SMEs
+(above the delimiter) as starters; each downstream repo adds its own SMEs
+below the delimiter. An empty downstream section is normal — absence of
+downstream-added SMEs never blocks any workflow.
 
 ## Class, not role
 
@@ -58,8 +59,10 @@ Keep every SME listed here. Summary columns are a few keywords each,
 distilled from the charter, so an orchestrator selects candidates
 without opening every charter.
 
-Live rows belong in the Local Registry below the split-merge delimiter
-at the end of this file; the table here is the schema and example.
+Template-default SME rows live in the "Default Bench (template-shipped)"
+table below (above the delimiter); downstream-added SME rows go in the
+"Local Registry (this repo)" section below the delimiter. The table here
+is the schema and example.
 
 | SME | Charter | Domain | Consult when | Do not consult | Paired roles | RM domain | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -157,6 +160,21 @@ in `projects/<key>/smes/` under the same protocol, consultable only
 within that lane; for that project's context the local registry outranks
 the shared bench (the root-vs-project MEMORY.md split rule, applied to
 expertise).
+
+## Default Bench (template-shipped)
+
+Template-owned infrastructure SMEs (generic template plumbing). These ship
+with the template and are replaced on upgrade; a downstream may mark any
+one `do-not-export` with an explicit manifest row.
+
+| SME | Charter | Domain | Consult when | Do not consult | Paired roles | RM domain | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Governance-Invariant SME | `governance-invariant.md` | governance text & invariants | MEMORY.md/AI.md/entry-point/charter edits, hard-stop & token language | scripts, runbooks, non-governance docs | PM, DM, SM | governance-practices | active |
+| Cross-Family Launcher SME | `cross-family-launcher.md` | launcher-family parity | launcher edits, new role/SME, model-pin or tier changes | charter content, governance prose | PM, CM | agent-launcher-conventions | active |
+| Export/Privacy SME | `export-privacy.md` | export & privacy filtering | manifest changes, new tracked files, public refresh, feedback.md/AI/ touches | internal-only edits that never export | PM, SM, DM | export-privacy-practices | active |
+| Upgrade-Path SME | `upgrade-path.md` | downstream upgrade impact | template-replace shape changes, delimiter moves, version bumps | maintainer-local files | PM, DM | downstream-upgrade-patterns | active |
+| Shell/Test-Harness SME | `shell-test-harness.md` | bash/awk guard quality | tools/*.sh or test-guard edits | markdown-only changes | CM, OM | shell-test-patterns | active |
+| Skill-Provenance SME | `skill-provenance.md` | external-skill trust | adopt-candidate, wrapper-charter authoring, re-adoption of a newer SHA | framework-native skills, non-skill capabilities | PM, SM, RM | external-skill-provenance | active |
 
 <!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->
 

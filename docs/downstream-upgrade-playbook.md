@@ -53,6 +53,31 @@ complete until every `REQUIRED` item is confirmed present in the live repo. The
 `Criticality` column in `docs/export-manifest.md` marks the `baseline` files
 that most often carry these.
 
+### 1.34.0 — Default SME bench (6 infrastructure SMEs ship as template defaults)
+
+OPTIONAL (additive) with one REQUIRED pre-upgrade check.
+
+- The 6 generic infrastructure SMEs — `governance-invariant`,
+  `cross-family-launcher`, `export-privacy`, `upgrade-path`,
+  `shell-test-harness`, `skill-provenance` — now ship as a template DEFAULT
+  bench: their charters (`minions/smes/*.md`) and `sme-*` launchers (Claude /
+  Codex / Copilot) are reclassified `template-replace`, and their registry /
+  matrix rows move ABOVE the split-merge delimiter in `minions/smes/README.md`
+  and `minions/review-matrix.md` (template-owned; ship and upgrade). This
+  reverses the earlier stance (see 1.28.0) that the SME bench was
+  maintainer-local and each downstream authored its own from scratch.
+- On upgrade, a downstream that had an empty bench simply RECEIVES the 6
+  charters + 18 launchers + the default registry/matrix rows above the
+  delimiter. Your own SMEs stay in the Local Registry / Local Matrix BELOW the
+  delimiter and are untouched.
+- **REQUIRED — pre-upgrade name-collision check:** if you authored your own SME
+  whose charter filename matches a default (`governance-invariant.md`,
+  `cross-family-launcher.md`, `export-privacy.md`, `upgrade-path.md`,
+  `shell-test-harness.md`, `skill-provenance.md`) or a `sme-*` launcher of the
+  same name, RENAME it before upgrading — the `template-replace` glob will
+  otherwise overwrite it with the default. Downstream SMEs with distinct names
+  are unaffected.
+
 ### 1.33.0 — Effort calibration + external-capability scouting
 
 OPTIONAL — additive/advisory only; nothing merge-blocking, no new guard, no

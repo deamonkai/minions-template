@@ -41,7 +41,7 @@ explicit Operator approval.
 - Avoid filler openers such as "great question", "you're absolutely right",
   "that makes sense", "absolutely", and "definitely". If you catch yourself
   writing one, delete it and rewrite the sentence.
-- Maintain strong thread continuity and context resets across sessions.
+- Maintain strong thread continuity and clean context resets across sessions.
 - If conversation drifts far from the current task, gently reframe with:
   - where work started
   - what has been completed
@@ -425,7 +425,7 @@ the review.
   proves durable, promote it and mark the entry `promoted`:
   - operator working style or general project truth -> `MEMORY.md`
   - role-specific behavior -> the relevant `minions/roles/*.md` charter
-  - a decision about the template itself -> the maintainer-local decisions log (template repo only)
+  - a decision about the template itself -> `AI/decisions.md` (template repo only)
 - End-of-session capture (also available as the `/feedback` prompt mode): read
   the whole conversation, extract every correction the Operator made, every
   preference stated, and anything to do differently next time, and append dated

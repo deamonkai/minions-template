@@ -13,6 +13,10 @@ It provides a baseline operating model for:
 - OM-Test / OM (runtime and operational validation)
 - RM (in-depth research, vendor-doc-grounded options, out-of-box next steps; recommends only)
 
+It also ships a **default bench of six infrastructure SMEs** (Subject-Matter
+Experts) — advisory, recommend-only expertise modules the roles consult for
+domain findings. See [minions/smes/README.md](minions/smes/README.md).
+
 Copilot users can run these roles from [.github/agents](.github/agents),
 Codex users from [.codex/agents](.codex/agents), and Claude Code users from
 [.claude/agents](.claude/agents). All are thin launchers around the durable
@@ -20,45 +24,43 @@ role charters in [minions/roles](minions/roles).
 
 ## About This Copy
 
-This is a **public, privacy-safe copy** of the template, published with fresh
-history. It is not the canonical development repository.
+This is a **public, privacy-safe copy** of the canonical minions-template,
+published with **fresh history** (a single commit per publish). The canonical
+repository's commit history is never pushed here — it tracks maintainer-local
+files and personal Operator context across past revisions, so only the current,
+filtered tree is published.
 
-- **Source version:** `v1.33.0` (exported from the canonical release tag).
-- **Fresh history:** the canonical git graph is not published. This copy is a
-  manifest-filtered snapshot committed fresh, so no past revision of any
-  maintainer-local file is reachable through history.
+- **Source:** canonical release `v1.34.0`.
+- **History:** fresh — this copy carries no canonical commit history, only its
+  own publish-only history.
 
-What this public copy deliberately omits or changes relative to canonical
-(the divergence list):
+### What this copy deliberately omits or changes (divergence list)
 
-- **Maintainer-local files omitted:** `.mm.md` and the entire `AI/` directory
-  (template-maintenance layer: decisions, open questions, specs, plans, vendored
-  field feedback).
-- **Session working history omitted:** live mailbox packets
-  (`minions/mail/*/`), PM chat/continuity threads (`minions/chat/*.md`), live
-  plan docs (`minions/plans/*.md`), and session handoff snapshots.
-- **Canonical SME bench omitted:** the repo's filled Subject-Matter Expert
-  charters and their per-family launchers (`.claude`/`.codex`/`.github`) are
-  maintainer-owned expertise content. Only the SME surface protocol
-  (`minions/smes/README.md`) and the charter template (`sme-template.md`) ship;
-  the Local Registry and Local Matrix are reset to header-only seed state.
-- **Vendored skills omitted:** the maintainer-local adopted-skill payloads under
-  `skills/vendored/`.
-- **Superpowers session artifacts omitted:** `docs/superpowers/` design specs
-  and implementation plans.
-- **Changelog fragments omitted:** unassembled `CHANGELOG.d/*.md` fragments.
-- **Secret-filter tests omitted:** `tools/tests/second-brain.test.sh` and its
-  `tools/tests/fixtures/second-brain/` fixtures are omitted from this public
-  copy. They deliberately embed provider-shaped example secrets to verify the
-  second-brain secret filter, which public secret-scanning rejects; the
-  second-brain tool and feature themselves are unaffected.
-- **Neutralized personal phrasing:** operator-personal and maintainer-identifying
-  references have been genericized tree-wide; `feedback.md` is reset to a clean
-  capture-log stub.
+Relative to the canonical repository, this public copy:
 
-When adopting this template into a downstream project, follow
-[docs/export-manifest.md](docs/export-manifest.md) and the onboarding playbook
-rather than copying this public landing page forward.
+- **Omits maintainer-local context:** `.mm.md` and the entire `AI/` directory
+  (template-maintenance layer).
+- **Omits session history:** live mailbox packets (`minions/mail/*/`), dated
+  chat summaries (`minions/chat/*.md`), plan docs (`minions/plans/*.md`), and
+  session handoffs (`minions/handoffs/*.md`). The workflow surfaces, READMEs,
+  and templates ship; only the accumulated history is dropped.
+- **Omits `skills/vendored/`:** the maintainer-local adopted-skill payload path.
+- **Omits `docs/superpowers/`:** internal design specs and implementation plans.
+- **Omits `CHANGELOG.d/*.md` fragments:** per-feature changelog fragments
+  (the `CHANGELOG.d/README.md` convention doc ships; assembled history lives in
+  `CHANGELOG.md`).
+- **Omits the second-brain secret-fixture tests:** `tools/tests/second-brain.test.sh`
+  and `tools/tests/fixtures/second-brain/` are dropped because their
+  deliberately-fake, provider-shaped fixtures trip public secret-scanning push
+  protection. The second-brain tool and feature themselves still ship.
+- **Resets `feedback.md`** to a clean capture-log stub (no Operator history).
+- **Resets the downstream-local SME sections** — the "Local Registry (this
+  repo)" and "Local Matrix (this repo)" sections below the split-merge delimiter
+  in `minions/smes/README.md` and `minions/review-matrix.md` — to header-only
+  seed state. The template-shipped **Default Bench / Default Matrix** (six
+  infrastructure SMEs, above the delimiter) ship in full.
+- **Neutralizes personal phrasing** throughout (names, absolute paths, and
+  condition-specific references genericized).
 
 ## Using Copilot, Codex, or Claude Minion Agents
 
@@ -80,14 +82,6 @@ gate evidence, or same-day continuity. See
 [.claude/agents/README.md](.claude/agents/README.md) for practical Operator
 prompt patterns in each tool.
 
-## Important Template Note
-
-This README is template-scaffolding guidance.
-
-When this template is used to create a downstream project, this file should not
-be copied forward as-is. Downstream repositories should replace it with a
-project-specific README to avoid role/process confusion.
-
 ## Repository Purpose
 
 This template exists to make multi-agent coordination explicit, durable, and
@@ -95,6 +89,7 @@ reviewable by combining:
 
 - shared memory and guardrails
 - role-specific context files
+- an advisory expertise layer (SMEs)
 - formal planning artifacts
 - mailbox packet history
 - PM-owned continuity summaries
@@ -161,6 +156,8 @@ template:
 - [.github/agents](.github/agents): Copilot custom agent definitions for the
   minion roles
 - [minions/roles](minions/roles): role charters
+- [minions/smes](minions/smes): Subject-Matter Expert charters (advisory bench)
+- [minions/review-matrix.md](minions/review-matrix.md): change-type review routing
 - [minions/plans](minions/plans): formal planning artifacts
 - [minions/mail](minions/mail): mailbox packet coordination
 - [minions/chat](minions/chat): PM-owned continuity summaries

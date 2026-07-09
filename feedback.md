@@ -45,4 +45,4 @@ act on them too).
 
 ---
 
-<!-- Capture entries below, newest first. -->
+<!-- Capture entries below. This section ships empty; downstream fills it. -->

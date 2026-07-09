@@ -64,7 +64,7 @@ marked `Initial export: yes` that downstream onboarding uses (see
 Do this **tree-wide and token-based**, not as a single targeted edit.
 
 The live 2026-07-02 run first tried a single-line pass (fix the one known
-personal line in `MEMORY.md`) and it was incomplete: an operator-personal
+personal line in `MEMORY.md`) and it was incomplete: a personal-context
 section heading echoed in `INIT.md` and `CHANGELOG.md` referenced the same
 personal context and was missed by the single-line pass. Only a tree-wide
 grep for the underlying token caught every occurrence, including the
@@ -84,13 +84,16 @@ Procedure:
    curated rule, promotion path, format — no Operator-specific examples or
    history), matching the seed style `docs/export-manifest.md` already
    specifies for downstream onboarding.
-5. Reset content BELOW the split-merge delimiter in
-   `minions/smes/README.md` and `minions/review-matrix.md` to the seed
-   state: an empty "Local Registry (this repo)" / "Local Matrix (this
-   repo)" section with the table header only. The canonical repo's own
-   SME bench and routing rows are maintainer content and never publish —
-   the feedback.md-stub treatment, generalized. Step 3 gate 4 enforces
-   this mechanically — skipping this reset fails the pre-push gates.
+5. The template-default SME bench SHIPS as starters: the "Default Bench
+   (template-shipped)" / "Default Matrix (template-shipped)" sections
+   ABOVE the split-merge delimiter in `minions/smes/README.md` and
+   `minions/review-matrix.md` publish with the tree — they are generic
+   template infrastructure. Reset ONLY the BELOW-delimiter "Local
+   Registry (this repo)" / "Local Matrix (this repo)" sections to
+   header-only seed state; any downstream-project-added SMEs stay local
+   and never publish (the feedback.md-stub treatment, generalized).
+   Step 3 gate 4 enforces the header-only below-delimiter state
+   mechanically — skipping this reset fails the pre-push gates.
 
 **Verify** — for each neutralized token:
 
@@ -130,6 +133,18 @@ pushed. These are pre-push hard gates, not optional checks.
    gitleaks detect --source <export-tree> --no-git
    # Expected: no leaks found
    ```
+
+   **GitHub push protection is stricter than gitleaks.** When the public
+   remote is GitHub, its secret-scanning push protection ignores the repo's
+   `.gitleaks.toml` allowlist and rejects any provider-shaped token —
+   including the deliberately-fake fixtures that the second-brain secret
+   filter tests depend on (`xoxb-`/`ghp_`/`AIza`/`AKIA`). gitleaks passes;
+   the push is still declined (`GH013 ... Push cannot contain secrets`).
+   Therefore **exclude `tools/tests/second-brain.test.sh` and
+   `tools/tests/fixtures/second-brain/` from the export tree** (Step 1) and
+   note the omission in the README divergence list — the second-brain tool
+   and feature still ship, only their secret-fixture tests are dropped. First
+   hit publishing v1.33.0 (the v1.29.0 export predated the feature).
 
 3. **Forbidden files absent** — confirm none of the maintainer-local or
    local-tooling paths made it into the export tree:

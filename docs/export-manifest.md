@@ -65,11 +65,11 @@ template repo.
 
 | Path | Initial export | Upgrade strategy | Criticality | Default owner | Notes |
 | --- | --- | --- | --- | --- | --- |
-| `.mm.md` | no | `do-not-export` | `n/a` | maintainer | local template-maintainer context only |
-| `AI/README.md` | no | `do-not-export` | `n/a` | maintainer | template-maintenance layer guide; not for downstream projects |
-| `AI/decisions.md` | no | `do-not-export` | `n/a` | maintainer | cross-AI template-maintenance decision register; template-maintainer-local |
-| `AI/open-questions.md` | no | `do-not-export` | `n/a` | maintainer | cross-AI template-maintenance open questions; template-maintainer-local |
-| `AI/feedback/` | no | `do-not-export` | `n/a` | maintainer | vendored field-feedback packets + evidence triage; template-maintainer-local |
+| `.mm.md` | no | `do-not-export` | `n/a` | maintainer / Operator | local template-maintainer context only |
+| `AI/README.md` | no | `do-not-export` | `n/a` | maintainer / Operator | template-maintenance layer guide; not for downstream projects |
+| `AI/decisions.md` | no | `do-not-export` | `n/a` | maintainer / Operator | cross-AI template-maintenance decision register; template-maintainer-local |
+| `AI/open-questions.md` | no | `do-not-export` | `n/a` | maintainer / Operator | cross-AI template-maintenance open questions; template-maintainer-local |
+| `AI/feedback/` | no | `do-not-export` | `n/a` | maintainer / Operator | vendored field-feedback packets + evidence triage; template-maintainer-local |
 | `.gitignore` | yes | `manual-merge` | `baseline` | PM / Operator | not auto-managed and outside most merge tooling; merge new template ignore patterns (e.g. `.pipeline/`) while preserving downstream-specific entries. Confirm during every upgrade |
 | `AI.md` | yes | `manual-merge` | `baseline` | PM / Operator | cross-tool coordination notes for AI assistants; preserve downstream-specific handoff guidance |
 | `CLAUDE.md` | yes | `manual-merge` | `feature` | PM / Operator | Claude Code auto-loaded entry point; thin pointer to `AI.md`/`MEMORY.md`. Preserve downstream project-specific guidance |
@@ -155,9 +155,9 @@ template repo.
 | `.claude/commands/handoff.md` | yes | `template-replace` | `feature` | PM | `/handoff` slash command; flush-then-snapshot session handoff (ephemeral, deleted on pickup) |
 | `docs/cross-tool-orchestration.md` | yes | `template-replace` | `feature` | PM / DM | exported cross-tool orchestration protocol doc; operator reference for the review/delegate/ship workflow |
 | `docs/risk-posture-shadow-first.md` | yes | `template-replace` | `feature` | PM / AM | optional shadow-first / dark-ship risk posture for behavior-changing changes with a comparable incumbent; opt-in, no code shipped |
-| `AI/specs/` | no | `do-not-export` | `n/a` | maintainer | template-maintenance design specs; template-maintainer-local only |
-| `AI/plans/` | no | `do-not-export` | `n/a` | maintainer | template-maintenance implementation plans; template-maintainer-local only |
-| `docs/superpowers/` | no | `do-not-export` | `n/a` | maintainer | superpowers session artifacts (design specs + implementation plans); template-maintainer-local only |
+| `AI/specs/` | no | `do-not-export` | `n/a` | maintainer / Operator | template-maintenance design specs; template-maintainer-local only |
+| `AI/plans/` | no | `do-not-export` | `n/a` | maintainer / Operator | template-maintenance implementation plans; template-maintainer-local only |
+| `docs/superpowers/` | no | `do-not-export` | `n/a` | maintainer / Operator | superpowers session artifacts (design specs + implementation plans); template-maintainer-local only |
 | `docs/branching-and-release-model.md` | yes | `template-replace` | `baseline` | PM | canonical branching model; downstream adopts |
 | `docs/runbooks/branch-setup.md` | yes | `template-replace` | `reference` | OM | one-time branch-protection + PR setup (host-agnostic: Gitea & GitHub recipes) |
 | `CHANGELOG.d/README.md` | yes | `template-replace` | `feature` | DM | changelog fragment convention |
@@ -175,7 +175,7 @@ template repo.
 | `docs/skill-adoption-model.md` | yes | `template-replace` | `feature` | PM | canonical skill-adoption (Scout + Airlock) model; adopted-row schema, run posture, unconditional-vs-gated invariant, Enabling It / rollback; gated on `MINION_SKILLS=on` |
 | `tools/skill-airlock.sh` | yes | `template-replace` | `feature` | PM / CM | optional skill-adoption airlock (`check` advisory signals + `verify-quarantine`); advisory-only, gated on `MINION_SKILLS=on` — a clean `check` is never a safety gate |
 | `tools/skill-scout.sh` | yes | `template-replace` | `feature` | PM / CM | optional skill-adoption scout (`survey`, findings-only); documented WebFetch/web-UI fallback when `npx` absent; gated on `MINION_SKILLS=on` |
-| `skills/vendored/` | no | `do-not-export` | `n/a` | maintainer | maintainer-local adopted-skill payloads + quarantined SOURCE.txt; default-deny by construction; see docs/skill-adoption-model.md |
+| `skills/vendored/` | no | `do-not-export` | `n/a` | maintainer / Operator | maintainer-local adopted-skill payloads + quarantined SOURCE.txt; default-deny by construction; see docs/skill-adoption-model.md |
 | `docs/runbooks/public-export.md` | yes | `template-replace` | `reference` | PM | publish a privacy-safe public copy (fresh history, neutralization sweep, gitleaks gate) |
 | `docs/coordinator-mode.md` | yes | `template-replace` | `feature` | PM | coordinator-mode overlay (opt-in multi-project) |
 | `docs/runbooks/add-submodule.md` | yes | `template-replace` | `reference` | PM | submodule registration sequence (coordinator overlay) |
@@ -183,11 +183,11 @@ template repo.
 | `minions/capabilities.md` | yes | `downstream-owned` | `baseline` | PM | per-repo capability inventory; bootstrap read + activation record for `docs/minion-plugin-pairings.md`. Template ships the starter (instructions + example rows); downstream fills and owns the content — do not overwrite the filled inventory during upgrades |
 | `minions/handoffs/README.md` | yes | `template-replace` | `feature` | PM | session-handoff surface protocol (ephemeral courier, delete-on-pickup) |
 | `minions/handoffs/*.md` (snapshots) | no | `downstream-owned` | `n/a` | PM | transient session snapshots; never exported; deleted on pickup |
-| `minions/smes/README.md` | yes | `template-replace` | `feature` | PM | expertise-layer surface protocol (SMEs: advisory class, not roles) + downstream-owned registry table; seed only below delimiter (local registry resets at export) |
+| `minions/smes/README.md` | yes | `template-replace` | `feature` | PM | expertise-layer surface protocol (SMEs: advisory class, not roles); a template-shipped Default Bench (above the delimiter) ships and upgrades; the Local Registry below the delimiter is downstream-added and resets at export |
 | `minions/smes/sme-template.md` | yes | `template-replace` | `feature` | PM | SME charter template (discovery sections required) |
-| `minions/smes/*.md` (SME charters) | no | `downstream-owned` | `n/a` | PM | downstream expertise content; never exported from the template |
-| `minions/review-matrix.md` | yes | `downstream-owned` | `feature` | PM | review-routing starter (change types → required reviewers); template ships generic examples, downstream fills and owns; seed only below delimiter (local matrix resets at export) |
+| `minions/smes/*.md` (SME charters) | yes | `template-replace` | `feature` | PM | template-default SME charters ship as starter bench; a downstream marks any private SME `do-not-export` with an explicit row |
+| `minions/review-matrix.md` | yes | `template-replace` | `feature` | PM | review-routing: a template-shipped Default Matrix (above the delimiter) ships and upgrades; the Local Matrix below the delimiter is downstream-added routing and resets at export |
 | `docs/runbooks/README.md` | yes | `template-replace` | `reference` | DM | runbook structure contract (required sections + two hard rules) |
-| `.claude/agents/sme-*.md` (SME launchers) | no | `downstream-owned` | `n/a` | PM | SME launchers are expertise content owned by each repo — canonical's bench included; never exported from the template |
-| `.codex/agents/sme-*.toml` (SME launchers) | no | `downstream-owned` | `n/a` | PM | SME launchers are expertise content owned by each repo — canonical's bench included; never exported from the template |
-| `.github/agents/sme-*.agent.md` (SME launchers) | no | `downstream-owned` | `n/a` | PM | SME launchers are expertise content owned by each repo — canonical's bench included; never exported from the template |
+| `.claude/agents/sme-*.md` (SME launchers) | yes | `template-replace` | `feature` | PM | template-default SME launchers ship with the bench (Claude/Codex/Copilot) |
+| `.codex/agents/sme-*.toml` (SME launchers) | yes | `template-replace` | `feature` | PM | template-default SME launchers ship with the bench (Claude/Codex/Copilot) |
+| `.github/agents/sme-*.agent.md` (SME launchers) | yes | `template-replace` | `feature` | PM | template-default SME launchers ship with the bench (Claude/Codex/Copilot) |

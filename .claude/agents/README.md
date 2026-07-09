@@ -21,7 +21,7 @@ limited to Claude-specific spawning posture and pointers to the source charter.
 | `rm` | `minions/roles/RM.md` | opus | in-depth research, vendor-doc-grounded option analysis, out-of-box next steps |
 
 These seven map one-to-one to the Codex agents in `.codex/agents/`. There is no
-minion-maintenance or PR-review agent: minion design/maintenance is interactive Operator work
+`mm` or `pr` agent: MM (minion design/maintenance) is interactive Operator work
 that belongs in the main thread, not a fire-and-return subagent; PR review is
 covered by Claude Code's built-in `/review`.
 
@@ -192,13 +192,13 @@ over `cm`, or to fall back to `cm` when a stage launcher is absent. So the
 cross-family files close the discoverability/parity gap; the functional
 tier-pinning and stage preference remain Claude-only by construction.
 
-## Prompt Modes and Minion Maintenance
+## Prompt Modes and MM
 
 - Named prompt modes (`/challenge`, `/tech-lead`, `/debug`, ...) are defined in
   `docs/minion-prompt-modes.md`. The first one projected into Claude Code as a
   `.claude/commands/*.md` slash command is `/ship` (pipeline mode); the rest can
   follow the same pattern as needed.
-- Minion design and maintenance is interactive Operator work. When built
+- MM (minion design and maintenance) is interactive Operator work. When built
   for Claude Code it belongs in the main thread as a skill or command (for
   example `/spec-minion`), not as a subagent here.
 

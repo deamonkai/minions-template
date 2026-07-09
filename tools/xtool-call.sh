@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # xtool-call.sh — invoke another AI CLI (codex|copilot) headlessly as an
 # independent reviewer (read-only) or a worktree-isolated delegate.
-# Never merges, never pushes.
+# Never merges, never pushes. See AI/specs/2026-06-20-cross-tool-orchestration-design.md.
 set -uo pipefail
 
 PROVIDER=""; MODE=""; ROLE=""; TARGET=""; TOPIC="adhoc"; OUTDIR=".pipeline"; PROMPT=""

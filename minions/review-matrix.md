@@ -28,11 +28,29 @@ finding (MEMORY.md, Execution Quality).
 | _example: infra provisioning change_ | Infra SME, SM | SME advises; SM reviews |
 | _example: production migration_ | AM, SM, OM | packet precedent |
 
-Rows are downstream content — replace the examples. Live rows belong
-below the split-merge delimiter at the end of this file. In coordinator
+The rows above are illustrative examples. Template-default routing lives in
+the "Default Matrix (template-shipped)" section (above the delimiter, ships and
+upgrades with the template); downstream-added routing goes in the "Local Matrix
+(this repo)" section below the delimiter. In coordinator
 mode the root matrix routes coordinator-shared-surface and cross-project
 policy changes; project lanes keep their own matrix (in the lane or in
 the project submodule).
+
+## Default Matrix (template-shipped)
+
+Template-owned routing for the default infrastructure SME bench (generic
+template plumbing). These ship with the template and are replaced on
+upgrade.
+
+| Change type | Required reviewers | Notes |
+| --- | --- | --- |
+| governance-file edit (MEMORY.md, AI.md, entry points, charters) | Governance-Invariant SME | on top of charter-default review |
+| launcher-family edit (any `.claude/agents/`, `.codex/agents/`, `.github/agents/` file) | Cross-Family Launcher SME | parity per Instruction-File Audit Rule |
+| manifest / export / public-mirror change | Export/Privacy SME, Upgrade-Path SME | guards irreversible publishes |
+| template-replace file shape change; version bump | Upgrade-Path SME | required-changes impact |
+| `tools/*.sh` or test-guard edit | Shell/Test-Harness SME | guard-quality review |
+| skill adopt-candidate (external skill into `skills/vendored/`) | Skill-Provenance SME, Shell/Test-Harness SME, SM, Export/Privacy SME, Governance-Invariant SME | PM convenes and routes the panel; Skill-Provenance SME synthesizes the returned findings; RM supplies `external-skill-provenance` provenance; PM decides, Operator approves |
+| adopted-skill wrapper-charter authoring (framework-native wrapper text) | Governance-Invariant SME, Skill-Provenance SME | Gov-Invariant reviews the framework-authored wrapper prose (advisory-on-text); Skill-Provenance confirms it neutralizes the upstream injection surface; a role writes the wrapper with `WRITTEN-BY:` attribution |
 
 <!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->
 

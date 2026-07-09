@@ -8,7 +8,7 @@ template without becoming an authority, a leak, or a run-time exfil path.
 `AI.md`, and the agent READMEs link here; do not duplicate this content in
 those files.
 
-Design of record: maintainer-local design of record (not published in this public copy).
+Design of record: `docs/superpowers/specs/2026-07-09-skill-adoption-layer-design.md`
 (rev 2, maintainer-local). This model doc is the exportable, downstream-facing
 distillation of it.
 
@@ -105,7 +105,7 @@ time, never trusted from the directory listing.
 
 ## Mechanism 2 — Skill-Provenance SME (standing expert)
 
-The Skill-Provenance SME (charter maintainer-local). Advisory, recommend-only (the SME-class
+`minions/smes/skill-provenance.md`. Advisory, recommend-only (the SME-class
 guardrails apply in full: never merges, gates, approves, schedules, or writes
 shared surfaces).
 

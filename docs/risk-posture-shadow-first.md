@@ -213,6 +213,6 @@ A downstream needs these seven pieces — implement them in your own stack:
 - The "every divergence is counted and visible, never silently dropped" rule is
   the same evidence discipline the **Completion Handoff Contract** asks for.
 
-*Pattern distilled from a downstream project that runs it across
+*Pattern distilled from a downstream trading-bot project that runs it across
 multiple independent decision points; the trading-specific machinery is
 deliberately left out so the posture stays domain-neutral.*

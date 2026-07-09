@@ -2,6 +2,54 @@
 
 All notable changes to this repository are tracked here.
 
+## 2026-07-09 (v1.34.0 — Default SME bench: 6 infrastructure SMEs ship as template defaults)
+
+- Commit hash: pending (staging→main PR merge)
+- **Default SME bench ships.** The 6 infrastructure SMEs — Governance-Invariant,
+  Cross-Family Launcher, Export/Privacy, Upgrade-Path, Shell/Test-Harness, and
+  Skill-Provenance — are reclassified from downstream-owned, no-export
+  content to a template DEFAULT bench: `minions/smes/*.md` charters and the
+  `sme-*` launchers (Claude, Codex, Copilot) flip `docs/export-manifest.md`
+  rows from `no`/downstream-owned to `yes`/template-replace. This reverses
+  the 1.28.0 stance that the bench was maintainer-local, each downstream
+  starting from an empty registry.
+- **Registry/matrix rows move above the delimiter.** The default bench's rows
+  in `minions/smes/README.md` and `minions/review-matrix.md` moved from the
+  Local (downstream-owned, below-delimiter) sections to new template-owned
+  "Default Bench" / "Default Matrix" sections above the split-merge
+  delimiter — they now ship and upgrade with the template. The Local
+  Registry / Local Matrix sections stay header-only starters; a downstream's
+  own SMEs live there, below the delimiter, untouched by this change.
+- `docs/runbooks/public-export.md` Step 2.5 updated so the public-mirror seed
+  reset only blanks the below-delimiter Local sections — the default bench
+  ships intact on every public export.
+- **Reconciliation fixes** (same increment, commit `0d4f88a`): the
+  `review-matrix.md` manifest row itself was corrected `downstream-owned` →
+  `template-replace` so its new above-delimiter Default Matrix actually
+  propagates on upgrade; stale manifest Notes on both files updated to the
+  two-tier ship-above/reset-below description; a personal-context case-law
+  token in the export-privacy charter was neutralized to generic phrasing;
+  and the `docs/downstream-upgrade-playbook.md` 1.34.0 entry (below) was
+  added in the same commit.
+- **Downstream impact — OPTIONAL with one REQUIRED pre-upgrade check.** An
+  empty-bench downstream simply receives the 6 charters + 18 launchers + the
+  default rows on upgrade; its own SMEs are unaffected. REQUIRED: if a
+  downstream authored its own SME under a filename matching one of the 6
+  defaults (or a same-named `sme-*` launcher), rename it before upgrading —
+  the `template-replace` glob will otherwise overwrite it. See the
+  `docs/downstream-upgrade-playbook.md` "1.34.0" entry for the full
+  name-collision check.
+- **Public-export runbook — secret-fixture exclusion** (commit `fa5c2ea`):
+  `docs/runbooks/public-export.md` now documents that GitHub push protection
+  rejects the second-brain secret-filter tests (deliberately provider-shaped
+  example fixtures) even though the repo's gitleaks gate allowlists them, so
+  every public export must exclude `tools/tests/second-brain.test.sh` and
+  `tools/tests/fixtures/second-brain/` and note the omission in the README
+  divergence list. Field-derived from the v1.33.0 public publish.
+- Reviewed by Export/Privacy SME (SAFE), Upgrade-Path SME and
+  Governance-Invariant SME (findings fixed in the reconciliation commit
+  above). No governance-token change, no new hard-stop, docs/manifest-only.
+
 ## 2026-07-09 (v1.33.0 — Effort calibration + external-capability scouting)
 
 - Commit hash: pending (staging→main PR merge)
@@ -817,7 +865,7 @@ All notable changes to this repository are tracked here.
 
 - Commit hash: pending (staging→main PR merge)
 - Codifies the live 2026-07-02 export of a privacy-safe copy of this
-  template to a public repo (the public mirror),
+  template to a public repo (a public mirror),
   publishing fresh history rather than canonical history.
 - New `docs/runbooks/public-export.md` (Operator/PM-owned): manifest-
   filtered export from a tagged canonical release using
@@ -825,7 +873,7 @@ All notable changes to this repository are tracked here.
   adds `README.md` with an "About This Copy" section (source version +
   divergence list) even though the manifest classes it downstream-owned;
   tree-wide token-based privacy-neutralization sweep (the live run's
-  single-line pass missed an operator-personal heading echoed in `INIT.md`
+  single-line pass missed a personal-context heading echoed in `INIT.md`
   and `CHANGELOG.md` — only the tree-wide grep caught it), with
   `feedback.md` reset to a clean capture-log stub; mandatory pre-push
   verification gates (export's own `tools/tests/*.test.sh` suite,
@@ -842,7 +890,7 @@ All notable changes to this repository are tracked here.
 ## 2026-07-02 (v1.21.3 — tea v0.14.1 compat, downstream-authored)
 
 - Commit hash: pending (staging→main PR merge)
-- **Provenance:** downstream-authored (downstream project team), absorbed
+- **Provenance:** downstream-authored (a downstream trading-bot project), absorbed
   upstream 2026-07-02 so future downstream upgrades stop re-fighting it.
 - `tools/issue-sync.sh`: `tea` v0.14.1 renamed the issue-body flag
   (`--body` → `--description`/`-d`) and the edit-time label flag
@@ -1128,7 +1176,7 @@ All notable changes to this repository are tracked here.
 - **MEMORY.md Deployment Discipline** gains an opt-in pointer to the posture.
 - **export-manifest.md** lists the new doc (`template-replace`, `feature`,
   PM / AM) so downstreams receive it.
-- Distilled from the downstream project's implementation (it runs the
+- Distilled from a downstream trading-bot project's implementation (it runs the
   pattern across multiple independent decision points); trading-specific machinery
   deliberately left out. Class ②/dual-vendor from the same packet was already
   shipped in v1.16.0; this resolves the deferred class ①.
@@ -1141,8 +1189,8 @@ All notable changes to this repository are tracked here.
 ## 2026-06-24 (v1.16.0 — Downstream feedback: review-ergonomics quick wins)
 
 - Commit hash: pending (next commit)
-- Adopted the low-risk, broadly-applicable items from a downstream project's
-  feedback packet (heavy-use observations). Bumped template version to
+- Adopted the low-risk, broadly-applicable items from a downstream trading-bot project
+  downstream feedback packet (heavy-use observations). Bumped template version to
   `1.16.0-1.0.0`. Deferred (Operator's call): parallel/domain-scoped review
   cadence, and the shadow-first risk posture + operator-facing-craft items.
 - **review brevity (SM/DM charters).** `minions/roles/SM.md` and `DM.md` review
@@ -1225,7 +1273,7 @@ All notable changes to this repository are tracked here.
   (including `--prompt -` with empty stdin) is rejected with exit 2 before any
   provider call; a provider that exits 0 but produces empty/whitespace-only
   output is flagged `review-empty-output` with exit 4 instead of a false `ok`.
-- **context:** the downstream project did not modify the script —
+- **context:** the downstream trading-bot project did not modify the script —
   its committed `xtool-call.sh` is the untouched 1.11.1 baseline, and its earlier
   script feedback (F2 slug sanitization, F4 failed-delegate cleanup, the copilot
   web-fetch note) is already absorbed. These three fixes are net-new review-path
@@ -1264,7 +1312,7 @@ All notable changes to this repository are tracked here.
 ## 2026-06-20 (v1.12.0 — Upgrade-Process Tooling)
 
 - Commit hash: pending (next commit)
-- Upgrade-process improvements from downstream feedback (a downstream project, on
+- Upgrade-process improvements from downstream feedback (a downstream trading-bot project, on
   running the `1.11.0 → 1.11.1` upgrade). Adds the second piece of executable
   tooling after `xtool-call.sh`. Bumped template version to `1.12.0-1.0.0`.
 - **feat (#1): annotated release git tags.** Releases are now published as git tags
@@ -1306,7 +1354,7 @@ All notable changes to this repository are tracked here.
 ## 2026-06-20 (v1.11.1 — Downstream-Feedback Hardening)
 
 - Commit hash: pending (next commit)
-- Hardening pass from downstream upgrade feedback (a downstream project, via an SM
+- Hardening pass from downstream upgrade feedback (a downstream trading-bot project, via an SM
   review of a real `1.10.0 → 1.11.0` upgrade). No new capability — correctness,
   security, and doc precision only. Bumped template version to `1.11.1-1.0.0`.
 - **fix (correctness): `governance-consistency.test.sh` could false-PASS.** The
@@ -1636,7 +1684,7 @@ All notable changes to this repository are tracked here.
   (never `AI/`).
 - Seeded `AI/decisions.md` with the decisions made over this session (projection
   model as source of truth, no-whitelists-except-RM, per-tool model/effort knobs,
-  RM-as-consult-not-gate, minion-maintenance-as-skill-not-subagent, Fable-as-escalation-only,
+  RM-as-consult-not-gate, MM-as-skill-not-subagent, Fable-as-escalation-only,
   entry-point bootstrap) so other tools inherit the reasoning instead of
   relitigating it.
 - Added:
@@ -2010,20 +2058,20 @@ All notable changes to this repository are tracked here.
 - Reconciled shared role-set drift so `SM` remains consistently present in handoff and `NEXT OWNER` contracts while adding `AM`
 - Bumped template version to `1.3.0-1.0.0` in `minion-version.md`
 
-## 2026-04-10 (Template-maintenance bootstrap)
+## 2026-04-10 (MM Bootstrap)
 
 - Commit hash: pending (next commit)
 - Bootstrapped Manager Minion coordination for the current template-maintenance session by:
-  - creating `minions/chat/2026-04-10.md` with the template-maintenance bootstrap announcement
-  - refreshing `.mm.md` maintainer notes with a timestamped audit of the active template drift backlog
-- No template version bump; maintainer-context and coordination-doc updates only
+  - creating `minions/chat/2026-04-10.md` with the MM bootstrap announcement
+  - refreshing `.mm.md` `MM Notes` with a timestamped audit of the active template drift backlog
+- No template version bump; MM-context and coordination-doc updates only
 
 ## 2026-04-10
 
 - Commit hash: pending (next commit)
 - Removed `.mm.md` from `.gitignore` so Manager Minion context can sync across Operator machines
 - Added and tracked `.mm.md` as a repository maintainer context file for the template repo
-- Added Manager Minion scoping, maintainer guardrails, and continuity support guidance in:
+- Added Manager Minion scoping, maintainer guardrails, and Operator working-style support guidance in:
   - `.mm.md`
 
 ## 2026-04-08 (Initial Entry)
