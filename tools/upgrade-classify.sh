@@ -38,7 +38,9 @@
 #
 # Exit codes: 0 clean · 2 usage/setup error · 3 LIVE=error rows present ·
 # 4 UNMANIFESTED-CHANGE rows present (cross-check found exported changes the
-# snapshots missed).
+# snapshots missed). When BOTH 3 and 4 conditions occur in one run, both WARN
+# lines print but the exit code is 4 — the silently-dropped exported file is the
+# higher-stakes signal and must not be masked by an inconclusive live comparison.
 #
 # Limitation: file paths containing embedded newlines are not supported (the change
 # set is newline-delimited). Spaces, leading hyphens, and glob characters are fine.
@@ -179,12 +181,17 @@ else
 fi
 [ -n "$REPO" ] && echo "unmanifested exported changes ($FROM..$TO): $unmanifested"
 [ -n "$LIVE" ] && echo "LIVE: identical=safe clean replace · diverged=hand-merge · missing=new file · error=could not compare"
+# Emit EVERY applicable warning first — neither signal suppresses the other — then
+# exit with the higher-stakes code. UNMANIFESTED-CHANGE (4, a silently-dropped
+# exported file) outranks LIVE=error (3, a comparison that could not run): a missed
+# export is irreversible on the public mirror, an error is merely inconclusive.
+# (Earlier the exit-3 return came first and hid a co-occurring exit-4 signal.)
 if [ "$had_error" -ne 0 ]; then
   echo "WARN: one or more live comparisons errored (LIVE=error rows) — resolve before trusting the classification" >&2
-  exit 3
 fi
 if [ "$unmanifested" -ne 0 ]; then
   echo "WARN: $unmanifested exported file(s) changed $FROM..$TO but are in NEITHER snapshot (UNMANIFESTED-CHANGE rows) — the export/snapshot pipeline missed them" >&2
   exit 4
 fi
+[ "$had_error" -ne 0 ] && exit 3
 exit 0

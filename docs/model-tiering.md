@@ -125,3 +125,42 @@ None of this is a blocker:
   launchers carry the `Recommended tier:` line as guidance only; when either
   platform exposes a model-selection field, wire the tier map to it the same
   way Claude's `model:` frontmatter does.
+
+## The effort dial
+
+Model band is one dial; **reasoning effort** is a second, orthogonal one. A
+Frontier model at `low` effort and a Mid model at `high` effort are different
+cost/quality points, and the least-resistance path spends both at maximum on
+every subagent. Claude Code exposes a functional `effort:` frontmatter field
+(`low | medium | high | xhigh | max`) that overrides the session effort
+whenever that subagent is spawned — the effort analog of `model:`.
+
+The Claude launchers pin effort per the same Frontier/Mid split as the model
+map, so the pipeline right-sizes effort **deterministically, regardless of the
+session's effort**:
+
+- **Judgment roles → `high`** (`am`, `sm`, `om`, `rm`), with the final-verifier
+  `cm` at **`xhigh`** — the documented sweet spot for correctness-critical
+  review.
+- **`pm` → `medium`.** PM's spawned role is orchestration and routing —
+  capable, but it should not run hotter than needed (matching the Codex
+  baseline). A genuine hard-gate go/no-go is the main-loop orchestrator seat,
+  which uses the session effort, not this launcher's pin.
+- **`dm` → `medium`** — bounded documentation work under a clear brief.
+- **`/ship` `coder` / `tester` → `low`** — validated (3/3 objective probes, see
+  `docs/effort-calibration.md`): these stages always run under a clear AM spec
+  with a downstream test + review backstop, so `low` reasons enough to produce
+  correct code without paying for effort the pipeline doesn't need. (Correct
+  but scruffier than higher tiers — the test/review stages absorb that.)
+
+This makes the "strong-but-occasional orchestrator over cheap-and-frequent
+minions" shape hold even in a cheap session: the skeptic and the gate never
+drop below high, and bounded execution never runs at max. **Effort is
+functional in both Claude and Codex:** Claude uses the `effort:` frontmatter
+field; Codex uses each role TOML's `model_reasoning_effort` (see
+`.codex/agents/README.md`, "Model And Effort Policy"), and the two agree
+role-for-role (`am`/`sm`/`om`/`rm` high, `pm`/`dm` medium, `coder`/`tester` low;
+only Claude's `cm` escalates to `xhigh` for the reason above). Copilot has no
+per-agent effort field and carries the tier as advisory prose. The task-class
+calibration behind the pins, and the local validation discipline, live in
+`docs/effort-calibration.md`.

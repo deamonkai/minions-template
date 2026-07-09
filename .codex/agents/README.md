@@ -18,6 +18,22 @@ limited to Codex-specific spawning posture and pointers to the source charter.
 | `om` | `minions/roles/OM.md` | `high` | OM-Test / OM runtime validation, deploy posture, rollback, and health |
 | `rm` | `minions/roles/RM.md` | `high` | in-depth research, vendor-doc-grounded option analysis, out-of-box next steps |
 
+## Pipeline Stage Launchers
+
+`coder` and `tester` (`coder.toml`, `tester.toml`) are a separate launcher class
+from the seven roles above: Mid-tier CM-lane stage launchers for bounded,
+spec-driven implementation (`coder`, implement-only) and test authoring
+(`tester`, test-only). Both point at the CM charter (`minions/roles/CM.md`); the
+posture travels in the spawn prompt, not the launcher body. They are tracked
+separately and intentionally kept out of the seven-role `## Agents` table.
+
+They mirror the Claude Code pipeline stage launchers for cross-family parity,
+but the Mid tier is **advisory here**: Codex has no per-launcher `model:`
+selector (only `model_reasoning_effort`), and there is no `/ship` command in this
+family to prefer them over `cm` or fall back automatically. Spawn them manually
+and state the implement-only / test-only posture in your prompt. See
+`.claude/agents/README.md` (Pipeline Stage Launchers) and `docs/model-tiering.md`.
+
 ## Model And Effort Policy
 
 The Codex agents intentionally do not pin `model`. They inherit the active Codex
@@ -46,8 +62,11 @@ role efforts shape the spawned agents.
 
 Autonomous orchestration posture applies: spawn role agents, advance pipeline
 stages, and fire second opinions without asking permission, except at the three
-hard-stops defined in `AI.md`. The Operator should choose between three
-practical patterns:
+hard-stops defined in `AI.md`. Vendoring external skill code into
+`skills/vendored/` without Operator approval (the optional `MINION_SKILLS`
+layer, `docs/skill-adoption-model.md`) is an instance of hard-stop #2
+(irreversible-publish), not a new fourth hard-stop — the enumerated count is
+unchanged. The Operator should choose between three practical patterns:
 
 1. Focus one role in the current conversation.
 2. Spawn one role agent for bounded work.

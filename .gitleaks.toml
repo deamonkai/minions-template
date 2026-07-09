@@ -1,0 +1,23 @@
+# .gitleaks.toml — repo-root gitleaks config.
+#
+# Extends gitleaks' default ruleset (so real secrets anywhere else in the
+# tree are still caught) and allowlists ONLY the second-brain AC-2 test
+# fixtures: intentionally secret-shaped strings that exercise the filter's
+# reject path (tools/second-brain.sh) and cannot be neutralized — the
+# fixture's whole job is to be the exact shape the tool's regexes must
+# reject. Without this allowlist, the public-export gitleaks gate
+# (docs/runbooks/public-export.md Step 2) halts on our own test data.
+#
+# Keep this allowlist narrow: it must cover exactly the second-brain test
+# surface, never a real source file. Any future secret-shaped test fixture
+# needs its own path added here, reviewed by SM / the Export/Privacy SME.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "second-brain AC-2 test fixtures (intentionally secret-shaped test data)"
+paths = [
+  '''tools/tests/fixtures/second-brain/.*''',
+  '''tools/tests/second-brain\.test\.sh''',
+]

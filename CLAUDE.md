@@ -22,6 +22,23 @@ Operating rules:
   subagent's final message, or hidden tool memory as authoritative until the
   useful result is written into a repo surface (`minions/mail/`,
   `minions/plans/`, `minions/chat/`, `MEMORY.md`, `CHANGELOG.md`, etc.).
+- When `MINION_MEMORY=on`, the orchestrator queries the memory recall
+  layer at run start and folds hits into dispatch briefs (recall is input,
+  not authority; verify runtime facts live). Unset/off, or tools/API
+  absent: silent no-op. See `MEMORY.md` (Memory Recall) and
+  `docs/memory-recall-model.md`.
+- When `MINION_SECONDBRAIN=on`, the orchestrator pulls relevant local
+  second-brain vault content at run start and folds it into dispatch briefs
+  (recall is input, not authority; verify runtime facts live). Unset/off, or
+  the vault absent: silent no-op. See `MEMORY.md` (Second Brain) and
+  `docs/second-brain-model.md`.
+- When `MINION_SKILLS=on`, adopted external skills (vetted and wrapped through
+  the airlock) become reachable as inventoried capabilities, running
+  no-network / least-privilege by default. Unset/off, or no skill adopted:
+  silent no-op — the airlock and its unconditional guardrails still stand.
+  Vendoring external skill code into `skills/vendored/` without Operator
+  approval is an instance of hard-stop #2 (irreversible-publish), not a new
+  hard-stop. See `MEMORY.md` (Skill Adoption) and `docs/skill-adoption-model.md`.
 - Role minions are available as subagents in `.claude/agents/` (`pm`, `am`,
   `cm`, `sm`, `dm`, `om`, `rm`). Autonomous orchestration posture: spawn them,
   advance pipeline stages, and fire second opinions without asking permission —

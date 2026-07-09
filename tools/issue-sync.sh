@@ -166,7 +166,10 @@ github_create() {
   echo "$out" | grep -oE 'issues/[0-9]+' | grep -oE '[0-9]+' | tail -1
 }
 github_edit() {
-  local err_file edit_args=(issue edit "$1" --title "$TITLE_V" --body "$BODY_V")
+  # gh's edit-time label flag is --add-label (additive), distinct from create's
+  # --label. Without it a re-sync would update title/body but leave labels stale
+  # — the Gitea edit path re-applies labels (--add-labels), so match that parity.
+  local err_file edit_args=(issue edit "$1" --title "$TITLE_V" --body "$BODY_V" --add-label "$LABELS_V")
   [ -n "$ASSIGNEE_V" ] && edit_args+=(--assignee "$ASSIGNEE_V")
   err_file="$(mktemp)"
   gh "${edit_args[@]}" >/dev/null 2>"$err_file" || { cat "$err_file" >&2; rm -f "$err_file"; return 4; }

@@ -72,7 +72,7 @@ both branches:
 ### Gitea Recipe
 
 **Applies to:** repositories hosted on a Gitea instance
-(example: `git.molloyhome.net`).
+(example: `git.example.net`).
 
 #### Install and authenticate `tea` (OPTIONAL)
 
@@ -102,7 +102,7 @@ If you installed `tea`, add a login entry pointing at the Gitea instance:
 
 ```bash
 tea login add \
-  --url https://git.molloyhome.net \
+  --url https://git.example.net \
   --token <your-personal-access-token>
 ```
 
@@ -113,7 +113,7 @@ Confirm the login was registered:
 
 ```bash
 tea login list
-# Expected: a row showing https://git.molloyhome.net with your username
+# Expected: a row showing https://git.example.net with your username
 ```
 
 #### Protect `main` — Gitea
@@ -137,7 +137,7 @@ tea login list
 curl -s -X PATCH \
   -H "Authorization: token <your-personal-access-token>" \
   -H "Content-Type: application/json" \
-  "https://git.molloyhome.net/api/v1/repos/Molloy-Home/minions-template/branches/main/protection" \
+  "https://git.example.net/api/v1/repos/your-org/minions-template/branches/main/protection" \
   -d '{
     "enable_push": false,
     "require_signed_commits": false,
@@ -146,7 +146,7 @@ curl -s -X PATCH \
   }'
 ```
 
-Adjust the repo path (`Molloy-Home/minions-template`) for the target
+Adjust the repo path (`your-org/minions-template`) for the target
 downstream repo.
 
 #### Lightly protect `dev` and `staging` — Gitea
@@ -169,7 +169,7 @@ for BRANCH in dev staging; do
   curl -s -X PATCH \
     -H "Authorization: token <your-personal-access-token>" \
     -H "Content-Type: application/json" \
-    "https://git.molloyhome.net/api/v1/repos/Molloy-Home/minions-template/branches/${BRANCH}/protection" \
+    "https://git.example.net/api/v1/repos/your-org/minions-template/branches/${BRANCH}/protection" \
     -d '{
       "enable_push": true,
       "enable_push_whitelist": false,
@@ -226,7 +226,7 @@ appears, then close it without merging.
 curl -s -X POST \
   -H "Authorization: token <your-personal-access-token>" \
   -H "Content-Type: application/json" \
-  "https://git.molloyhome.net/api/v1/repos/Molloy-Home/minions-template/pulls" \
+  "https://git.example.net/api/v1/repos/your-org/minions-template/pulls" \
   -d '{
     "title": "chore: branch-protection probe",
     "body": "Verify PR flow works end-to-end. Close without merging.",
@@ -241,14 +241,14 @@ curl -s -X POST \
 
 ```bash
 tea pr create \
-  --repo Molloy-Home/minions-template \
+  --repo your-org/minions-template \
   --head test/branch-protection-probe \
   --base staging \
   --title "chore: branch-protection probe" \
   --description "Verify PR flow works end-to-end. Close without merging."
 
 # Confirm the PR appears in Gitea, then close it
-tea pr close <pr-number> --repo Molloy-Home/minions-template
+tea pr close <pr-number> --repo your-org/minions-template
 ```
 
 **Clean up after the probe (all paths):**
@@ -276,7 +276,7 @@ blocked.
 
 #### Notes — Gitea
 
-- Adjust `Molloy-Home/minions-template` to the target repo path wherever it
+- Adjust `your-org/minions-template` to the target repo path wherever it
   appears above.
 - If the Gitea version does not support source-branch merge restriction,
   enforce the `staging→main` source convention through the minion workflow

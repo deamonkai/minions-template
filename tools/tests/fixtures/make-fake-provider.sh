@@ -100,6 +100,57 @@ EOF
   exit 0
 fi
 
+if [ "$name" = gh ]; then
+  # gh-faithful fake (mirrors the tea fake's rigor). Models the flag surface the
+  # issue-sync github path actually uses and REJECTS the wrong label flag on the
+  # wrong subcommand, so a stale-flag regression fails here instead of silently
+  # passing a dumb argv recorder:
+  #   * `gh issue create` is non-interactive: REQUIRES --title and --body, uses
+  #     --label (comma-separated), and does NOT know --add-label — passing it is
+  #     an unknown-flag error, exactly as on real gh.
+  #   * `gh issue edit <n>` REQUIRES the positional issue number, uses --add-label,
+  #     and does NOT know a bare --label — passing it is an unknown-flag error.
+  # $rc forces a hard backend failure regardless of flag validity (soft-fail test).
+  # $4 is the canned create/edit URL the wrapper parses for the issue number.
+  # `gh label` subcommands are intentionally NOT modeled (no test exercises them;
+  # they fall to the default arm as a plain recorder). Add them here if a github
+  # board test ever needs list/create faithfulness — note real `gh label create`
+  # FAILS on a duplicate name (unlike tea's exit-0), so do not copy the tea shape.
+  [ $# -ge 4 ] || out="https://github.com/o/r/issues/7"
+  out="${4:-$out}"
+  cat > "$dir/$name" <<EOF
+#!/usr/bin/env bash
+# fake gh (github issue path faithful)
+set -u
+HERE="\$(dirname "\$0")"
+printf '%s\n' "\$@" >> "\$HERE/gh.args"
+FORCE_RC=${rc}
+CANNED_OUT='${out}'
+
+have() { local want="\$1"; shift; for a in "\$@"; do [ "\$a" = "\$want" ] && return 0; done; return 1; }
+
+sub1="\${1:-}"; sub2="\${2:-}"; pos3="\${3:-}"
+case "\$sub1 \$sub2" in
+  "issue create")
+    have --add-label "\$@" && { printf 'unknown flag: --add-label\n' >&2; exit 1; }
+    { have --title "\$@" && have --body "\$@"; } \
+      || { printf 'Error: required flags --title and --body not set\n' >&2; exit 1; }
+    [ "\$FORCE_RC" -ne 0 ] && { printf 'backend failure\n' >&2; exit "\$FORCE_RC"; }
+    printf '%s\n' "\$CANNED_OUT"; exit 0 ;;
+  "issue edit")
+    have --label "\$@" && { printf 'unknown flag: --label\n' >&2; exit 1; }
+    case "\$pos3" in ''|-*) printf 'Error: issue number required\n' >&2; exit 1;; esac
+    [ "\$FORCE_RC" -ne 0 ] && { printf 'backend failure\n' >&2; exit "\$FORCE_RC"; }
+    printf '%s\n' "\$CANNED_OUT"; exit 0 ;;
+  *)
+    [ "\$FORCE_RC" -ne 0 ] && exit "\$FORCE_RC"
+    printf '%s\n' "\$CANNED_OUT"; exit 0 ;;
+esac
+EOF
+  chmod +x "$dir/$name"
+  exit 0
+fi
+
 # Default (non-tea) fake: simple argv recorder used by the xtool-call suite.
 out="${4:-FAKE_${name}_OUTPUT}"
 cat > "$dir/$name" <<EOF

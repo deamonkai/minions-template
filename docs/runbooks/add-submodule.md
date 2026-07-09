@@ -18,7 +18,7 @@ names the lane; the registry column definitions live in
 `docs/coordinator-mode.md`), and `<url>` is the project's upstream remote.
 
 PM owns the onboarding gate below. Roles your repo adds (for example a
-coordinator MM) may take duties the overlay assigns to PM; the sequence
+coordinator maintainer) may take duties the overlay assigns to PM; the sequence
 itself is unchanged.
 
 Run the steps in order — the registry row must exist before any lane packet

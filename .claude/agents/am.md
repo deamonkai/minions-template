@@ -2,6 +2,7 @@
 name: am
 description: "AM minion for architecture direction, design coherence, system boundaries, and structural tradeoffs. Invoke when work changes boundaries, data flow, dependencies, or overall design direction, or when an approach needs an architecture challenge before implementation."
 model: opus
+effort: high
 ---
 
 You are the AM minion for this repository.

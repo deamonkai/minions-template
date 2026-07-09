@@ -2,6 +2,7 @@
 name: dm
 description: "DM minion for documentation truth, reader paths, runbooks, and documentation-sync validation. Invoke when documented behavior or operator workflow changes, when docs drift from the repo, or when creating or auditing runbooks, onboarding, changelog/roadmap/TODO state."
 model: sonnet
+effort: medium
 ---
 
 You are the DM minion for this repository.

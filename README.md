@@ -18,6 +18,48 @@ Codex users from [.codex/agents](.codex/agents), and Claude Code users from
 [.claude/agents](.claude/agents). All are thin launchers around the durable
 role charters in [minions/roles](minions/roles).
 
+## About This Copy
+
+This is a **public, privacy-safe copy** of the template, published with fresh
+history. It is not the canonical development repository.
+
+- **Source version:** `v1.33.0` (exported from the canonical release tag).
+- **Fresh history:** the canonical git graph is not published. This copy is a
+  manifest-filtered snapshot committed fresh, so no past revision of any
+  maintainer-local file is reachable through history.
+
+What this public copy deliberately omits or changes relative to canonical
+(the divergence list):
+
+- **Maintainer-local files omitted:** `.mm.md` and the entire `AI/` directory
+  (template-maintenance layer: decisions, open questions, specs, plans, vendored
+  field feedback).
+- **Session working history omitted:** live mailbox packets
+  (`minions/mail/*/`), PM chat/continuity threads (`minions/chat/*.md`), live
+  plan docs (`minions/plans/*.md`), and session handoff snapshots.
+- **Canonical SME bench omitted:** the repo's filled Subject-Matter Expert
+  charters and their per-family launchers (`.claude`/`.codex`/`.github`) are
+  maintainer-owned expertise content. Only the SME surface protocol
+  (`minions/smes/README.md`) and the charter template (`sme-template.md`) ship;
+  the Local Registry and Local Matrix are reset to header-only seed state.
+- **Vendored skills omitted:** the maintainer-local adopted-skill payloads under
+  `skills/vendored/`.
+- **Superpowers session artifacts omitted:** `docs/superpowers/` design specs
+  and implementation plans.
+- **Changelog fragments omitted:** unassembled `CHANGELOG.d/*.md` fragments.
+- **Secret-filter tests omitted:** `tools/tests/second-brain.test.sh` and its
+  `tools/tests/fixtures/second-brain/` fixtures are omitted from this public
+  copy. They deliberately embed provider-shaped example secrets to verify the
+  second-brain secret filter, which public secret-scanning rejects; the
+  second-brain tool and feature themselves are unaffected.
+- **Neutralized personal phrasing:** operator-personal and maintainer-identifying
+  references have been genericized tree-wide; `feedback.md` is reset to a clean
+  capture-log stub.
+
+When adopting this template into a downstream project, follow
+[docs/export-manifest.md](docs/export-manifest.md) and the onboarding playbook
+rather than copying this public landing page forward.
+
 ## Using Copilot, Codex, or Claude Minion Agents
 
 Operators can use the role agents in three ways, in either tool:
@@ -128,21 +170,3 @@ template:
 Minions may keep role context in their role files under
 [minions/roles](minions/roles), but no minion may alter existing base
 guardrails/rules without explicit Operator approval.
-
-## About This Copy
-
-This is the public export of the minions-template, published from the
-maintainer's canonical repository at template version `1.29.0-1.0.0`
-(shallow publish history; the canonical repo retains full development
-history and its maintainer-local context). A few files intentionally
-diverge from the canonical copy:
-
-- `MEMORY.md`, `INIT.md`, `CHANGELOG.md`, `minion-version.md`, and
-  `docs/runbooks/public-export.md` generalize Operator-specific phrasing.
-- `feedback.md` is reset to a clean capture-log stub.
-- The Local Registry in `minions/smes/README.md` and the Local Matrix in
-  `minions/review-matrix.md` are reset to their empty template seed (header
-  only) below the split-merge delimiter — the maintainer's own subject-matter
-  experts and review-routing rows are repo-local and do not publish.
-- Maintainer-local files (`.mm.md`, the `AI/` maintenance layer) and local
-  scratch (`.remember/`, `.superpowers/`) are excluded entirely.

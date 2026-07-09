@@ -88,9 +88,16 @@ bash "$MKFAKE" "$BIN" gh 0 "https://github.com/o/r/issues/9"
   PATH="$BIN:$PATH" MINION_ISSUES=on "$SUT" sync --type mail --packet "$PKT" >/dev/null 2>&1 )
 check "gh create first sync -> exit 0" test $? -eq 0
 check "gh create -> sidecar written" bash -c "test -f '$PKT/.issue'"
+: > "$BIN/gh.args"   # isolate the edit invocation's argv (create already ran above)
 ( cd "$TMP" && PATH="$BIN:$PATH" MINION_ISSUES=on "$SUT" sync --type mail --packet "$PKT" >/dev/null 2>&1 )
 check "gh second sync -> exit 0 (idempotent edit)" test $? -eq 0
 check "gh second sync -> gh issue edit invoked" bash -c "grep -q 'edit' '$BIN/gh.args'"
+# Regression (bug-scrub Item 1): edit must re-apply labels via --add-label, else a
+# re-sync updates title/body but leaves GitHub labels stale while the Gitea path
+# corrects them (--add-labels). gh's edit flag is --add-label (NOT create's --label).
+check "gh edit -> --add-label passed" bash -c "grep -qxF -- '--add-label' '$BIN/gh.args'"
+check "gh edit -> labels value present (type:mail,role:...)" bash -c "grep -q 'type:mail,role:' '$BIN/gh.args'"
+check "gh edit -> bare --label NOT used on edit (anchored)" bash -c "! grep -qxF -- '--label' '$BIN/gh.args'"
 rm -rf "$TMP"
 
 # 1b: gh non-zero exit -> exit 4, NO sidecar written on failed create
@@ -100,6 +107,20 @@ bash "$MKFAKE" "$BIN" gh 1 "boom"
   PATH="$BIN:$PATH" MINION_ISSUES=on "$SUT" sync --type mail --packet "$PKT" >/dev/null 2>&1 )
 check "gh backend fail -> exit 4" test $? -eq 4
 check "gh backend fail -> no sidecar written" bash -c "! test -e '$PKT/.issue'"
+rm -rf "$TMP"
+
+# --- Item 1c: gh fake flag-faithfulness (fixture rigor) ---
+# The gh fake now REJECTS the wrong label flag on the wrong subcommand (mirrors
+# the tea fake's 0.14.1 faithfulness), so a stale-flag regression in the github
+# path fails at the fake instead of passing a dumb argv recorder. Assert the
+# fake's validation directly — an untested fixture guard is theater.
+TMP="$(mktemp -d)"; BIN="$TMP/bin"; bash "$MKFAKE" "$BIN" gh 0 "https://github.com/o/r/issues/1"
+"$BIN/gh" issue create --title t --body b --label x >/dev/null 2>&1;     check "gh fake: --label OK on create" test $? -eq 0
+"$BIN/gh" issue create --title t --body b --add-label x >/dev/null 2>&1; check "gh fake: --add-label REJECTED on create" test $? -ne 0
+"$BIN/gh" issue create --title t --label x >/dev/null 2>&1;              check "gh fake: create requires --body" test $? -ne 0
+"$BIN/gh" issue edit 1 --title t --add-label x >/dev/null 2>&1;          check "gh fake: --add-label OK on edit" test $? -eq 0
+"$BIN/gh" issue edit 1 --title t --label x >/dev/null 2>&1;              check "gh fake: bare --label REJECTED on edit" test $? -ne 0
+"$BIN/gh" issue edit --title t --add-label x >/dev/null 2>&1;            check "gh fake: edit requires issue number" test $? -ne 0
 rm -rf "$TMP"
 
 # --- Item 2: Hyphenated-topic parse test ---

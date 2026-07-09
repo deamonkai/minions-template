@@ -21,7 +21,7 @@ limited to Claude-specific spawning posture and pointers to the source charter.
 | `rm` | `minions/roles/RM.md` | opus | in-depth research, vendor-doc-grounded option analysis, out-of-box next steps |
 
 These seven map one-to-one to the Codex agents in `.codex/agents/`. There is no
-`mm` or `pr` agent: MM (minion design/maintenance) is interactive Operator work
+minion-maintenance or PR-review agent: minion design/maintenance is interactive Operator work
 that belongs in the main thread, not a fire-and-return subagent; PR review is
 covered by Claude Code's built-in `/review`.
 
@@ -46,10 +46,14 @@ covered by Claude Code's built-in `/review`.
   current session model, set `model: inherit`.
 - **Effort tuning.** Pin a reasoning-effort level per agent with an `effort:`
   frontmatter field (`low | medium | high | xhigh | max`); it overrides the
-  session default whenever that agent is spawned. `cm` is pinned to
-  `effort: xhigh` — the documented sweet spot for coding/agentic work — so it
-  reasons deeper on implementation and debugging. Other roles use the session
-  default. Prefer `xhigh` over `max` (max tends to overthink for diminishing
+  session default whenever that agent is spawned. All Claude launchers are
+  pinned per the effort map in `docs/model-tiering.md` ("The effort dial"):
+  judgment roles (`am`, `sm`, `om`, `rm`) at `high`, the final-verifier `cm` at
+  `xhigh` — the documented sweet spot for coding/agentic work — and `pm` plus
+  the bounded stages (`dm`, and the `/ship` `coder` / `tester` variants) at
+  `medium` (PM orchestrates/routes; a hard gate is the main-loop seat's call).
+  This mirrors Codex's per-role `model_reasoning_effort` values, so `/ship`
+  right-sizes effort deterministically regardless of the session default. Prefer `xhigh` over `max` (max tends to overthink for diminishing
   returns and may not persist reliably). Note: `ultrathink` is a per-*turn*
   prompt keyword, not a subagent setting; the `effort:` field is the persistent
   equivalent. The field takes effect on a fresh session — verify your Claude
@@ -65,6 +69,11 @@ returns a single final message. That return is the packet — treat it like any
 other minion handoff. Autonomous orchestration posture applies: spawn role
 agents, advance pipeline stages, and fire second opinions without asking
 permission, except at the three hard-stops defined in `AI.md`.
+
+Vendoring external skill code into `skills/vendored/` without Operator approval
+(the optional `MINION_SKILLS` layer, `docs/skill-adoption-model.md`) is an
+instance of hard-stop #2 (irreversible-publish), not a new fourth hard-stop —
+the enumerated count is unchanged.
 
 The Operator has three practical patterns.
 
@@ -153,15 +162,43 @@ mail packet. PM consolidates one durable artifact at the end. The posture
 constraints live in the `/ship` spawn prompts, not in these launcher files, so
 the agents stay general-purpose. See the Pipeline Mode section of
 `docs/minion-prompt-modes.md` for the full stage map, the two-channel model, the
-gates, and the planned Phase 2 cost-tier stage agents (`coder`, `tester`).
+gates, and the Phase 2 cost-tier stage agents (`coder`, `tester`) covered in the
+next section.
 
-## Prompt Modes and MM
+## Pipeline Stage Launchers
+
+`coder` and `tester` (`.claude/agents/coder.md`, `.claude/agents/tester.md`)
+are Mid-tier (`model: sonnet`) launchers for the two mechanical `/ship` stages:
+`coder` runs the implement stage and `tester` runs the write-and-run-tests
+stage. `/ship` prefers them over `cm` and falls back to `cm` when either is
+absent (see the Pipeline Track above and the Phase 2 section of
+`docs/minion-prompt-modes.md`). Both point at the CM charter
+(`minions/roles/CM.md`); the implement-only / test-only posture travels in the
+`/ship` spawn prompt, not the launcher body.
+
+They are a **third launcher class — pipeline stage launchers, not roles** — and
+are deliberately kept OUT of the seven-role `## Agents` table above (that table
+maps one-to-one to the role launchers in `.codex/agents/` and `.github/agents/`;
+the stage launchers are a parallel class in each family, tracked separately).
+
+Matching `coder`/`tester` launchers exist in all three families
+(`.codex/agents/{coder,tester}.toml`, `.github/agents/{coder,tester}.agent.md`),
+created for cross-family discoverability and parity. The tier split, however, is
+*functional* only in Claude Code: only its `model:` frontmatter pins the tier,
+and `/ship` is a Claude Code slash command with no cross-family equivalent. In
+Codex and Copilot the launchers carry the Mid tier as advisory prose and must be
+invoked by hand. No `/ship` orchestrator exists in those families to prefer them
+over `cm`, or to fall back to `cm` when a stage launcher is absent. So the
+cross-family files close the discoverability/parity gap; the functional
+tier-pinning and stage preference remain Claude-only by construction.
+
+## Prompt Modes and Minion Maintenance
 
 - Named prompt modes (`/challenge`, `/tech-lead`, `/debug`, ...) are defined in
   `docs/minion-prompt-modes.md`. The first one projected into Claude Code as a
   `.claude/commands/*.md` slash command is `/ship` (pipeline mode); the rest can
   follow the same pattern as needed.
-- MM (minion design and maintenance) is interactive Operator work. When built
+- Minion design and maintenance is interactive Operator work. When built
   for Claude Code it belongs in the main thread as a skill or command (for
   example `/spec-minion`), not as a subagent here.
 

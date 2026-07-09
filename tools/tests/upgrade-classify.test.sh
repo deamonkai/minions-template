@@ -163,6 +163,34 @@ check "C3 with flag: actionable row still shown"     bash -c "printf '%s' \"\$0\
 check "C3 with flag: summary notes N excluded hidden" bash -c "printf '%s' \"\$0\" | grep -q '^changed files: 1 (1 excluded hidden)\$'" "$OUT7"
 rm -rf "$TMP5"
 
+# --- C4: exit-code precedence when BOTH LIVE=error AND UNMANIFESTED-CHANGE occur --
+# Bug-scrub Item 2: the exit-3 (LIVE=error) check used to `exit 3` before the
+# exit-4 (UNMANIFESTED-CHANGE) check ran, masking the higher-stakes silent
+# export-drop. Both WARN lines must now print and the exit code must be 4
+# (4 outranks 3 — a dropped exported file is irreversible on the public mirror).
+TMP6="$(mktemp -d)"; O6="$TMP6/old"; N6="$TMP6/new"; L6="$TMP6/live"; M6="$TMP6/manifest.md"; R6="$TMP6/repo"
+mkdir -p "$O6" "$N6" "$L6/e.md" "$R6"   # live/e.md is a DIRECTORY -> cmp errors (LIVE=error)
+cat > "$M6" <<'EOF'
+| Path | Initial export | Upgrade strategy | Criticality | Default owner | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `e.md` | yes | `template-replace` | `feature` | PM | in snapshots; live is a dir -> LIVE=error |
+| `exported-missing.md` | yes | `template-replace` | `feature` | PM | exported; absent from both snapshots -> unmanifested |
+EOF
+GIT6() { git -C "$R6" -c user.name=t -c user.email=t@t "$@"; }
+GIT6 init -q
+printf 'v1\n' > "$R6/e.md"; printf 'v1\n' > "$R6/exported-missing.md"
+GIT6 add -A; GIT6 commit -q -m one; GIT6 tag t1
+printf 'v2\n' > "$R6/e.md"; printf 'v2\n' > "$R6/exported-missing.md"
+GIT6 add -A; GIT6 commit -q -m two; GIT6 tag t2
+# snapshots contain ONLY e.md (modified): exported-missing.md is the unmanifested
+# gap; e.md is in both snapshots so its live-vs-old comparison runs -> dir error.
+printf 'v1\n' > "$O6/e.md"; printf 'v2\n' > "$N6/e.md"
+ERR6="$(bash "$SUT" --old "$O6" --new "$N6" --live "$L6" --manifest "$M6" --repo "$R6" --from t1 --to t2 2>&1 >/dev/null)"; rc6=$?
+check "C4 both signals -> LIVE=error WARN still printed"       bash -c "printf '%s' \"\$0\" | grep -q 'LIVE=error rows'" "$ERR6"
+check "C4 both signals -> UNMANIFESTED-CHANGE WARN still printed" bash -c "printf '%s' \"\$0\" | grep -q 'UNMANIFESTED-CHANGE rows'" "$ERR6"
+check "C4 both signals -> exit 4 (4 outranks 3; drop not masked)" test "$rc6" -eq 4
+rm -rf "$TMP6"
+
 rm -rf "$TMP"
 echo "----- $pass passed, $fail failed -----"
 test "$fail" -eq 0

@@ -7,7 +7,7 @@ release the Operator wants public
 
 Run this procedure to publish a privacy-safe copy of this template to a
 **public** repository with fresh history. It was field-derived from the
-live 2026-07-02 export to `github.com/deamonkai/minions-template`.
+live 2026-07-02 export to a public mirror.
 
 **Scope note:** this runbook is written from the template repo's own
 perspective — its manifest, its maintainer-local paths, its public
@@ -64,7 +64,7 @@ marked `Initial export: yes` that downstream onboarding uses (see
 Do this **tree-wide and token-based**, not as a single targeted edit.
 
 The live 2026-07-02 run first tried a single-line pass (fix the one known
-personal line in `MEMORY.md`) and it was incomplete: an Operator-specific
+personal line in `MEMORY.md`) and it was incomplete: an operator-personal
 section heading echoed in `INIT.md` and `CHANGELOG.md` referenced the same
 personal context and was missed by the single-line pass. Only a tree-wide
 grep for the underlying token caught every occurrence, including the
@@ -135,11 +135,16 @@ pushed. These are pre-push hard gates, not optional checks.
    local-tooling paths made it into the export tree:
 
    ```bash
-   for f in .mm.md AI/ .remember/ .superpowers/; do
+   for f in .mm.md AI/ .remember/ .superpowers/ skills/vendored/; do
      test -e "<export-tree>/$f" && echo "FORBIDDEN PRESENT: $f"
    done
    # Expected: no output
    ```
+
+   `skills/vendored/` is the maintainer-local adopted-skill payload path
+   (`do-not-export` by construction). This gate is belt-and-suspenders behind
+   its manifest exclusion: even if a manifest row were weakened, no adopted
+   payload or quarantined `SOURCE.txt` may reach the export tree.
 
    This list is the template's own maintainer-local set. A downstream
    project substitutes its own maintainer/operator-local paths here —

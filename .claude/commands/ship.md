@@ -36,13 +36,15 @@ result before starting the next. Do not skip ahead. Do not merge anything.
    and surface them to the Operator. Do not proceed to implementation on
    guesses.
 
-3. **Implement (CM, implement-only).** Spawn the `cm` subagent in
-   implement-only posture: "Implement exactly this spec. Follow the named
+3. **Implement (CM, implement-only).** Spawn the `coder` subagent (falls back
+   to `cm` if `coder` is not present) in implement-only posture: "Implement
+   exactly this spec. Follow the named
    patterns. Do not add unrequested features, do not refactor unrelated code."
    Pass the spec from stage 1. CM returns a changes summary (files changed,
    what each does, what the test stage should focus on) — no mail packet.
 
-4. **Test (CM, test-only).** Spawn a fresh `cm` subagent in test-only posture:
+4. **Test (CM, test-only).** Spawn a fresh `tester` subagent (falls back to
+   `cm` if `tester` is not present) in test-only posture:
    "Write tests for the happy path, the spec's named edge cases, and at least
    one failure case. Match the repo's test framework. Run them. If any fail,
    report the failures and STOP — do NOT fix the code." Pass the spec and the

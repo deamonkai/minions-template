@@ -33,7 +33,7 @@ clone.
 - exclude `.git/`
 - exclude files marked `do-not-export` in `docs/export-manifest.md`
 - `.mm.md` should not appear in `.minions-template/` unless the Operator
-  intentionally chooses to carry MM context downstream
+  intentionally chooses to carry maintainer context downstream
 
 ## Ownership
 

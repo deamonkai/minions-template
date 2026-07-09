@@ -2,6 +2,7 @@
 name: om
 description: "OM minion for OM-Test / OM runtime validation, deployment execution, service health, restart discipline, rollback, and recovery. Invoke for runtime verification, deploy and rollback posture review, health checks, or operational recovery. Defaults to OM-Test posture unless production OM work is explicitly assigned."
 model: opus
+effort: high
 ---
 
 You are the OM minion for this repository. This agent covers both OM-Test and OM, using minions/roles/OM.md as the shared charter.

@@ -53,6 +53,8 @@ formula:
 | `/pitch` | A stakeholder/client summary is needed | Short pitch, value, risk, ask |
 | `/artifact` | The answer should become durable repo state | File path, content, verification |
 | `/feedback` | Closing a session; capture what was learned about the Operator | Dated `feedback.md` entries (corrections, preferences, do-differently) plus which are durable enough to promote and where |
+| `/recall` | Need context from the local second-brain vault before answering or acting | Read-only search results via `tools/second-brain.sh search` — input, not authority; silent no-op when `MINION_SECONDBRAIN` is off or the vault is absent |
+| `/capture` | Content should be appended to the local second-brain inbox | Filtered append via `tools/second-brain.sh capture` (batched, orchestrator-mediated; passes the always-on AC-2 boundary) or an AC-2 rejection; silent no-op when `MINION_SECONDBRAIN` is off or the vault is absent |
 
 ## Engineering Modes
 
@@ -240,39 +242,49 @@ Use the execution track for bounded feature work; use the deliberate track for
 governance, architecture direction, and anything spanning sessions or requiring
 independent durable packets at each step.
 
-### Phase 2 (Planned, Not Yet Built): Dedicated Cost-Tier Stage Agents
+### Phase 2 (Shipped in v1.30.0): Dedicated Cost-Tier Stage Agents
 
 See `docs/model-tiering.md` for the general role-level tier guidance this
 section is one application of.
 
-The current pipeline runs the implement and test stages on `cm` (Frontier —
+By default the pipeline runs the implement and test stages on `cm` (Frontier —
 e.g. Opus, `effort: xhigh`). That is correct for quality but is the most
-expensive option for the highest-token stages. Phase 2 introduces optional
+expensive option for the highest-token stages. Phase 2 ships two optional
 dedicated launchers that swap the model tier for the mechanical stages
 **without** changing the architecture:
 
-- `coder` (Mid — e.g. Sonnet) — implement-only. Slots into stage 2 in place of
-  `cm`.
-- `tester` (Mid — e.g. Sonnet) — write-and-run-tests-only. Slots into stage 3
-  in place of `cm`.
+- `coder` (Mid — e.g. Sonnet) — implement-only. Slots into stage 3 in place of
+  `cm` (`.claude/agents/coder.md`).
+- `tester` (Mid — e.g. Sonnet) — write-and-run-tests-only. Slots into stage 4
+  in place of `cm` (`.claude/agents/tester.md`).
 
-Design intent for Phase 2:
+`/ship` now prefers `coder` for the implement stage and `tester` for the test
+stage, falling back to `cm` when either launcher is absent — so the split is
+additive, and a downstream that did not adopt the launchers runs the whole
+pipeline on `cm` exactly as before.
+
+How Phase 2 holds together:
 
 - AM stays on Frontier (planning sets the quality ceiling). The read-only
   review stage stays on Frontier / `cm` (final correctness gate). Only the
   bounded, spec-driven middle stages move to Mid.
 - These are **thin launchers** like the existing `.claude/agents/` files — the
-  implement-only and test-only postures already live in the `/ship` spawn
-  prompts, so Phase 2 is mostly a model-tier swap plus two launcher files and a
-  `/ship` update to prefer them when present.
+  implement-only and test-only postures live in the `/ship` spawn prompts, so
+  Phase 2 is a model-tier swap plus the two launcher files and the `/ship`
+  preference.
 - The two-channel model, the gates, and the read-only review constraint are
-  unchanged. Phase 2 is purely a cost optimization, expected to push roughly the
+  unchanged. Phase 2 is purely a cost optimization, aimed at roughly the
   Anthropic-internal 70/30 Mid/Frontier token split.
 - It stays optional: a project can run the whole pipeline on `cm` if it prefers
   uniform quality over cost.
-
-Phase 2 is deferred to a separate session and is documented here so the intent
-is durable and not re-litigated.
+- Functional tier-pinning is Claude-only by construction: only Claude Code's
+  `model:` frontmatter pins the tier, and `/ship` is a Claude Code slash command.
+  `coder`/`tester` launchers do exist in all three families
+  (`.codex/agents/`, `.github/agents/`) for discoverability and parity, but in
+  Codex and Copilot they carry the tier as advisory prose and must be invoked by
+  hand. No `/ship` orchestrator exists in those families to prefer them over
+  `cm`, or to fall back to `cm` when a stage launcher is absent (see
+  `.claude/agents/README.md`).
 
 ## Handoff Mode (`/handoff`)
 

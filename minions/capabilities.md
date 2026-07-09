@@ -37,6 +37,9 @@ whether that AI environment carries the capability (`yes` / `no`).
 | `deep-research` (EXAMPLE — replace) | skill | yes | no | no | active | RM | Multi-source, cited research reports — recommend-only applies |
 | Sentry (EXAMPLE — replace) | connector | yes | no | no | deferred | CM, OM | Error context and incident triage; deferred until authenticated |
 | code-reviewer (EXAMPLE — replace) | agent | no | no | no | absent | CM | Deeper review passes — CM still owns the verdict |
+| `tools/second-brain.sh` (local second brain) | skill | yes | yes | yes | active | all roles | Local fast-onboard corpus (capture/search/filter/scan/path) gated on `MINION_SECONDBRAIN=on`; see `docs/second-brain-model.md` |
+| repowise (codebase-intelligence over MCP) | connector | no | no | no | absent | CM, AM | Repo intelligence — dependency graph, git analytics, code-health scores, dead-code, refactor plans — via an external MCP server/SaaS. Scouted 2026-07-09 (Skill-Provenance SME); **AGPL-3.0**, so connector-only — do NOT vendor into the public-mirror tree. Adopt via the connector path (SM frames no-network vs BYO-key), not the skill airlock |
+| adopted skill `<key>` (EXAMPLE — replace) | skill | no | no | no | absent | (per skill) | Airlocked external skill under `skills/vendored/<key>/` — maintainer-local, does not export, so the public row is `absent`. Reached like any capability under the `MINION_SKILLS=on` gate; no-network run posture by default. Record commit SHA + adoption date + run posture per the row schema in `docs/skill-adoption-model.md` |
 
 Column notes:
 

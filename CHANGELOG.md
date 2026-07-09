@@ -2,6 +2,259 @@
 
 All notable changes to this repository are tracked here.
 
+## 2026-07-09 (v1.33.0 — Effort calibration + external-capability scouting)
+
+- Commit hash: pending (staging→main PR merge)
+- **Capability-map records (no adoption).** Scouted two external repos and
+  recorded them as capability candidates, not code: **repowise**
+  (codebase-intelligence over MCP — dependency graph, git analytics, code-health
+  scores, dead-code, refactor plans) gets an `absent`-status connector row in
+  `minions/capabilities.md`; its **AGPL-3.0** license makes it connector-only —
+  never vendored into the public-mirror tree. **effortmining** contributed an
+  idea only (see below), no repo row.
+- **Effort-calibration — prototype, then wired, then validated.**
+  `docs/effort-calibration.md` (new) extends `docs/model-tiering.md` with a
+  second, orthogonal dial — reasoning effort (the Agent tool's `effort`
+  parameter) alongside model band — via a task-class → effort table
+  (T1–T4/R/C, idea attributed to `nagisanzenin/effortmining`, MIT; only the
+  idea is imported, no code/plugin/hooks). It shipped as an unvalidated,
+  governance-exempt prototype.
+- Wired into launcher frontmatter as `effort:` (Claude) / `model_reasoning_effort`
+  (Codex) pins, mirroring the existing `model:` tier pins: judgment roles `am`,
+  `sm`, `om`, `rm` at `high`; `cm` stays `xhigh` (final-verifier escalation);
+  `pm` and `dm` at `medium`; the six SME launchers split `high`
+  (export-privacy, governance-invariant, skill-provenance, upgrade-path) /
+  `medium` (cross-family-launcher, shell-test-harness). A Cross-Family
+  Launcher SME finding caught the Claude `pm` pin drifting from Codex's
+  deliberate `medium` and a Claude-only mischaracterization in
+  `model-tiering.md` (effort is functional in both Claude and Codex — only
+  Copilot is prose-only); both fixed same-day, and the two families now agree
+  role-for-role.
+- **Blind-grader validation, 3/3 probes.** A controlled harness (fixed model,
+  varied effort arm, independent blind graders plus an objective hidden test
+  battery as sole arbiter) ran a SemVer-precedence comparator, an RFC-4180 CSV
+  parser, and an arithmetic evaluator with injection rejection. `low` effort
+  passed every objective battery across all three probes — clearing the
+  "passes repeatedly" bar. Meta-finding promoted to a standing rule: a blind
+  LLM grader hallucinated a fatal bug and claimed to have executed it, so an
+  **objective execution backstop is now REQUIRED** for any effort-calibration
+  run — grader opinion alone is not evidence.
+- On the strength of the 3/3 result, the `/ship` `coder` and `tester` pipeline
+  stages (Claude and Codex) are lowered to `effort: low` — they run under a
+  clear AM spec with a downstream test + review backstop, so the ambiguous
+  T3 class default (`medium`) stays put but these two bounded stages don't
+  need it.
+- This is docs- and launcher-frontmatter-only: no product code, no governance-
+  token change, no new hard-stop. OPTIONAL for downstream — see the 1.33.0
+  entry in `docs/downstream-upgrade-playbook.md`.
+
+## 2026-07-09 (v1.32.0 — Skill adoption layer: Scout + Airlock + Skill-Provenance SME)
+
+- Commit hash: pending (staging→main PR merge)
+- New OPTIONAL, default-off skill-adoption layer (`MINION_SKILLS`), letting an
+  untrusted, mutable, instruction-bearing external "skill" (discovered via
+  `skills.sh`) cross into the template through a human vetting panel and a
+  gated airlock, ending in a framework-wrapped form whose only authoritative
+  text is framework-authored. Design of record:
+  `docs/superpowers/specs/2026-07-09-skill-adoption-layer-design.md`. Built
+  via the `/ship` PM pipeline (plan → gate → implement → test → 7-reviewer
+  panel → fix → SHIP); paused once at the plan gate for an Operator decision
+  (SME bench approval, combined Phase 1+2, full merge-blocking wiring,
+  four-entry-point parity).
+- **Skill-Provenance SME** (new) — charter `minions/smes/skill-provenance.md`,
+  three `sme-`-prefixed launchers (behaviorally identical across families),
+  registry row, and two `minions/review-matrix.md` rows (adopt-candidate;
+  wrapper-charter authoring). Recommend-only: synthesizes the vetting panel's
+  findings for PM, who convenes and decides; the wrapped-form write is always
+  a role's, never the SME's.
+- **Governance wiring** — `MINION_SKILLS` gate-conditioned pointer added to
+  all four entry points (`CLAUDE.md`, `AGENTS.md`,
+  `.github/copilot-instructions.md`, `MEMORY.md`'s new Skill Adoption
+  subsection); a hard-stop-#2 **instance** annotation for skill vendoring (no
+  new hard-stop, no count change) in `CLAUDE.md`, `AI.md`, and all three agent
+  READMEs.
+- **Unconditional protections** (stand regardless of the gate): a
+  `skills/vendored/` `do-not-export` manifest row + `.gitkeep` placeholder,
+  and the same path added to the public-export forbidden-path pre-push gate
+  (`docs/runbooks/public-export.md`).
+- **`tools/skill-scout.sh`** (new) — findings-only `survey`, with a
+  WebFetch/web-UI fallback when `npx` is absent; fetched content is treated
+  as inert data, never evaluated.
+- **`tools/skill-airlock.sh`** (new) — advisory `check` (exit 0 is never a
+  safety gate) plus a pure/offline `verify-quarantine`.
+- **New merge-blocking `skills_wired` guard** in
+  `tools/tests/governance-consistency.test.sh`, self-tested, asserting the
+  four-entry-point wiring and the three unconditional protections.
+- **Reader path** — `docs/skill-adoption-model.md` (schema, run posture,
+  consumption contract, Enabling It / rollback); an `absent`-status example
+  adopted-skill row in `minions/capabilities.md`; an onboarding-checklist
+  entry; a merge-blocking `docs/downstream-upgrade-playbook.md` entry.
+- Review-panel fix pass: the SM-flagged MEDIUM finding (`verify-quarantine`
+  did not match a symlinked `SKILL.md`, a trust-boundary bypass) was closed
+  by matching both file and symlink targets, plus three non-blocking quality
+  findings; suite re-verified green after the fix.
+- Tests: 11/11 guard/test suites green; `skill-airlock.test.sh` at 32/0 (all
+  7 static-scan patterns plus the symlink-quarantine case asserted).
+- OPTIONAL for downstream (adopt-if-used), but the wiring floor is
+  merge-blocking: the `skills_wired` guard fails a downstream that syncs this
+  version and skips the four-entry-point pointer or the unconditional
+  protections. See the 1.32.0 entry in `docs/downstream-upgrade-playbook.md`.
+
+## 2026-07-08 (v1.31.0 — Local second-brain: Phase 1 corpus layer)
+
+- Commit hash: pending (staging→main PR merge)
+- New OPTIONAL, default-off local corpus layer (`MINION_SECONDBRAIN`), complementing
+  (not replacing) the cloud Mnemoverse recall layer — a fast, local, unrestricted-corpus
+  "second brain" over a plain-Markdown Obsidian vault. Design of record:
+  `docs/superpowers/specs/2026-07-08-local-second-brain-design.md`. Built via the `/ship`
+  PM pipeline (plan → gate → implement → test → 5-lens + cross-vendor review → hardening
+  → SHIP).
+- **`tools/second-brain.sh`** (new) — `capture` / `search` / `filter` / `scan` / `path`.
+  Vault resolves from `MINION_SECONDBRAIN_VAULT` (default `~/second-brain`); Obsidian is
+  never probed (operates on plain files, so deleting Obsidian is a graceful no-op). AC-2
+  reject-and-report exclusion filter (secrets + `SOLE-HOLDER:`; reports class + line
+  **number**, never the secret text) with an optional `$VAULT/.secondbrain-exclude`; AC-4
+  `gitleaks --no-git` scan; `path --check` AC-1 preflight including a git-remote
+  containment warning. Silent no-op when the gate is off or the vault is absent.
+- **Adoption wiring (Mnemoverse-mirror, not per-launcher):** a gate-conditioned run-start
+  PULL line on `CLAUDE.md` / `AGENTS.md` / `.github/copilot-instructions.md` / `AI.md`; a
+  `MEMORY.md` Optional-Layers subsection; a `minions/capabilities.md` row (+ a
+  `docs/operator-onboarding-checklist.md` adoption row); `/recall` + `/capture` prompt
+  modes; and a self-tested `secondbrain_wired` governance guard (block-flatten
+  co-location) so the wiring cannot silently rot.
+- **`docs/second-brain-model.md`** + **`docs/runbooks/second-brain-setup.md`** (new);
+  **`.gitleaks.toml`** (new) allowlisting the test fixtures so they don't trip the
+  public-export gate; export-manifest rows for all new tracked files.
+- Reframe baked into the design: "local" is not "unrestricted-safe" — secrets and
+  `SOLE-HOLDER:` anchors never enter even locally (a Markdown vault is still copyable /
+  syncable). Files always win; vault content *informs* and becomes canonical only via
+  promotion into git.
+- Tests: `tools/tests/second-brain.test.sh` — **90 passed / 0 failed under BOTH stock
+  `/bin/bash` 3.2.57 and Homebrew bash** (a portability BLOCKER in the first cut, which
+  the cross-vendor SHIP missed, was caught by direct execution and fixed). Full suite
+  green; `gitleaks` clean repo-wide.
+- OPTIONAL for downstream: additive, default-off, no baseline or governance-token change.
+  Phase 2 (DM curation pass, `/curate`, DM charter edit) and Phase 3 (graph/ingest, an
+  optional `claude-obsidian` power tier behind an RM+SM security read) remain per the
+  design's rollout.
+
+## 2026-07-07 (v1.30.1 — Bug-scrub follow-ups: issue-sync/upgrade-classify fixes, cross-family coder/tester launchers, guard hardening)
+
+- Commit hash: pending (staging→main PR merge)
+- Follow-ups from a bug scrub of the minion/SME stack (plan at
+  `minions/plans/2026-07-07-bug-scrub-followups.md`): two confirmed defects, one
+  launcher-parity completion, and two SME-flagged guard/fixture hardenings.
+  Additive/optional; no baseline or governance-token change.
+- **`tools/issue-sync.sh`** — `github_edit` now re-applies labels via
+  `--add-label` (it set only `--title`/`--body`/`--assignee`, dropping labels on
+  re-sync while `github_create` passes `--label` and the Gitea edit path passes
+  `--add-labels`). Backend parity; covered by a regression test (issue-sync
+  50→59).
+- **`tools/upgrade-classify.sh`** — when a live-comparison error (exit 3) and an
+  unmanifested exported change (exit 4) both occur in one run, both warnings now
+  print and the exit code is 4; the silently-dropped exported file is no longer
+  masked by the inconclusive comparison. Docstring updated; C4 both-conditions
+  test added (upgrade-classify 34→37).
+- **`.codex/agents/{coder,tester}.toml`, `.github/agents/{coder,tester}.agent.md`**
+  (new) — the `coder`/`tester` pipeline stage launchers, Claude-only since
+  v1.30.0, now exist in all three families for discoverability and parity. The
+  Mid tier is advisory outside Claude (no per-launcher model selector, no
+  `/ship`) — spawned manually. Four `docs/export-manifest.md` rows added
+  (manifest-completeness stays at 0 uncovered).
+- **Docs** — reconciled the now-stale "Claude-only, no cross-family
+  coder/tester" claims across `.claude/agents/README.md`,
+  `docs/minion-prompt-modes.md`, and the v1.30.0 upgrade-playbook entry; added
+  Pipeline Stage Launcher discovery sections to the `.codex`/`.github` READMEs.
+  Functional tier-pinning and `/ship` stay Claude-only by construction.
+- **`tools/tests/governance-consistency.test.sh`** — a cross-family parity check
+  for the coder/tester launchers (present in all three families or none; the
+  `launcher_ok` bootstrap check now covers the Codex/Copilot stage launchers)
+  plus a self-tested `has_stale_stage_claim` detector guarding the authoritative
+  launcher docs (bounded on markdown blocks AND sentences so unrelated bullets
+  cannot bridge into a false match; covers contraction/existence-verb phrasings).
+- **`tools/tests/fixtures/make-fake-provider.sh`** — the `gh` test fake now
+  rejects the wrong label flag on the wrong subcommand (create `--label`, edit
+  `--add-label`), matching the `tea` fake's flag-faithfulness so a stale-flag
+  regression fails at the fake rather than passing a dumb argv recorder;
+  fixture-rigor tests added.
+- Reviews: Shell/Test-Harness SME (fixes + guards), Cross-Family Launcher SME
+  (launchers; HIGH stale-claim finding reconciled), Export/Privacy SME (manifest
+  classification) — all findings addressed. Full 8-suite `tools/tests` green.
+
+## 2026-07-07 (v1.30.0 — Model-tiering Phase 2: coder/tester stage launchers)
+
+- Commit hash: pending (staging→main PR merge)
+- Model-tiering Phase 2 — documented in `docs/minion-prompt-modes.md` since
+  v1.24.0 but never built — is now shipped (Operator decision 2026-07-07; plan
+  at `minions/plans/2026-07-07-model-tiering-phase2.md`). The single `cm`
+  launcher is hard-pinned to Frontier (opus/xhigh) and runs BOTH implementation
+  and verification there because one launcher cannot distinguish implementer
+  from verifier. Phase 2 splits the two mechanical `/ship` stages onto Mid
+  tier **without changing the architecture**; AM planning (stage 1) and the
+  review gate (stage 7) stay Frontier.
+- **`.claude/agents/coder.md`** (new) — Mid-tier (`model: sonnet`)
+  implement-only launcher for `/ship` stage 3. Points at `minions/roles/CM.md`,
+  carries the full bootstrap read chain; the implement-only posture travels in
+  the `/ship` spawn prompt.
+- **`.claude/agents/tester.md`** (new) — Mid-tier (`model: sonnet`)
+  write-and-run-tests-only launcher for `/ship` stage 4. Same shape as `coder`;
+  the load-bearing test/implement separation lives in its lane paragraph — it
+  reports test failures and STOPS, never patches the code under test.
+- **`.claude/commands/ship.md`** — stage 3 (implement) now prefers `coder` and
+  stage 4 (test) prefers `tester`, each falling back to `cm` when the launcher
+  is absent. Additive and zero-behavior-change when unadopted. Stage 7 review
+  gate stays `cm` / read-only / Frontier, unchanged.
+- **`docs/export-manifest.md`** — two new rows for the launchers
+  (`yes` / `template-replace` / `feature` / PM · CM), keeping
+  manifest-completeness at 0 uncovered.
+- **`tools/tests/governance-consistency.test.sh`** — a SEPARATE `launcher_ok`
+  mini-loop mechanically checks the coder/tester bootstrap-read wiring,
+  deliberately kept OUT of the 7-role loop and the role-set drift guard:
+  coder/tester are a THIRD launcher class (pipeline stage launchers, not roles)
+  and must not enter the one-to-one-with-Codex role set.
+- **Docs** — `docs/minion-prompt-modes.md` Phase 2 section retitled
+  Planned→Shipped and rewritten to built state; `.claude/agents/README.md`
+  gains a "Pipeline Stage Launchers (Claude-only)" subsection (NOT added to the
+  7-role Agents table, preserving the Codex one-to-one invariant);
+  `docs/downstream-upgrade-playbook.md` updates the 1.10.0 OPTIONAL/DEFERRED
+  block to shipped and adds a 1.30.0 Version-Specific Required Changes entry.
+- Claude-only is **forced, not a parity gap**: only Claude Code's `model:`
+  frontmatter pins tier functionally, and no Codex/Copilot `/ship` exists to
+  slot the launchers into, so the Instruction-File Audit Rule's cross-family
+  launcher-parity requirement does not reach this class.
+- OPTIONAL for downstream (Claude-only, adopt-if-using-`/ship`, fallback-guarded
+  to `cm`); no baseline or governance-token change; full `tools/tests` suite
+  green.
+
+## 2026-07-07 (v1.29.1 — Memory recall: run-start READ wired onto shared onboarding)
+
+- Commit hash: pending (staging→main PR merge)
+- The optional memory-recall layer's **read/onboard path** was documented
+  only in `minions/roles/PM.md` and `docs/memory-recall-model.md` — absent
+  from every shared onboarding surface. An orchestrator following the
+  read-order at run start therefore never onboarded recall unless it was
+  PM. This wires the run-start read onto the surface every minion and
+  orchestrator already reads.
+- **`MEMORY.md`** (Memory Recall section) — new orchestrator-only read-path
+  bullet: at run start the orchestrator (top of the spawn chain) queries the
+  project domain and folds hits into dispatch briefs; spawned minions never
+  query memory and receive recall through their brief. Recall is input, not
+  authority; recalled runtime facts are presumptive (brief still instructs
+  live-state verification). Points to `docs/memory-recall-model.md` (Read Path).
+- **`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`** — thin
+  gated operating-rules pointer (parity, house voice): when
+  `MINION_MEMORY=on`, the orchestrator queries recall at run start and folds
+  hits into briefs; unset/off or tools/API absent is a silent no-op.
+- Orchestrator-only read invariant preserved (spawned minions stay
+  MCP-free); write path and never-mirrored classes untouched. Deliberately
+  did **not** edit the 21 launcher/role charters — `MEMORY.md` reaches every
+  minion at a fraction of the surface with no launcher-parity cost.
+- Reviews: Governance-Invariant SME **Adopt** (all five invariants hold),
+  Cross-Family Launcher SME **Adopt** (three entry points semantically
+  identical), DM **Adopt** (no doc drift).
+- Docs-only; OPTIONAL for downstream (no baseline or governance-token
+  change); full `tools/tests` suite green (8 suites).
+
 ## 2026-07-05 (v1.29.0 — SME design support: guide + validator + review hook)
 
 - Commit hash: pending (staging→main PR merge)
@@ -564,7 +817,7 @@ All notable changes to this repository are tracked here.
 
 - Commit hash: pending (staging→main PR merge)
 - Codifies the live 2026-07-02 export of a privacy-safe copy of this
-  template to a public repo (github.com/deamonkai/minions-template),
+  template to a public repo (the public mirror),
   publishing fresh history rather than canonical history.
 - New `docs/runbooks/public-export.md` (Operator/PM-owned): manifest-
   filtered export from a tagged canonical release using
@@ -572,7 +825,7 @@ All notable changes to this repository are tracked here.
   adds `README.md` with an "About This Copy" section (source version +
   divergence list) even though the manifest classes it downstream-owned;
   tree-wide token-based privacy-neutralization sweep (the live run's
-  single-line pass missed an Operator-specific heading echoed in `INIT.md`
+  single-line pass missed an operator-personal heading echoed in `INIT.md`
   and `CHANGELOG.md` — only the tree-wide grep caught it), with
   `feedback.md` reset to a clean capture-log stub; mandatory pre-push
   verification gates (export's own `tools/tests/*.test.sh` suite,
@@ -589,7 +842,7 @@ All notable changes to this repository are tracked here.
 ## 2026-07-02 (v1.21.3 — tea v0.14.1 compat, downstream-authored)
 
 - Commit hash: pending (staging→main PR merge)
-- **Provenance:** downstream-authored (Molloy-trading-bot team), absorbed
+- **Provenance:** downstream-authored (downstream project team), absorbed
   upstream 2026-07-02 so future downstream upgrades stop re-fighting it.
 - `tools/issue-sync.sh`: `tea` v0.14.1 renamed the issue-body flag
   (`--body` → `--description`/`-d`) and the edit-time label flag
@@ -875,7 +1128,7 @@ All notable changes to this repository are tracked here.
 - **MEMORY.md Deployment Discipline** gains an opt-in pointer to the posture.
 - **export-manifest.md** lists the new doc (`template-replace`, `feature`,
   PM / AM) so downstreams receive it.
-- Distilled from the Molloy-trading-bot downstream's implementation (it runs the
+- Distilled from the downstream project's implementation (it runs the
   pattern across multiple independent decision points); trading-specific machinery
   deliberately left out. Class ②/dual-vendor from the same packet was already
   shipped in v1.16.0; this resolves the deferred class ①.
@@ -888,8 +1141,8 @@ All notable changes to this repository are tracked here.
 ## 2026-06-24 (v1.16.0 — Downstream feedback: review-ergonomics quick wins)
 
 - Commit hash: pending (next commit)
-- Adopted the low-risk, broadly-applicable items from a Molloy-trading-bot
-  downstream feedback packet (heavy-use observations). Bumped template version to
+- Adopted the low-risk, broadly-applicable items from a downstream project's
+  feedback packet (heavy-use observations). Bumped template version to
   `1.16.0-1.0.0`. Deferred (Operator's call): parallel/domain-scoped review
   cadence, and the shadow-first risk posture + operator-facing-craft items.
 - **review brevity (SM/DM charters).** `minions/roles/SM.md` and `DM.md` review
@@ -972,7 +1225,7 @@ All notable changes to this repository are tracked here.
   (including `--prompt -` with empty stdin) is rejected with exit 2 before any
   provider call; a provider that exits 0 but produces empty/whitespace-only
   output is flagged `review-empty-output` with exit 4 instead of a false `ok`.
-- **context:** the downstream (Molloy Trading Bot) did not modify the script —
+- **context:** the downstream project did not modify the script —
   its committed `xtool-call.sh` is the untouched 1.11.1 baseline, and its earlier
   script feedback (F2 slug sanitization, F4 failed-delegate cleanup, the copilot
   web-fetch note) is already absorbed. These three fixes are net-new review-path
@@ -1011,7 +1264,7 @@ All notable changes to this repository are tracked here.
 ## 2026-06-20 (v1.12.0 — Upgrade-Process Tooling)
 
 - Commit hash: pending (next commit)
-- Upgrade-process improvements from downstream feedback (Molloy Trading Bot, on
+- Upgrade-process improvements from downstream feedback (a downstream project, on
   running the `1.11.0 → 1.11.1` upgrade). Adds the second piece of executable
   tooling after `xtool-call.sh`. Bumped template version to `1.12.0-1.0.0`.
 - **feat (#1): annotated release git tags.** Releases are now published as git tags
@@ -1053,7 +1306,7 @@ All notable changes to this repository are tracked here.
 ## 2026-06-20 (v1.11.1 — Downstream-Feedback Hardening)
 
 - Commit hash: pending (next commit)
-- Hardening pass from downstream upgrade feedback (Molloy Trading Bot, via an SM
+- Hardening pass from downstream upgrade feedback (a downstream project, via an SM
   review of a real `1.10.0 → 1.11.0` upgrade). No new capability — correctness,
   security, and doc precision only. Bumped template version to `1.11.1-1.0.0`.
 - **fix (correctness): `governance-consistency.test.sh` could false-PASS.** The
@@ -1383,7 +1636,7 @@ All notable changes to this repository are tracked here.
   (never `AI/`).
 - Seeded `AI/decisions.md` with the decisions made over this session (projection
   model as source of truth, no-whitelists-except-RM, per-tool model/effort knobs,
-  RM-as-consult-not-gate, MM-as-skill-not-subagent, Fable-as-escalation-only,
+  RM-as-consult-not-gate, minion-maintenance-as-skill-not-subagent, Fable-as-escalation-only,
   entry-point bootstrap) so other tools inherit the reasoning instead of
   relitigating it.
 - Added:
@@ -1757,20 +2010,20 @@ All notable changes to this repository are tracked here.
 - Reconciled shared role-set drift so `SM` remains consistently present in handoff and `NEXT OWNER` contracts while adding `AM`
 - Bumped template version to `1.3.0-1.0.0` in `minion-version.md`
 
-## 2026-04-10 (MM Bootstrap)
+## 2026-04-10 (Template-maintenance bootstrap)
 
 - Commit hash: pending (next commit)
 - Bootstrapped Manager Minion coordination for the current template-maintenance session by:
-  - creating `minions/chat/2026-04-10.md` with the MM bootstrap announcement
-  - refreshing `.mm.md` `MM Notes` with a timestamped audit of the active template drift backlog
-- No template version bump; MM-context and coordination-doc updates only
+  - creating `minions/chat/2026-04-10.md` with the template-maintenance bootstrap announcement
+  - refreshing `.mm.md` maintainer notes with a timestamped audit of the active template drift backlog
+- No template version bump; maintainer-context and coordination-doc updates only
 
 ## 2026-04-10
 
 - Commit hash: pending (next commit)
 - Removed `.mm.md` from `.gitignore` so Manager Minion context can sync across Operator machines
 - Added and tracked `.mm.md` as a repository maintainer context file for the template repo
-- Added Manager Minion scoping, maintainer guardrails, and Operator continuity-support guidance in:
+- Added Manager Minion scoping, maintainer guardrails, and continuity support guidance in:
   - `.mm.md`
 
 ## 2026-04-08 (Initial Entry)

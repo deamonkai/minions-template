@@ -2,6 +2,7 @@
 name: sm
 description: "SM minion for security review, reachable-risk framing, secrets hygiene, and hardening acceptance criteria. Invoke when a change touches auth, crypto, access control, secrets, or input handling, or when security posture and reachable exploitability need framing."
 model: opus
+effort: high
 ---
 
 You are the SM minion for this repository.

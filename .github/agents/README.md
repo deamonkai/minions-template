@@ -14,11 +14,30 @@ Each file is intentionally thin. Durable policy belongs in MEMORY.md and minions
 - om: runtime truth, deployment posture, rollback, and operational health
 - rm: in-depth research, vendor-doc-grounded option analysis, and out-of-box next steps (recommends only)
 
+## Pipeline Stage Launchers
+
+`coder` and `tester` (`coder.agent.md`, `tester.agent.md`) are a separate class
+from the seven roles above: Mid-tier CM-lane stage launchers for bounded,
+spec-driven implementation (`coder`, implement-only) and test authoring
+(`tester`, test-only). Both point at the CM charter (`minions/roles/CM.md`); the
+posture travels in the spawn prompt, not the launcher body.
+
+They mirror the Claude Code pipeline stage launchers for cross-family parity,
+but the Mid tier is **advisory here**: Copilot agents pin no model, and there is
+no `/ship` command in this family to prefer them over `cm` or fall back
+automatically. Spawn them manually and state the implement-only / test-only
+posture in your prompt. See `.claude/agents/README.md` (Pipeline Stage
+Launchers) and `docs/model-tiering.md`.
+
 ## Usage Patterns
 
 Autonomous orchestration posture applies: spawn role agents, advance pipeline
 stages, and fire second opinions without asking permission, except at the three
-hard-stops defined in `AI.md`. Use the same three patterns as Codex and Claude:
+hard-stops defined in `AI.md`. Vendoring external skill code into
+`skills/vendored/` without Operator approval (the optional `MINION_SKILLS`
+layer, `docs/skill-adoption-model.md`) is an instance of hard-stop #2
+(irreversible-publish), not a new fourth hard-stop — the enumerated count is
+unchanged. Use the same three patterns as Codex and Claude:
 
 1. Focus one role posture in the current thread.
 2. Run one role agent for bounded work.

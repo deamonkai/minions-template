@@ -74,6 +74,16 @@ practice while the silent-no-op guarantee still covers absence at call time.
 - Memory recall (`MINION_MEMORY`): on / off — date: YYYY-MM-DD; gate persisted
   in: `~/.zshenv` / direnv / CI env / other (non-interactive agent shells do
   **not** read `~/.zshrc` — verify from a fresh tool shell)
+- Second brain (`MINION_SECONDBRAIN`): on / off — date: YYYY-MM-DD; vault
+  path: `MINION_SECONDBRAIN_VAULT` (default `~/second-brain/`); gate
+  persisted in: `~/.zshenv` / direnv / CI env / other (same non-interactive
+  `~/.zshrc` gotcha as memory recall — verify from a fresh tool shell)
+- Skill adoption (`MINION_SKILLS`): on / off — date: YYYY-MM-DD; gate
+  persisted in: `~/.zshenv` / direnv / CI env / other (same non-interactive
+  `~/.zshrc` gotcha — verify from a fresh tool shell). Even when off, the
+  unconditional protections stand (the `skills/vendored/` manifest exclusion +
+  forbidden-path gate, the hard-stop-#2 instance, and the Skill-Provenance
+  SME); adopt skills only through the airlock — see `docs/skill-adoption-model.md`
 - Issue mirror (`MINION_ISSUES`): on / off — date: YYYY-MM-DD
 - Coordinator mode (`projects/` + `MEMORY.md` declaration): on / off — date: YYYY-MM-DD
 - Adopted layers' backing capabilities listed `active` in `minions/capabilities.md`: yes/no

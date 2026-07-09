@@ -53,6 +53,148 @@ complete until every `REQUIRED` item is confirmed present in the live repo. The
 `Criticality` column in `docs/export-manifest.md` marks the `baseline` files
 that most often carry these.
 
+### 1.33.0 — Effort calibration + external-capability scouting
+
+OPTIONAL — additive/advisory only; nothing merge-blocking, no new guard, no
+governance-token change.
+
+- OPTIONAL: `docs/effort-calibration.md` (new prototype doc, explicitly
+  outside the governance-scanned invariant set — like `docs/model-tiering.md`
+  itself, `tools/tests/governance-consistency.test.sh` does not check it) and
+  its "The effort dial" section added to `docs/model-tiering.md`
+  (`template-replace`). A downstream pinned to one model at one effort loses
+  nothing by ignoring both docs.
+- OPTIONAL: `effort:` (Claude) / `model_reasoning_effort` (Codex) frontmatter
+  pins added across the seven role launchers, the `coder`/`tester` `/ship`
+  stage launchers, and the six SME launchers, in both functional families.
+  These are launcher-frontmatter fields, not baseline/governance surfaces — a
+  downstream may take them as-is, override any pin, or ignore the field
+  entirely; nothing enforces compliance.
+- OPTIONAL: one new `absent`-status connector row in `minions/capabilities.md`
+  (repowise — codebase-intelligence over MCP, AGPL-3.0, connector-only per its
+  license, never vendored). Informational; no adoption, no code added.
+- NOT merge-blocking: no `skills_wired`-style guard was added for this
+  version, no Class-A entry-point pointer was added, and no hard-stop framing
+  changed. A downstream syncing this version and taking none of the above
+  passes every existing guard unchanged.
+
+### 1.32.0 — Skill adoption layer (optional `MINION_SKILLS`, Scout + Airlock)
+
+OPTIONAL layer, but with a REQUIRED / merge-blocking wiring floor: the
+capability is adopt-if-used, yet its unconditional guardrails and their
+`skills_wired` governance guard are not optional. A downstream that syncs this
+version but skips the wiring will fail `tools/tests/governance-consistency.test.sh`.
+
+- OPTIONAL (adopt-if-used): the layer arrives on template sync
+  (`docs/skill-adoption-model.md`, `tools/skill-airlock.sh`,
+  `tools/skill-scout.sh` and their tests, all `template-replace`; the
+  Skill-Provenance SME charter + launchers + registry/matrix rows are
+  `downstream-owned` expertise content). It stays INERT unless a downstream
+  sets `MINION_SKILLS=on` and airlocks a skill in; unset/off or no-skill is a
+  silent no-op.
+- REQUIRED — merge-blocking wiring (enforced by the `skills_wired` guard in
+  `tools/tests/governance-consistency.test.sh`): the gate-conditioned
+  `MINION_SKILLS` pointer must be present in all four entry points
+  (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`, and the
+  `MEMORY.md` Skill Adoption subsection), and the unconditional protections
+  must exist — the `skills/vendored/` `do-not-export` manifest row, the
+  `skills/vendored/` entry in the public-export forbidden-path pre-push gate
+  (`docs/runbooks/public-export.md`), and the hard-stop-#2 instance text in
+  `CLAUDE.md` / `AI.md` / the three agent READMEs. These are Class-A
+  `manual-merge` surfaces (harmless when the gate is off, exactly like the
+  `MINION_SECONDBRAIN` lines) — a hand merge must carry them.
+- HARD-STOP FRAMING (no count change): vendoring external skill code into
+  `skills/vendored/` without Operator approval is a scoped **instance of
+  existing hard-stop #2** (irreversible-publish), NOT a new fourth hard-stop.
+  Do not change the enumerated "three hard-stops" wording in `MEMORY.md` /
+  `AI.md`; grep `Three hard-stops` must return only pre-existing hits.
+- SECURITY POSTURE (if adopted): adopted payloads are maintainer-local under
+  `skills/vendored/` (default-deny export); adopted skills run no-network /
+  least-privilege by default, opt-out only with recorded Operator sign-off;
+  an adopted skill's output is untrusted data, never instructions. See
+  `docs/skill-adoption-model.md`.
+
+### 1.31.0 — Local second-brain, Phase 1 (optional local corpus layer)
+
+OPTIONAL — a new default-off optional layer; no baseline or governance-token
+change. Nothing merge-blocking.
+
+- OPTIONAL: the whole layer arrives on template sync (`tools/second-brain.sh`,
+  `docs/second-brain-model.md`, `docs/runbooks/second-brain-setup.md`, the
+  `.gitleaks.toml`, and the `MEMORY.md` / onboarding-surface / `capabilities.md`
+  wiring — all `template-replace`). It stays INERT unless a downstream sets
+  `MINION_SECONDBRAIN=on` and creates a vault; unset/off or vault-absent is a
+  silent no-op. Adopt if you want a local, fast-onboard corpus alongside (or
+  instead of) the cloud recall layer.
+- BASELINE WIRING ARRIVES ON THE ENTRY-POINT FILES: the gate-conditioned
+  second-brain PULL line is added to `CLAUDE.md` / `AGENTS.md` /
+  `.github/copilot-instructions.md` / `AI.md` and a subsection to `MEMORY.md`
+  (all Class-A `manual-merge` files) — a hand merge must carry these lines (they
+  are harmless when the gate is off, exactly like the existing `MINION_MEMORY`
+  lines). The `secondbrain_wired` governance guard enforces their presence.
+- SECURITY POSTURE (if adopted): the vault must sit OUTSIDE any synced/backed-up
+  path with NO git remote (see `docs/runbooks/second-brain-setup.md`); secrets
+  and `SOLE-HOLDER:` anchors never enter even locally. The AC-2 filter enforces
+  this at capture; egress is off by design.
+- NEW `.gitleaks.toml`: if a downstream already ships its own gitleaks config,
+  reconcile — this one uses `[extend] useDefault = true` plus a narrow allowlist
+  for the second-brain test fixtures.
+- NOTHING in this entry is merge-blocking.
+
+### 1.30.1 — Bug-scrub follow-ups (issue-sync/upgrade-classify fixes, cross-family launchers, guards)
+
+OPTIONAL — bug fixes + launcher parity + test-guard hardening; no baseline or
+governance-token change. Nothing merge-blocking.
+
+- FIXES (arrive on template sync; both `template-replace`): `tools/issue-sync.sh`
+  (`github_edit` now re-applies labels via `--add-label`) and
+  `tools/upgrade-classify.sh` (exit-4 UNMANIFESTED-CHANGE no longer masked by
+  exit-3 LIVE=error when both fire in one run). Drop-in corrections. A downstream
+  keying CI on `upgrade-classify` exit 3 vs 4 should note that 4 now wins when
+  both conditions co-occur (both warnings still print).
+- OPTIONAL: the four cross-family stage launchers
+  (`.codex/agents/{coder,tester}.toml`, `.github/agents/{coder,tester}.agent.md`)
+  and their four `docs/export-manifest.md` rows. Advisory-tier outside Claude (no
+  per-launcher model selector, no `/ship` — spawned manually). All additive; a
+  downstream already shipping same-named launchers should reconcile before
+  syncing.
+- TEST-GUARD ONLY: `tools/tests/governance-consistency.test.sh` (cross-family
+  coder/tester parity + stale-claim guard) and
+  `tools/tests/fixtures/make-fake-provider.sh` (flag-faithful `gh` fake)
+  strengthen the suite; no downstream action beyond taking the updated files.
+- NOTHING in this entry is merge-blocking.
+
+### 1.30.0 — Model-tiering Phase 2 (coder/tester stage launchers)
+
+OPTIONAL — Claude-only, adopt-if-using-`/ship`; no baseline or governance-token
+change.
+
+- OPTIONAL: the two Mid-tier (`model: sonnet`) pipeline stage launchers
+  `.claude/agents/coder.md` (implement-only, `/ship` stage 3) and
+  `.claude/agents/tester.md` (write-and-run-tests-only, `/ship` stage 4), the
+  `.claude/commands/ship.md` preference update, and the two new
+  `docs/export-manifest.md` rows. Adopt if the project runs `/ship` on Claude
+  Code and wants the bounded implement/test stages at Mid tier while planning
+  (AM) and the review gate stay Frontier. All additive.
+- FALLBACK-GUARDED: `.claude/commands/ship.md` prefers `coder`/`tester` but
+  falls back to `cm` when either launcher is absent, so a downstream that takes
+  the updated `ship.md` WITHOUT the launchers keeps the exact prior behavior
+  (`cm` runs every stage). Nothing here is merge-blocking.
+- ARRIVES ON TEMPLATE SYNC: because both files are `template-replace`, a full
+  template sync pulls `coder.md`/`tester.md` automatically — they are not an
+  opt-in file-by-file choice. They stay inert unless `/ship` spawns them, but a
+  downstream that already ships its own same-named `coder`/`tester` launcher
+  should reconcile before syncing.
+- CROSS-FAMILY LAUNCHERS ADDED LATER: at v1.30.0 these were Claude-only. A
+  subsequent change added matching `coder`/`tester` launchers to `.codex/agents/`
+  and `.github/agents/` for discoverability and parity. The tier split stays
+  *functional* only in Claude Code (`model:` frontmatter pins the tier), and no
+  Codex/Copilot `/ship` exists yet, so in those families the launchers are
+  advisory-tier and invoked by hand. Do not flag the cross-family launchers — or
+  the Claude-only functional tier-pinning — as drift; see
+  `.claude/agents/README.md` (Pipeline Stage Launchers).
+- NOTHING in this entry is merge-blocking.
+
 ### 1.29.0 — SME design support (guide + validator + review hook)
 
 OPTIONAL — adopt-if-used; no baseline or governance-token change.
@@ -631,8 +773,10 @@ downstream regardless of which AI tools it uses):**
 
 **OPTIONAL / DEFERRED:**
 
-- Phase 2 (Sonnet-tier `coder` / `tester` stage launchers) is documented in
-  `docs/minion-prompt-modes.md` but not built. No upgrade action required.
+- Phase 2 (Sonnet-tier `coder` / `tester` stage launchers) shipped in v1.30.0 —
+  see that version's entry above. Adopt the two launchers if the project uses
+  `/ship`; `/ship` falls back to `cm` when they are absent, so skipping them
+  changes nothing.
 
 **Tool-parity caveat (call out in the PM upgrade packet):**
 

@@ -38,7 +38,7 @@ has_old_norm() {
 
 # Self-test the detector — an untested detector is theater. It must CATCH a known-bad
 # sample that defeats line-based grep (wrapped + "asks explicitly"), and must NOT flag
-# a known-good sample (the new posture). Downstream feedback (Molloy Trading Bot SM)
+# a known-good sample (the new posture). Downstream feedback (a downstream project's SM)
 # found the old line-based detector false-PASSing on exactly this shape.
 __t="$(mktemp)"
 _pos() { printf '%b' "$2" > "$__t"; has_old_norm "$__t"   || { echo "FAIL - detector self-test (missed positive): $1"; fail=1; }; }
@@ -242,6 +242,197 @@ for r in pm am cm sm dm om rm; do
   for f in ".claude/agents/$r.md" ".codex/agents/$r.toml" ".github/agents/$r.agent.md"; do
     launcher_ok "$f" || { echo "FAIL - $f missing a bootstrap-surface read (capabilities/smes-README/review-matrix)"; fail=1; }
   done
+done
+
+# --- Pipeline stage launchers (coder/tester): cross-family PARITY + bootstrap
+# wiring. coder/tester are a THIRD launcher class (the Mid-tier implement/test
+# stages /ship prefers over cm), deliberately kept OUT of the 7-role loop above
+# and the role-set drift guard so they never enter the one-to-one-with-Codex
+# role set. They are adopt-if-used — a downstream may ship NONE — but PARTIAL
+# deployment is drift: present in one family and missing in another means a
+# spawned minion in that other family silently can't reach the stage. Rule:
+# present in ALL THREE families, or NONE. Every present launcher still gets the
+# launcher_ok bootstrap-read check (same as roles). Self-tested (house rule).
+stage_fam_path() { # $1=base  $2=stage  $3=family(claude|codex|github) -> launcher path
+  case "$3" in
+    claude) printf '%s/.claude/agents/%s.md' "$1" "$2";;
+    codex)  printf '%s/.codex/agents/%s.toml' "$1" "$2";;
+    github) printf '%s/.github/agents/%s.agent.md' "$1" "$2";;
+  esac
+}
+stage_families_present() { # $1=base  $2=stage -> space-joined subset of {claude codex github} present
+  local fam out=""
+  for fam in claude codex github; do
+    [ -f "$(stage_fam_path "$1" "$2" "$fam")" ] && out="$out $fam"
+  done
+  printf '%s' "${out# }"
+}
+__sp="$(mktemp -d)"; mkdir -p "$__sp/.claude/agents" "$__sp/.codex/agents" "$__sp/.github/agents"
+[ -z "$(stage_families_present "$__sp" coder)" ] \
+  || { echo "FAIL - stage_families_present self-test (none present should be empty)"; fail=1; }
+: > "$__sp/.claude/agents/coder.md"; : > "$__sp/.codex/agents/coder.toml"; : > "$__sp/.github/agents/coder.agent.md"
+[ "$(stage_families_present "$__sp" coder)" = "claude codex github" ] \
+  || { echo "FAIL - stage_families_present self-test (all present should list all three)"; fail=1; }
+: > "$__sp/.claude/agents/tester.md"
+[ "$(stage_families_present "$__sp" tester)" = "claude" ] \
+  || { echo "FAIL - stage_families_present self-test (partial should list only the present family)"; fail=1; }
+rm -rf "$__sp"
+for stage in coder tester; do
+  present="$(stage_families_present "." "$stage")"
+  [ -n "$present" ] || continue          # adopt-if-used: none present -> not adopted, skip
+  n=0; for _f in $present; do n=$((n+1)); done
+  if [ "$n" -lt 3 ]; then
+    echo "FAIL - pipeline stage launcher '$stage' partial cross-family deployment (present only in: $present) — parity requires all three families or none"; fail=1
+  fi
+  for fam in $present; do
+    p="$(stage_fam_path "." "$stage" "$fam")"; p="${p#./}"
+    launcher_ok "$p" || { echo "FAIL - $p missing a bootstrap-surface read (capabilities/smes-README/review-matrix)"; fail=1; }
+  done
+done
+
+# --- Stale "coder/tester is Claude-only / does not exist cross-family" claim.
+# coder/tester now ship in all three families (enforced above), so an
+# AUTHORITATIVE launcher doc still asserting they DON'T exist in Codex/Copilot is
+# stale drift a reader would trust. Distinct from has_old_norm (auto-spawn): the
+# signal is co-occurrence, in ONE sentence, of a negation AND a family
+# (codex|copilot) AND a stage (coder|tester). Requiring a stage token is
+# deliberate — it does NOT trip on the still-true "no Codex or Copilot /ship" or
+# "Codex has no model: selector" lines, which name no stage alongside the negation.
+#
+# Bounding is structural, not just punctuation: awk flattens each markdown BLOCK
+# (blank line / list item / heading / table row terminate a block; soft-wrapped
+# lines within a block join with a space), then we split on .?! so each line is one
+# SENTENCE. Three chained greps then test co-occurrence per sentence — order-
+# independent and sentence-bounded, so neither two unrelated bullets nor two
+# sentences in one paragraph can bridge into a false match. Negation set covers
+# plain words, contractions (n't) and existence verbs (lack/missing/unavailable);
+# like has_old_norm, exotic paraphrases stay the playbook's manual-scan job. Self-tested.
+has_stale_stage_claim() { # $1=file -> 0 (true) if the retired non-existence claim is present
+  awk '
+    /^[ \t]*$/                    { printf "\n"; next }          # blank line -> block boundary
+    /^[ \t]*([-*+#|]|[0-9]+[.)])/ { printf "\n%s ", $0; next }   # list/heading/table -> boundary
+    { printf "%s ", $0 }                                         # soft-wrap continuation -> join
+  ' "$1" \
+    | tr '.?!' '\n' \
+    | grep -iE '(codex|copilot)' \
+    | grep -iE '(coder|tester)' \
+    | grep -qiE "(no|not|never|n't|lack|missing|unavailable)"
+}
+__ss="$(mktemp)"
+printf '%b' 'There is intentionally no Codex or Copilot `coder`/`tester`.\n' > "$__ss"
+has_stale_stage_claim "$__ss" || { echo "FAIL - has_stale_stage_claim self-test (missed 'no Codex or Copilot coder/tester')"; fail=1; }
+printf '%b' 'The coder/tester launchers do not exist in Codex or Copilot.\n' > "$__ss"
+has_stale_stage_claim "$__ss" || { echo "FAIL - has_stale_stage_claim self-test (missed reverse-order claim)"; fail=1; }
+printf '%b' "Codex and Copilot don't have coder/tester launchers.\n" > "$__ss"
+has_stale_stage_claim "$__ss" || { echo "FAIL - has_stale_stage_claim self-test (missed contraction phrasing)"; fail=1; }
+printf '%b' 'Codex and Copilot lack coder/tester support.\n' > "$__ss"
+has_stale_stage_claim "$__ss" || { echo "FAIL - has_stale_stage_claim self-test (missed 'lack' phrasing)"; fail=1; }
+printf '%b' 'Matching coder/tester launchers exist in all three families including Codex and Copilot.\n' > "$__ss"
+! has_stale_stage_claim "$__ss" || { echo "FAIL - has_stale_stage_claim self-test (false positive on reconciled 'exist' statement)"; fail=1; }
+printf '%b' 'There is no Codex or Copilot `/ship` equivalent yet.\n' > "$__ss"
+! has_stale_stage_claim "$__ss" || { echo "FAIL - has_stale_stage_claim self-test (false positive on still-true no-/ship line)"; fail=1; }
+printf '%b' '- There is no plan to add X to Codex\n- coder/tester already exist in Copilot though\n' > "$__ss"
+! has_stale_stage_claim "$__ss" || { echo "FAIL - has_stale_stage_claim self-test (bullet bridge: unrelated bullets must not false-match)"; fail=1; }
+printf '%b' 'The coder/tester launchers exist. Codex has no /ship command.\n' > "$__ss"
+! has_stale_stage_claim "$__ss" || { echo "FAIL - has_stale_stage_claim self-test (sentence bridge: split tokens across two sentences must not match)"; fail=1; }
+rm -f "$__ss"
+for f in .claude/agents/README.md docs/minion-prompt-modes.md docs/downstream-upgrade-playbook.md; do
+  [ -f "$f" ] || { echo "WARN - stale-stage-claim target not found (skipped): $f" >&2; continue; }
+  if has_stale_stage_claim "$f"; then
+    echo "FAIL - stale 'no cross-family coder/tester' claim still in $f (coder/tester now ship in all three families)"; fail=1
+  fi
+done
+
+# --- Second Brain onboarding wiring: the four onboarding surfaces must carry
+# the gate-conditioned second-brain PULL line (mirrors the Mnemoverse recall
+# read-order wiring lesson: a capability documented only in its own model doc,
+# with no onboarding-surface pull, is a capability spawned minions never see).
+# The gate token and the second-brain token must CO-OCCUR within the same
+# onboarding BLOCK (paragraph / list item), not merely anywhere in the file —
+# two independent whole-file greps would false-pass a file that mentions
+# MINION_SECONDBRAIN in one unrelated block and "second brain" in another.
+# Reuses the same block-flatten technique as has_stale_stage_claim above
+# (blank line / list item / heading / table row terminate a block; soft-wrapped
+# lines within a block join with a space) because the onboarding bullets
+# themselves wrap across source lines — a line-only check would miss a bullet
+# split across two lines. Self-tested below (house rule: an untested guard is
+# theater).
+secondbrain_wired() { # $1=file -> 0 (true) when a single flattened block
+  # contains BOTH the MINION_SECONDBRAIN gate token and a second-brain token
+  # (case-insensitive on the second-brain token so "second brain"/
+  # "Second-Brain" both count).
+  awk '
+    /^[ \t]*$/                    { printf "\n"; next }          # blank line -> block boundary
+    /^[ \t]*([-*+#|]|[0-9]+[.)])/ { printf "\n%s ", $0; next }   # list/heading/table -> boundary
+    { printf "%s ", $0 }                                         # soft-wrap continuation -> join
+  ' "$1" \
+    | grep -iE 'MINION_SECONDBRAIN' \
+    | grep -qiE 'second[- ]brain'
+}
+__sb="$(mktemp)"
+printf '%b' 'When MINION_SECONDBRAIN=on, pull the local second-brain vault.\n' > "$__sb"
+secondbrain_wired "$__sb" || { echo "FAIL - secondbrain_wired self-test (missed valid line)"; fail=1; }
+printf '%b' 'When the layer is on, pull the local second-brain vault.\n' > "$__sb"
+! secondbrain_wired "$__sb" || { echo "FAIL - secondbrain_wired self-test (accepted line missing the gate token)"; fail=1; }
+printf '%b' 'When MINION_SECONDBRAIN=on, pull the local memory recall vault.\n' > "$__sb"
+! secondbrain_wired "$__sb" || { echo "FAIL - secondbrain_wired self-test (accepted line missing the second-brain token)"; fail=1; }
+printf '%b' 'When MINION_SECONDBRAIN=on, pull hints.\n\nSeparately, the second-brain vault exists.\n' > "$__sb"
+! secondbrain_wired "$__sb" || { echo "FAIL - secondbrain_wired self-test (accepted tokens co-occurring only across DIFFERENT blocks)"; fail=1; }
+rm -f "$__sb"
+for f in CLAUDE.md AGENTS.md .github/copilot-instructions.md AI.md; do
+  secondbrain_wired "$f" || { echo "FAIL - $f missing gate-conditioned second-brain PULL line (MINION_SECONDBRAIN + second-brain token)"; fail=1; }
+done
+grep -q 'Second Brain' MEMORY.md || { echo "FAIL - MEMORY.md missing Second Brain Optional-Layers subsection"; fail=1; }
+
+# --- Skill Adoption layer wiring (merge-blocking). Two obligations, mirroring
+# the second-brain wiring guard above but extended to the layer's unconditional
+# protections (which must stand REGARDLESS of the MINION_SKILLS gate):
+#   1. the gate-conditioned MINION_SKILLS pointer in all FOUR entry points
+#      (CLAUDE.md, AGENTS.md, .github/copilot-instructions.md, MEMORY.md), and
+#   2. the unconditional protections exist — the skills/vendored/ do-not-export
+#      manifest row, that same path in the public-export forbidden-path gate,
+#      and the hard-stop-#2 skill-vendoring instance annotation in CLAUDE.md /
+#      AI.md / the three agent READMEs.
+# skills_wired reuses secondbrain_wired's block-flatten co-occurrence technique:
+# the gate token MINION_SKILLS and a skill-adoption token must appear in the
+# SAME flattened block, not merely anywhere in the file. The distinct second
+# token is `skill[- ]adoption` — which MINION_SKILLS does NOT contain (there is
+# no separator between "skill" and "adoption" in the gate name), so a bare
+# MINION_SKILLS mention with no adoption context cannot false-pass. Self-tested
+# below (house rule: an untested guard is theater).
+skills_wired() { # $1=file -> 0 (true) when a single flattened block contains
+  # BOTH the MINION_SKILLS gate token and a skill-adoption token.
+  awk '
+    /^[ \t]*$/                    { printf "\n"; next }          # blank line -> block boundary
+    /^[ \t]*([-*+#|]|[0-9]+[.)])/ { printf "\n%s ", $0; next }   # list/heading/table -> boundary
+    { printf "%s ", $0 }                                         # soft-wrap continuation -> join
+  ' "$1" \
+    | grep -iE 'MINION_SKILLS' \
+    | grep -qiE 'skill[- ]adoption'
+}
+__sk="$(mktemp)"
+printf '%b' 'When MINION_SKILLS=on, adopt via the skill-adoption airlock.\n' > "$__sk"
+skills_wired "$__sk" || { echo "FAIL - skills_wired self-test (missed valid line)"; fail=1; }
+printf '%b' 'When the layer is on, adopt via the skill-adoption airlock.\n' > "$__sk"
+! skills_wired "$__sk" || { echo "FAIL - skills_wired self-test (accepted line missing the gate token)"; fail=1; }
+printf '%b' 'When MINION_SKILLS=on, run the local memory recall layer.\n' > "$__sk"
+! skills_wired "$__sk" || { echo "FAIL - skills_wired self-test (accepted line missing the skill-adoption token)"; fail=1; }
+printf '%b' 'When MINION_SKILLS=on, adopt skills here.\n\nSeparately, skill-adoption exists.\n' > "$__sk"
+! skills_wired "$__sk" || { echo "FAIL - skills_wired self-test (accepted tokens co-occurring only across DIFFERENT blocks)"; fail=1; }
+rm -f "$__sk"
+for f in CLAUDE.md AGENTS.md .github/copilot-instructions.md MEMORY.md; do
+  skills_wired "$f" || { echo "FAIL - $f missing gate-conditioned MINION_SKILLS pointer (MINION_SKILLS + skill-adoption token in one block)"; fail=1; }
+done
+# Unconditional protection 1: skills/vendored/ do-not-export manifest row.
+grep -E 'skills/vendored/' docs/export-manifest.md | grep -qi 'do-not-export' \
+  || { echo "FAIL - docs/export-manifest.md missing skills/vendored/ do-not-export row (unconditional skill-adoption protection)"; fail=1; }
+# Unconditional protection 2: skills/vendored/ in the public-export forbidden-path gate.
+grep -q 'skills/vendored' docs/runbooks/public-export.md \
+  || { echo "FAIL - docs/runbooks/public-export.md forbidden-path gate missing skills/vendored/ (unconditional skill-adoption protection)"; fail=1; }
+# Unconditional protection 3: hard-stop-#2 skill-vendoring instance (no count change).
+for f in CLAUDE.md AI.md .claude/agents/README.md .codex/agents/README.md .github/agents/README.md; do
+  grep -qiF 'instance of hard-stop #2' "$f" \
+    || { echo "FAIL - $f missing hard-stop-#2 skill-vendoring instance annotation"; fail=1; }
 done
 
 # --- Workflow Ownership: the PM-routed-workflows law must stay present.
