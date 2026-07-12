@@ -73,8 +73,8 @@ Files are divided into two classes based on how they travel through the
 branching model.
 
 **Class A — mainline-authoritative:**
-`MEMORY.md`, `AI.md`, `CLAUDE.md`, `AGENTS.md`, `minions/roles/*`, `ROADMAP.md`,
-`TODO.md`, `minions/chat/`
+`MEMORY.md`, `AI.md`, `CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`,
+`minions/roles/*`, `ROADMAP.md`, `TODO.md`, `minions/chat/`
 
 **Class B — travels with the branch:**
 that feature's `minions/mail/<packet>/`, `minions/plans/<plan>`, its spec and

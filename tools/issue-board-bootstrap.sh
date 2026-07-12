@@ -13,7 +13,24 @@
 # does fail on a duplicate, but the query-then-skip path is used uniformly so
 # the behavior is identical and host-independent.)
 set -uo pipefail
+usage() { echo "usage: issue-board-bootstrap.sh [-h|--help]   (creates type:/role: labels; gated on MINION_ISSUES=on)" >&2; }
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h|--help|help) usage; exit 0;;
+    *) usage; exit 2;;
+  esac
+done
 [ "${MINION_ISSUES:-off}" = "on" ] || { echo "bootstrap: disabled (MINION_ISSUES != on); no-op" >&2; exit 0; }
+
+# Adoption cross-check (fail-open): env gate is primary and already passed. If THIS
+# repo's onboarding checklist explicitly records the layer adopted:off, no-op — guards
+# machine-global MINION_* bleed. Absent/unfilled/unparseable record, missing checklist,
+# or missing helper -> env gate alone decides (current behavior). See docs/issue-mirror-model.md.
+adopt_rc=0; "$(dirname "$0")/layer-adopted.sh" MINION_ISSUES >/dev/null 2>&1 || adopt_rc=$?
+if [ "$adopt_rc" -eq 1 ]; then
+  echo "bootstrap: MINION_ISSUES=on but this repo's onboarding checklist records adopted:off; no-op" >&2
+  exit 0
+fi
 
 resolve_host() {
   if [ -n "${MINION_ISSUE_HOST:-}" ]; then echo "$MINION_ISSUE_HOST"; return; fi

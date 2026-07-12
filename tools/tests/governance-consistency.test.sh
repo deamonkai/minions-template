@@ -436,7 +436,15 @@ for f in CLAUDE.md AI.md .claude/agents/README.md .codex/agents/README.md .githu
 done
 
 # --- Workflow Ownership: the PM-routed-workflows law must stay present.
-grep -q 'Workflow Ownership' MEMORY.md || { echo "FAIL - MEMORY.md missing Workflow Ownership (PM-routed) rule"; fail=1; }
+tr -s '\t\n ' ' ' < MEMORY.md | grep -q 'Workflow Ownership' || { echo "FAIL - MEMORY.md missing Workflow Ownership (PM-routed) rule"; fail=1; }
+
+# --- Tier declaration: the dispatch-brief tier law must stay present.
+tr -s '\t\n ' ' ' < MEMORY.md | grep -q 'Dispatch briefs declare the capability tier' \
+  || { echo "FAIL - MEMORY.md missing tier-declaration dispatch rule"; fail=1; }
+tr -s '\t\n ' ' ' < minions/roles/PM.md | grep -q 'names the model tier' \
+  || { echo "FAIL - minions/roles/PM.md missing tier-declaration dispatch duty"; fail=1; }
+tr -s '\t\n ' ' ' < MEMORY.md | grep -q 'Launcher pins are fallback defaults' \
+  || { echo "FAIL - MEMORY.md missing pins-are-fallback-defaults clause"; fail=1; }
 
 test "$fail" -eq 0 && echo "ok - governance consistent"
 exit "$fail"

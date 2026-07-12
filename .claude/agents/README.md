@@ -14,7 +14,7 @@ limited to Claude-specific spawning posture and pointers to the source charter.
 | --- | --- | --- | --- |
 | `pm` | `minions/roles/PM.md` | opus | planning, gates, review structure, and operator-facing decisions |
 | `am` | `minions/roles/AM.md` | opus | architecture direction, system design, and structural fitness |
-| `cm` | `minions/roles/CM.md` | opus · `effort: xhigh` | implementation quality, technical validation, and engineering findings |
+| `cm` | `minions/roles/CM.md` | opus | implementation quality, technical validation, and engineering findings |
 | `sm` | `minions/roles/SM.md` | opus | security review, risk framing, and hardening acceptance criteria |
 | `dm` | `minions/roles/DM.md` | sonnet | documentation truth, reader paths, runbooks, and doc-sync validation |
 | `om` | `minions/roles/OM.md` | opus | OM-Test / OM runtime validation, deploy posture, rollback, and health |
@@ -44,20 +44,26 @@ covered by Claude Code's built-in `/review`.
   maps to `model: opus`; DM's `medium` maps to `model: sonnet`. To run every
   role at full Opus, change DM's `model:` to `opus`. To let a role follow your
   current session model, set `model: inherit`.
-- **Effort tuning.** Pin a reasoning-effort level per agent with an `effort:`
-  frontmatter field (`low | medium | high | xhigh | max`); it overrides the
-  session default whenever that agent is spawned. All Claude launchers are
-  pinned per the effort map in `docs/model-tiering.md` ("The effort dial"):
-  judgment roles (`am`, `sm`, `om`, `rm`) at `high`, the final-verifier `cm` at
-  `xhigh` — the documented sweet spot for coding/agentic work — and `pm` plus
-  the bounded stages (`dm`, and the `/ship` `coder` / `tester` variants) at
-  `medium` (PM orchestrates/routes; a hard gate is the main-loop seat's call).
-  This mirrors Codex's per-role `model_reasoning_effort` values, so `/ship`
-  right-sizes effort deterministically regardless of the session default. Prefer `xhigh` over `max` (max tends to overthink for diminishing
-  returns and may not persist reliably). Note: `ultrathink` is a per-*turn*
-  prompt keyword, not a subagent setting; the `effort:` field is the persistent
-  equivalent. The field takes effect on a fresh session — verify your Claude
-  Code version accepts it.
+- **Effort tuning — pin as fallback default, orchestrator declares at
+  dispatch.** An `effort:` frontmatter field (`low | medium | high | xhigh |
+  max`) can pin a reasoning-effort level per agent, but per `MEMORY.md`
+  (Execution Quality) and `minions/roles/PM.md`, the orchestrator's
+  dispatch-time declaration of tier and effort wins over any launcher pin —
+  pins are fallback defaults, not locks. Most Claude launchers still carry a
+  pin per the effort map in `docs/model-tiering.md` ("The effort dial"):
+  judgment roles (`am`, `sm`, `om`, `rm`) at `high`, and `pm` plus the bounded
+  stages (`dm`, and the `/ship` `coder` / `tester` variants) at `medium` (PM
+  orchestrates/routes; a hard gate is the main-loop seat's call). `cm` carries
+  no `effort:` pin — a 2026-07-10 downstream field report (issue #33) showed a
+  fixed `xhigh` lock fighting the orchestrator's own per-dispatch judgment, so
+  `cm`'s effort is now declared at dispatch every time; its review/final-gate
+  passes are still expected to run at high-or-above effort, by declaration
+  rather than pin. Where a pin does apply, prefer `xhigh` over `max` (max
+  tends to overthink for diminishing returns and may not persist reliably).
+  Note: `ultrathink` is a per-*turn* prompt keyword, not a subagent setting;
+  `effort:` (or the dispatch-time declaration that overrides it) is the
+  persistent equivalent. The field takes effect on a fresh session — verify
+  your Claude Code version accepts it.
 - **Thin launchers only.** Each agent's body is a "read these first" preamble
   plus a lane reminder. Durable behavior changes go in `minions/roles/`, never
   here.

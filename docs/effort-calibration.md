@@ -55,18 +55,22 @@ starve it of effort.
 ## Applying it in a `/ship` run — WIRED (2026-07-09)
 
 The orchestrator (PM) already right-sizes the **model** via the `coder`/`tester`
-Mid-tier launchers. The effort dial is now wired the same way: each Claude
-launcher carries a pinned `effort:` frontmatter field, so `/ship` picks up the
-right effort automatically when it spawns a stage by `subagent_type` — no
-per-call argument needed.
+Mid-tier launchers. The effort dial is now wired the same way, but at the
+dispatch layer rather than as a static launcher lock: the orchestrator
+declares model tier and reasoning effort in every dispatch brief, and any
+remaining launcher `effort:` frontmatter is a fallback default the
+declaration overrides, not an enforced pin.
 
 Mechanism note: the Agent/Task tool exposes `model` but **no** per-spawn
-`effort` override, so effort lives in launcher frontmatter (persistent),
-verified supported (`low|medium|high|xhigh|max`). The live pin-set is in
-`docs/model-tiering.md` ("The effort dial"): judgment roles `high` (`cm`
-`xhigh`), bounded stages `medium`. Per-call effort control is only available
-inside the Workflow tool (`opts.effort`) — which is how the validation run
-below varied effort on a fixed model.
+`effort` override, so where a Claude launcher still carries an `effort:`
+frontmatter field it acts as a persistent fallback default, verified
+supported (`low|medium|high|xhigh|max`). The full mechanics — what each
+launcher still pins, how dispatch-time declarations override those pins, and
+why `cm` in particular no longer carries an `effort:` lock — live in
+`docs/model-tiering.md` ("The effort dial"); this doc does not restate them.
+Per-call effort control is also available inside the Workflow tool
+(`opts.effort`) — which is how the validation run below varied effort on a
+fixed model.
 
 ## Validating before trusting (the blind-grader idea)
 

@@ -54,6 +54,13 @@ execute code. On the Claude projection this is enforced by a read-only + web
 tool whitelist; Codex role TOMLs have no tool-restriction field, so RM's
 prohibition is carried in its `developer_instructions` prose.
 
+Per `MEMORY.md` (Execution Quality) and `minions/roles/PM.md`, dispatch briefs
+declare tier and effort for the work; these static `model_reasoning_effort`
+values are that declaration's fallback default for this family, not an
+enforced ceiling — Codex has no per-dispatch override field, so the launcher
+choice made at dispatch (which TOML to spawn) is the operative lever here.
+See `docs/model-tiering.md` ("The effort dial").
+
 Pin a `model` in a role TOML only when a downstream project needs a hard
 cost/performance lane. Otherwise, tune the main session model and let these
 role efforts shape the spawned agents.

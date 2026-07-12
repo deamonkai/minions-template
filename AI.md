@@ -46,7 +46,8 @@ The repo uses a mainline (`main`, mirrored to `dev`/`staging`) plus short-lived
 feature branches. This affects which copy of a file is authoritative:
 
 **Class A — mainline-authoritative files:** `MEMORY.md`, `AI.md`, `CLAUDE.md`,
-`AGENTS.md`, `minions/roles/*`, `ROADMAP.md`, `TODO.md`, `minions/chat/`.
+`AGENTS.md`, `.github/copilot-instructions.md`, `minions/roles/*`,
+`ROADMAP.md`, `TODO.md`, `minions/chat/`.
 These are authoritative ONLY on the mainline. A copy seen on a feature branch
 may be stale — merge `dev` in to refresh before relying on them.
 

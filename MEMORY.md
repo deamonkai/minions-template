@@ -190,6 +190,18 @@ the same convention:
   silent-no-op guarantee above still holds if the gate or tooling is absent.
   "Mandatory" for an optional layer therefore means *standing practice with
   graceful degradation*, never a hard gate that blocks a workflow.
+- The activation gate (the `MINION_*` variable, or the coordinator
+  overlay's `MEMORY.md` declaration) stays the primary control. A
+  remote-mutating layer tool MAY additionally consult the adoption record
+  as a fail-open cross-check via `tools/layer-adopted.sh <key>`: when the
+  gate is on but the checklist records the layer `adopted: off`, the tool
+  degrades to the same silent no-op as a disabled layer. An absent,
+  `unset`, or unparseable record — or a missing checklist file — is a
+  silent fallback in which the gate alone decides; never an error, never a
+  block. The record can only ADD a no-op: it cannot enable a gate-off
+  layer and cannot block a workflow. The issue-mirror tools consult it
+  today; other layer tools may adopt the same helper incrementally, with
+  no change to this contract.
 
 ### Issue Mirror (optional view layer)
 
@@ -401,7 +413,8 @@ See `docs/branching-and-release-model.md` for the full model.
 
 **Class A — mainline-authoritative** (one version; edits flow to `main`
 through the milestone, not as incidental mid-feature touches):
-`MEMORY.md`, `AI.md`, `CLAUDE.md`, `AGENTS.md`, `minions/roles/*`,
+`MEMORY.md`, `AI.md`, `CLAUDE.md`, `AGENTS.md`,
+`.github/copilot-instructions.md`, `minions/roles/*`,
 `ROADMAP.md`, `TODO.md`, `minions/chat/`
 
 **Class B — travels with the branch** (merges up with the code):
@@ -426,6 +439,10 @@ the review.
   - operator working style or general project truth -> `MEMORY.md`
   - role-specific behavior -> the relevant `minions/roles/*.md` charter
   - a decision about the template itself -> `AI/decisions.md` (template repo only)
+- Stub lifecycle: on a later maintenance pass, condense `promoted` entries to
+  a one-line pointer stub (full text stays in git history); stubs may be
+  pruned once aged (roughly a month). The log stays thin; nothing durable is
+  lost.
 - End-of-session capture (also available as the `/feedback` prompt mode): read
   the whole conversation, extract every correction the Operator made, every
   preference stated, and anything to do differently next time, and append dated
@@ -497,6 +514,41 @@ the other instruction files for quality before the work is handed off.**
 - `DM` owns instruction-file truth and doc-sync, but every minion runs the audit
   for instruction files it changes inside its own lane.
 
+### Instruction-Surface Size Budgets
+
+Bootstrap-surface files carry a word budget so the instruction surface cannot
+bloat unnoticed as the template is adopted and extended. Budgets apply to the
+WHOLE file — content below a downstream delimiter counts, because whole-file
+size is the token cost every session pays at bootstrap.
+
+- The guard is `tools/tests/instruction-size.test.sh`. Run it whenever an
+  instruction or bootstrap surface changes; `--report` prints a
+  percent-of-budget table for every surface without failing.
+- Effective budgets come from template defaults, optionally raised or set
+  per-file or per-class by a downstream-owned override file
+  (`docs/instruction-size-budgets.md`). The override is consulted fail-open:
+  an absent, empty, or malformed override leaves the template defaults in
+  force — it can raise, set, or deliberately tighten a budget; what it can
+  never do is remove a surface from checking or block the guard.
+- When a surface approaches or exceeds its budget, PROMOTE, do not delete.
+  Nothing of value is removed to fit a budget; it is relocated to its
+  canonical home and replaced with a pointer:
+  - entry-point content (`CLAUDE.md`, `AGENTS.md`,
+    `.github/copilot-instructions.md`) → a pointer to `MEMORY.md` or the
+    relevant `docs/*.md`.
+  - a `MEMORY.md` section that has outgrown its summary → a canonical
+    `docs/*.md` plus a short pointer paragraph, following the Optional Layers
+    precedent (each layer's detail lives in its own doc while `MEMORY.md`
+    keeps a short summary and pointer — gate-conditioned when the section is
+    an optional layer).
+  - role-charter detail → `docs/*.md` or the role's own reference, with the
+    charter keeping the decision and a reference to the detail.
+  - `feedback.md` — an append-and-mark capture log — relocates via the stub
+    lifecycle in the Feedback Capture Rule above, not via deletion.
+- Promotion is a documentation move under the Documentation Sync Rule: the
+  relocated content and its pointer land in the same commit, and the budget
+  guard confirms the surface is back under budget.
+
 ## Execution Quality
 
 - Non-trivial work should begin with a durable plan, packet, or checklist appropriate to the role and scope.
@@ -524,6 +576,16 @@ the other instruction files for quality before the work is handed off.**
   artifact can truncate silently. Together with the live-state rule above:
   mutable world facts are verified, immutable decision records are
   distributed.
+- Dispatch briefs declare the capability tier: every dispatch brief names
+  the model tier and reasoning effort for the work, chosen by the
+  orchestrator per `docs/model-tiering.md` and the actual activity, not
+  the role name. Launcher pins are fallback defaults, not locks — where
+  the tool supports a dispatch-time override, the orchestrator's
+  declaration wins. Bounded, spec-driven implementation dispatches at Mid
+  tier: the pipeline's test and review backstops are the correctness
+  guarantee, not the implementer's model size. Sending bounded,
+  spec-driven work out at Frontier without a stated reason is a review
+  finding.
 
 ## Git Handoff Discipline
 

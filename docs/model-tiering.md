@@ -91,8 +91,10 @@ None of this is a blocker:
   tier selection.
 - Tier hints are advisory metadata on launchers, never an enforced constraint.
 - This guidance sits outside the governance-scanned invariant set on purpose
-  (see `MEMORY.md`); `tools/tests/governance-consistency.test.sh` does not, and
-  should not, check for tier compliance.
+  (see `MEMORY.md`). `tools/tests/governance-consistency.test.sh` checks only
+  that the dispatch-declaration *law's presence* survives in `MEMORY.md` and
+  `minions/roles/PM.md` — it does not, and should not, check tier compliance
+  for any individual dispatch (see "The effort dial" below).
 
 ## Per-family mechanics
 
@@ -131,36 +133,66 @@ None of this is a blocker:
 Model band is one dial; **reasoning effort** is a second, orthogonal one. A
 Frontier model at `low` effort and a Mid model at `high` effort are different
 cost/quality points, and the least-resistance path spends both at maximum on
-every subagent. Claude Code exposes a functional `effort:` frontmatter field
-(`low | medium | high | xhigh | max`) that overrides the session effort
-whenever that subagent is spawned — the effort analog of `model:`.
+every subagent.
 
-The Claude launchers pin effort per the same Frontier/Mid split as the model
-map, so the pipeline right-sizes effort **deterministically, regardless of the
-session's effort**:
+**The orchestrator declares both dials at dispatch.** Per `MEMORY.md`
+(Execution Quality) and `minions/roles/PM.md`, every dispatch brief names the
+model tier and reasoning effort for the work, chosen per this doc and the
+actual activity, not the role name. Launcher pins below are **fallback
+defaults, not locks**: where the tool exposes a dispatch-time override, the
+orchestrator's declaration wins over any frontmatter or TOML pin. This
+reverses the template's earlier framing, where the Claude pins were presented
+as deterministic enforcement — a 2026-07-10 downstream field report
+(SSI-website, issue #33) showed a frontier orchestrator dispatching a whole
+milestone at inherited defaults because tiering was wired at the launcher
+layer only, and separately reset `cm`'s Claude-launcher `effort: xhigh` lock
+to let the orchestrator/PM right-size effort per dispatch instead. The
+`cm` launcher no longer pins `effort:` for that reason — `.claude/agents/cm.md`
+keeps its `model: opus` fail-safe default but carries no `effort:` field; its
+review/final-gate passes are still expected to run at high-or-above effort,
+declared per dispatch rather than pinned.
 
-- **Judgment roles → `high`** (`am`, `sm`, `om`, `rm`), with the final-verifier
-  `cm` at **`xhigh`** — the documented sweet spot for correctness-critical
-  review.
-- **`pm` → `medium`.** PM's spawned role is orchestration and routing —
-  capable, but it should not run hotter than needed (matching the Codex
-  baseline). A genuine hard-gate go/no-go is the main-loop orchestrator seat,
-  which uses the session effort, not this launcher's pin.
-- **`dm` → `medium`** — bounded documentation work under a clear brief.
-- **`/ship` `coder` / `tester` → `low`** — validated (3/3 objective probes, see
-  `docs/effort-calibration.md`): these stages always run under a clear AM spec
-  with a downstream test + review backstop, so `low` reasons enough to produce
-  correct code without paying for effort the pipeline doesn't need. (Correct
-  but scruffier than higher tiers — the test/review stages absorb that.)
+**Three Claude dispatch-time levers**, from finest to coarsest grain:
 
-This makes the "strong-but-occasional orchestrator over cheap-and-frequent
-minions" shape hold even in a cheap session: the skeptic and the gate never
-drop below high, and bounded execution never runs at max. **Effort is
-functional in both Claude and Codex:** Claude uses the `effort:` frontmatter
-field; Codex uses each role TOML's `model_reasoning_effort` (see
-`.codex/agents/README.md`, "Model And Effort Policy"), and the two agree
-role-for-role (`am`/`sm`/`om`/`rm` high, `pm`/`dm` medium, `coder`/`tester` low;
-only Claude's `cm` escalates to `xhigh` for the reason above). Copilot has no
-per-agent effort field and carries the tier as advisory prose. The task-class
-calibration behind the pins, and the local validation discipline, live in
-`docs/effort-calibration.md`.
+1. **Per-dispatch model override.** A model named at spawn time beats the
+   launcher's `model:` frontmatter, on both Agent-tool-style spawns and
+   workflow/slash-command spawns — the orchestrator can hand a lighter or
+   heavier model to any launcher without editing its file.
+2. **Per-stage effort option on workflow spawns.** Workflow/pipeline spawns
+   (for example `/ship` stages) accept an effort choice per stage at dispatch
+   time, which overrides that stage launcher's `effort:` pin when present.
+3. **Session-inherited effort as the fallback.** Absent a pin and absent a
+   dispatch-time override, a spawned agent's effort inherits the calling
+   session's effort setting — the launcher pin exists only to override that
+   inheritance when a role's typical work calls for it.
+
+A fourth, coarser lever sits above all three: **launcher choice itself** —
+picking `coder`/`tester` over `cm`, for instance — is a dispatch-time
+decision about which pre-configured defaults to start from, independent of
+any override applied on top.
+
+**Codex has no per-dispatch override.** Each role TOML's static
+`model_reasoning_effort` value IS that family's fallback default — Codex
+exposes no dispatch-time effort field to override it, so the launcher choice
+made at dispatch (which TOML to spawn) is the operative lever there, not a
+per-call parameter (tool-specific mechanics; the parity rule in `MEMORY.md`'s
+Instruction-File Audit Rule permits this difference).
+
+**Copilot carries tier and effort as advisory prose only** — no functional
+per-agent field exists in that family, so declaring tier/effort at dispatch
+means stating it in the prompt, with no mechanism to enforce it.
+
+This still aims for the "strong-but-occasional orchestrator over
+cheap-and-frequent minions" shape — the skeptic and the gate declared at high
+effort, bounded execution declared low — but the shape now comes from the
+orchestrator's dispatch judgment at *every* dispatch, not from a fixed pin
+set. The task-class calibration behind the historical pins, and the local
+validation discipline, still live in `docs/effort-calibration.md` and remain
+useful as the fallback-default starting point.
+
+Governance-scan note: `tools/tests/governance-consistency.test.sh` checks
+that the dispatch-declaration *law's presence* in `MEMORY.md` and
+`minions/roles/PM.md` survives edits (see "Advisory, and safe to ignore"
+above) — it does not, and cannot, check that any individual dispatch actually
+declared the right tier or effort. Per-dispatch tier and effort *choices*
+remain unenforced by tests; only the rule requiring them is guard-checked.

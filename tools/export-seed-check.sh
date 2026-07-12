@@ -51,9 +51,12 @@ SEED_FILES=(minions/smes/README.md minions/review-matrix.md)
 # header-only below (same as SEED_FILES): the waiver is from the reset ACTION, not from
 # the check — so if private content is ever added below one of these delimiters it is
 # caught, not silently published (closes the Export/Privacy SME's emptiness-snapshot gap).
+# docs/instruction-size-budgets.md is the same class: its below-delimiter "Local
+# Overrides" section is downstream-reserved scaffolding, empty in canonical.
 WAIVER=(MEMORY.md \
         minions/roles/AM.md minions/roles/CM.md minions/roles/DM.md \
-        minions/roles/OM.md minions/roles/PM.md minions/roles/RM.md minions/roles/SM.md)
+        minions/roles/OM.md minions/roles/PM.md minions/roles/RM.md minions/roles/SM.md \
+        docs/instruction-size-budgets.md)
 
 # Emit each offending line below the delimiter as "<lineno>: <line>". POSITIVE
 # header-only assertion (not a data-row blocklist): below the delimiter the ONLY

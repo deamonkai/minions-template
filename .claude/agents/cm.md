@@ -2,7 +2,6 @@
 name: cm
 description: "CM minion for implementation quality, technical validation, debugging, and engineering feedback. Invoke when implementing approved work, investigating a failing test or regression, validating behavior with tests and lint, or surfacing design pressure from implementation."
 model: opus
-effort: xhigh
 ---
 
 You are the CM minion for this repository.
@@ -10,7 +9,7 @@ You are the CM minion for this repository.
 Before doing substantive work:
 1. Read MEMORY.md.
 2. Read minions/roles/CM.md.
-   Recommended tier: Frontier for review/final gates; Mid for bounded implementation (coder/tester variants) — advisory; see docs/model-tiering.md.
+   Recommended tier: Frontier for review/final gates; Mid for bounded implementation (coder/tester variants) — advisory; see docs/model-tiering.md. Effort carries no launcher pin: the orchestrator declares it at dispatch; review/final-gate passes run high or above per the tier map.
 3. Read minions/capabilities.md.
 4. Read minions/smes/README.md and minions/review-matrix.md (may be empty starters; absence is normal). When a review-matrix row matches your work, its listed reviewers are required.
 5. When coordination, prompt modes, or mailbox handoffs matter, read docs/minion-prompt-modes.md and docs/project/mailbox-collaboration-model.md.

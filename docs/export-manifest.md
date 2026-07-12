@@ -47,7 +47,8 @@ much it matters that you do*. This is the stable, file-level signal; the
   land at first export even though upgrades never touch the filled inventory.
 
 > **Note:** Class-A files (`MEMORY.md`, `AI.md`, `CLAUDE.md`, `AGENTS.md`,
-> `minions/roles/*`, `ROADMAP.md`, `TODO.md`, `minions/chat/`) are
+> `.github/copilot-instructions.md`, `minions/roles/*`, `ROADMAP.md`,
+> `TODO.md`, `minions/chat/`) are
 > mainline-authoritative per the branching model
 > (`docs/branching-and-release-model.md` §Coordination Plane).
 
@@ -65,11 +66,11 @@ template repo.
 
 | Path | Initial export | Upgrade strategy | Criticality | Default owner | Notes |
 | --- | --- | --- | --- | --- | --- |
-| `.mm.md` | no | `do-not-export` | `n/a` | maintainer / Operator | local template-maintainer context only |
-| `AI/README.md` | no | `do-not-export` | `n/a` | maintainer / Operator | template-maintenance layer guide; not for downstream projects |
-| `AI/decisions.md` | no | `do-not-export` | `n/a` | maintainer / Operator | cross-AI template-maintenance decision register; template-maintainer-local |
-| `AI/open-questions.md` | no | `do-not-export` | `n/a` | maintainer / Operator | cross-AI template-maintenance open questions; template-maintainer-local |
-| `AI/feedback/` | no | `do-not-export` | `n/a` | maintainer / Operator | vendored field-feedback packets + evidence triage; template-maintainer-local |
+| `.mm.md` | no | `do-not-export` | `n/a` | MM / Operator | local template-maintainer context only |
+| `AI/README.md` | no | `do-not-export` | `n/a` | MM / Operator | template-maintenance layer guide; not for downstream projects |
+| `AI/decisions.md` | no | `do-not-export` | `n/a` | MM / Operator | cross-AI template-maintenance decision register; template-maintainer-local |
+| `AI/open-questions.md` | no | `do-not-export` | `n/a` | MM / Operator | cross-AI template-maintenance open questions; template-maintainer-local |
+| `AI/feedback/` | no | `do-not-export` | `n/a` | MM / Operator | vendored field-feedback packets + evidence triage; template-maintainer-local |
 | `.gitignore` | yes | `manual-merge` | `baseline` | PM / Operator | not auto-managed and outside most merge tooling; merge new template ignore patterns (e.g. `.pipeline/`) while preserving downstream-specific entries. Confirm during every upgrade |
 | `AI.md` | yes | `manual-merge` | `baseline` | PM / Operator | cross-tool coordination notes for AI assistants; preserve downstream-specific handoff guidance |
 | `CLAUDE.md` | yes | `manual-merge` | `feature` | PM / Operator | Claude Code auto-loaded entry point; thin pointer to `AI.md`/`MEMORY.md`. Preserve downstream project-specific guidance |
@@ -149,21 +150,23 @@ template repo.
 | `tools/export-seed-check.sh` | yes | `template-replace` | `feature` | PM / OM | public-export pre-push gate (runbook Step 3, gate 4): asserts Local Registry / Local Matrix are header-only below the split-merge delimiter in the export tree; point `SEED_FILES` at the downstream's own delimited local sections |
 | `.gitleaks.toml` | yes | `template-replace` | `feature` | PM / OM | repo-root gitleaks config for the public-export gitleaks gate (`docs/runbooks/public-export.md` Step 2); extends the default ruleset and allowlists only the second-brain AC-2 test fixtures (intentionally secret-shaped test data) — must export with the tree so gitleaks honors it; extend narrowly, never broaden past the actual test surface |
 | `tools/sme-charter-check.sh` | yes | `template-replace` | `feature` | PM / CM | mechanical SME-charter validator (required sections, non-empty negative discovery, Local Registry row, launcher parity in all three families); not a domain-merit judge — see `docs/designing-an-sme.md` |
-| `tools/tests/` | yes | `template-replace` | `feature` | CM | test suites (`xtool-call`, `governance-consistency`, `upgrade-classify`, `issue-sync`, `issue-board-bootstrap`, `manifest-completeness`, `second-brain`, `skill-airlock`, `skill-scout`), fixtures, and the `governance-scan.allow` scan list; adopt as reference and regression harness |
+| `tools/tests/` | yes | `template-replace` | `feature` | CM | test suites (`xtool-call`, `governance-consistency`, `upgrade-classify`, `issue-sync`, `issue-board-bootstrap`, `manifest-completeness`, `second-brain`, `skill-airlock`, `skill-scout`, `layer-adopted`, `instruction-size`), fixtures, and the `governance-scan.allow` scan list; adopt as reference and regression harness |
 | `.claude/commands/second-opinion.md` | yes | `template-replace` | `feature` | PM | `/second-opinion` slash command; read-only cross-vendor review via `tools/xtool-call.sh` |
 | `.claude/commands/delegate.md` | yes | `template-replace` | `feature` | PM | `/delegate` slash command; isolated-worktree cross-vendor implementation via `tools/xtool-call.sh` |
 | `.claude/commands/handoff.md` | yes | `template-replace` | `feature` | PM | `/handoff` slash command; flush-then-snapshot session handoff (ephemeral, deleted on pickup) |
 | `docs/cross-tool-orchestration.md` | yes | `template-replace` | `feature` | PM / DM | exported cross-tool orchestration protocol doc; operator reference for the review/delegate/ship workflow |
 | `docs/risk-posture-shadow-first.md` | yes | `template-replace` | `feature` | PM / AM | optional shadow-first / dark-ship risk posture for behavior-changing changes with a comparable incumbent; opt-in, no code shipped |
-| `AI/specs/` | no | `do-not-export` | `n/a` | maintainer / Operator | template-maintenance design specs; template-maintainer-local only |
-| `AI/plans/` | no | `do-not-export` | `n/a` | maintainer / Operator | template-maintenance implementation plans; template-maintainer-local only |
-| `docs/superpowers/` | no | `do-not-export` | `n/a` | maintainer / Operator | superpowers session artifacts (design specs + implementation plans); template-maintainer-local only |
+| `docs/instruction-size-budgets.md` | yes | `template-replace` | `feature` | PM / DM | instruction-surface word-budget reference + downstream override surface; split-merge per delimiter — template default-budget table above the marker, Local Overrides below are downstream-owned; consumed fail-open by tools/tests/instruction-size.test.sh |
+| `AI/specs/` | no | `do-not-export` | `n/a` | MM / Operator | template-maintenance design specs; template-maintainer-local only |
+| `AI/plans/` | no | `do-not-export` | `n/a` | MM / Operator | template-maintenance implementation plans; template-maintainer-local only |
+| `docs/superpowers/` | no | `do-not-export` | `n/a` | MM / Operator | superpowers session artifacts (design specs + implementation plans); template-maintainer-local only |
 | `docs/branching-and-release-model.md` | yes | `template-replace` | `baseline` | PM | canonical branching model; downstream adopts |
 | `docs/runbooks/branch-setup.md` | yes | `template-replace` | `reference` | OM | one-time branch-protection + PR setup (host-agnostic: Gitea & GitHub recipes) |
 | `CHANGELOG.d/README.md` | yes | `template-replace` | `feature` | DM | changelog fragment convention |
 | `CHANGELOG.d/*.md` (fragments) | no | `downstream-owned` | `n/a` | DM | per-feature fragments; Class B; do not export the template's |
 | `tools/issue-sync.sh` | yes | `template-replace` | `feature` | CM | optional Issue-mirror wrapper (default-off) |
 | `tools/issue-board-bootstrap.sh` | yes | `template-replace` | `feature` | OM | idempotent label/board bootstrap |
+| `tools/layer-adopted.sh` | yes | `template-replace` | `feature` | CM | shared fail-open adoption-record cross-check (`layer-adopted.sh <MINION_* key>`); parses the `adopted:` token on the onboarding checklist so remote-mutating layer tools no-op when a repo records a layer adopted:off despite a machine-global env gate |
 | `docs/issue-mirror-model.md` | yes | `template-replace` | `feature` | PM | canonical issue-mirror model |
 | `docs/runbooks/issue-board-setup.md` | yes | `template-replace` | `reference` | OM | issue board/label setup |
 | `.issue` sidecars (`minions/mail/*/*.issue`) | no | `downstream-owned` | `n/a` | CM / Operator | Class B / downstream-owned; not exported from template |
@@ -175,7 +178,7 @@ template repo.
 | `docs/skill-adoption-model.md` | yes | `template-replace` | `feature` | PM | canonical skill-adoption (Scout + Airlock) model; adopted-row schema, run posture, unconditional-vs-gated invariant, Enabling It / rollback; gated on `MINION_SKILLS=on` |
 | `tools/skill-airlock.sh` | yes | `template-replace` | `feature` | PM / CM | optional skill-adoption airlock (`check` advisory signals + `verify-quarantine`); advisory-only, gated on `MINION_SKILLS=on` — a clean `check` is never a safety gate |
 | `tools/skill-scout.sh` | yes | `template-replace` | `feature` | PM / CM | optional skill-adoption scout (`survey`, findings-only); documented WebFetch/web-UI fallback when `npx` absent; gated on `MINION_SKILLS=on` |
-| `skills/vendored/` | no | `do-not-export` | `n/a` | maintainer / Operator | maintainer-local adopted-skill payloads + quarantined SOURCE.txt; default-deny by construction; see docs/skill-adoption-model.md |
+| `skills/vendored/` | no | `do-not-export` | `n/a` | MM / Operator | maintainer-local adopted-skill payloads + quarantined SOURCE.txt; default-deny by construction; see docs/skill-adoption-model.md |
 | `docs/runbooks/public-export.md` | yes | `template-replace` | `reference` | PM | publish a privacy-safe public copy (fresh history, neutralization sweep, gitleaks gate) |
 | `docs/coordinator-mode.md` | yes | `template-replace` | `feature` | PM | coordinator-mode overlay (opt-in multi-project) |
 | `docs/runbooks/add-submodule.md` | yes | `template-replace` | `reference` | PM | submodule registration sequence (coordinator overlay) |

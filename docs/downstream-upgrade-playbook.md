@@ -53,6 +53,135 @@ complete until every `REQUIRED` item is confirmed present in the live repo. The
 `Criticality` column in `docs/export-manifest.md` marks the `baseline` files
 that most often carry these.
 
+### 1.37.0 — Instruction-surface size budgets (whole-file word guard)
+
+OPTIONAL feature with a REQUIRED awareness item.
+
+- New `tools/tests/instruction-size.test.sh` (`template-replace`): a
+  whole-file word-budget guard for the instruction/bootstrap surface
+  (`CLAUDE.md`, `AGENTS.md`, `MEMORY.md`, role charters, SME files, etc).
+  Budgets apply to the WHOLE file — below-delimiter, downstream-owned
+  content counts too, because whole-file size is the token cost every
+  session pays at bootstrap.
+- New `docs/instruction-size-budgets.md` (`template-replace` above the
+  delimiter, `manual-merge` below it): the canonical default-budget
+  reference plus a downstream-owned `## Local Overrides` section. The
+  override is consulted fail-open — an absent or malformed override always
+  falls back to template defaults — and it can only raise, set, or
+  deliberately tighten a budget; it can never remove a surface from
+  checking or block the guard.
+- MEMORY.md gains the "Instruction-Surface Size Budgets" subsection
+  documenting the promote-don't-delete overflow protocol (relocate
+  overflowing content to its canonical home and leave a pointer, never
+  delete it to fit) plus the matching stub lifecycle for `feedback.md`
+  (promote → condense to pointer stub → prune aged stubs).
+- **REQUIRED awareness:** the guard can go **RED on a large repo's first
+  post-upgrade run**. No prior template test ever evaluated
+  downstream-owned, below-delimiter bytes, so a repo that has grown its
+  `CLAUDE.md`, `MEMORY.md`, or other bootstrap surfaces heavily since
+  onboarding may now measure over budget for the first time. Run
+  `tools/tests/instruction-size.test.sh --report` before deciding — it
+  prints a percent-of-budget pressure table for every surface without
+  failing, so you can see how close you are before acting. The **only**
+  sanctioned responses to a RED surface are (1) add an override row in the
+  `## Local Overrides` section of `docs/instruction-size-budgets.md`, or
+  (2) promote the overflowing content to its canonical home per MEMORY.md's
+  promote-don't-delete protocol. **Never** delete or skip the test to make
+  it pass.
+- Overrides live below `docs/instruction-size-budgets.md`'s delimiter and
+  survive upgrades — but only if you take the file as a **replace-above,
+  merge-below** file, same as every other split-merge file. A naive
+  whole-file copy from the incoming template wipes your overrides.
+- **New-file collision note:** if your repo already has
+  `docs/instruction-size-budgets.md` or
+  `tools/tests/instruction-size.test.sh`, rename them before upgrading —
+  `template-replace` overwrites the parts of each that are template-owned.
+- **Public-export note:** `export-seed-check.sh` gained a `WAIVER` entry
+  for this surface. If you maintain a local public-mirror export, re-apply
+  your local `SEED`/`WAIVER` extensions on top, and reset the filled
+  `## Local Overrides` section of `docs/instruction-size-budgets.md` for
+  public export — same handling as `MEMORY.md`'s local section.
+- Downstreams that already applied interim size fixes (local ceilings,
+  ad hoc maintenance protocols for instruction-file bloat) should reconcile
+  them with this shipped mechanism — move the local rule's substance into
+  an override row or a promotion, and mark the corresponding local
+  `feedback.md` entry promoted/closed.
+- No governance-token change, no new hard-stop.
+
+### 1.36.1 — Pre-export audit doc fixes
+
+No required changes — adopt normally. Two docs-only fixes from the
+pre-export drift audit of the v1.36.0 tree: `minions/smes/cross-family-launcher.md`'s
+stale bench count (18-file parity: 6 SMEs × 3 families, not 15/5) and the
+addition of `.github/copilot-instructions.md` to the Class A enumeration in
+`AI.md`, `docs/branching-and-release-model.md`, `MEMORY.md`, and
+`docs/export-manifest.md` (all `template-replace`/`manual-merge` per their
+existing manifest class). All changed files converge on upgrade with the
+normal replace/merge for their class; no governance-token change, no new
+hard-stop.
+
+### 1.36.0 — Adoption-record cross-check for remote-mutating layer tools
+
+OPTIONAL (opt-in safety control) — no behavior change unless you opt in.
+
+- New shared helper `tools/layer-adopted.sh` (`template-replace`): a
+  fail-open cross-check against the `adopted:` token in
+  `docs/operator-onboarding-checklist.md`. The `MINION_*` env gate stays
+  primary — this record can only **add** a no-op; it can never enable a
+  gate-off layer or block a call on its own. `tools/issue-sync.sh` and
+  `tools/issue-board-bootstrap.sh` consult it today, and both also gained
+  `-h`/`--help` guards. These two tools, `MEMORY.md`'s Optional Layers
+  convention bullet, and `docs/issue-mirror-model.md` converge on upgrade
+  automatically.
+- **OPTIONAL** — reformat your Optional Layers checklist lines to activate
+  the cross-check. The checklist is `manual-merge`, so the new `adopted:`
+  token does **not** arrive automatically: an unconverted freeform line
+  reads as indeterminate, and the env gate alone decides — exactly as
+  before (safe). To activate, hand-merge the new intro paragraph and
+  rewrite each layer line with `adopted: on|off|unset`.
+- Repos running a machine-global `MINION_ISSUES=on` that do **not** want
+  the issue mirror active in a given repo **should** set `adopted: off`
+  there — this is the protection that motivated issue #32, and it
+  supersedes any manual do-not-invoke note you may have relied on before.
+- **New-file collision note:** if your repo already has a
+  `tools/layer-adopted.sh`, rename it before upgrading — `template-replace`
+  overwrites it.
+- `tools/issue-sync.sh` / `tools/issue-board-bootstrap.sh` remain
+  `template-replace`; re-apply any local patches on top after upgrading.
+- No governance-token change, no new hard-stop.
+
+### 1.35.0 — Tier declaration at dispatch; CM effort lock retired
+
+OPTIONAL (docs- and one launcher-frontmatter field) — template-managed
+surfaces converge on upgrade; one deliberate behavior change to know about.
+
+- `MEMORY.md` (Execution Quality) gains a dispatch-brief bullet — "Dispatch
+  briefs declare the capability tier" — naming model tier and effort per
+  `docs/model-tiering.md` and the actual activity, not the role name;
+  `minions/roles/PM.md` gains a matching PM charter duty. `docs/model-tiering.md`'s
+  "The effort dial" section is rewritten from "pins enforce" to "orchestrator
+  declares, pins are fallback defaults." `INIT.md`'s model-tiering bootstrap
+  line now points at the normative rule in `MEMORY.md` rather than just the
+  advisory doc. These land via `template-replace`; a downstream converges on
+  them automatically.
+- **Behavior change — `cm`'s Claude-launcher effort lock is retired.**
+  `.claude/agents/cm.md` no longer pins `effort: xhigh`; `model: opus` stays
+  as a fail-safe default. Effort for `cm` (including review/final-gate
+  passes) is now declared at dispatch instead of pinned. If your downstream
+  wants the old locked behavior back, **re-pin `effort: xhigh` locally**
+  (below-delimiter/local config) — the template will not do this for you.
+  Otherwise `cm` effort now follows the session's inherited effort or the
+  orchestrator's per-dispatch declaration. `.codex/agents/cm.toml`'s
+  `model_reasoning_effort = "high"` is unchanged (Codex has no per-dispatch
+  override).
+- **Guard note:** a new governance guard in
+  `tools/tests/governance-consistency.test.sh` anchors on the tier-declaration
+  law's presence in `MEMORY.md` and `minions/roles/PM.md`. A downstream edit
+  that rewords the `MEMORY.md` tier-declaration bullet will fail this guard —
+  that is intended, not a bug; restore the anchor phrasing or update the guard
+  deliberately.
+- No governance-token change, no new hard-stop.
+
 ### 1.34.0 — Default SME bench (6 infrastructure SMEs ship as template defaults)
 
 OPTIONAL (additive) with one REQUIRED pre-upgrade check.

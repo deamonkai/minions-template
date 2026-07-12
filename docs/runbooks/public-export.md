@@ -7,7 +7,7 @@ release the Operator wants public
 
 Run this procedure to publish a privacy-safe copy of this template to a
 **public** repository with fresh history. It was field-derived from the
-live 2026-07-02 export to a public mirror.
+live 2026-07-02 export to `github.com/deamonkai/minions-template`.
 
 **Scope note:** this runbook is written from the template repo's own
 perspective — its manifest, its maintainer-local paths, its public

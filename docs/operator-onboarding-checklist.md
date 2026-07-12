@@ -51,6 +51,7 @@ Date: YYYY-MM-DD
 - prompt mode guidance reviewed (`docs/minion-prompt-modes.md`)
 - minion↔plugin pairings reviewed (`docs/minion-plugin-pairings.md`) and the project's actual pairings wired into the relevant role charters (e.g. a "use-when" line for an issue tracker on `PM`, a research integration on `RM`)
 - capabilities inventory filled (`minions/capabilities.md`): yes/no, date: YYYY-MM-DD
+- instruction-surface size budgets reviewed (`docs/instruction-size-budgets.md`); per-repo overrides set if any: yes/no
 - Copilot custom-agent guidance reviewed (`.github/agents/README.md`)
 - Codex custom-agent guidance reviewed (`.codex/agents/README.md`)
 - Claude Code subagent guidance reviewed (`.claude/agents/README.md`)
@@ -71,21 +72,31 @@ An adopted layer's backing capability should also be listed `active` in
 `minions/capabilities.md`, so the utilization obligation makes using it standing
 practice while the silent-no-op guarantee still covers absence at call time.
 
-- Memory recall (`MINION_MEMORY`): on / off — date: YYYY-MM-DD; gate persisted
-  in: `~/.zshenv` / direnv / CI env / other (non-interactive agent shells do
-  **not** read `~/.zshrc` — verify from a fresh tool shell)
-- Second brain (`MINION_SECONDBRAIN`): on / off — date: YYYY-MM-DD; vault
-  path: `MINION_SECONDBRAIN_VAULT` (default `~/second-brain/`); gate
+The `adopted:` token is machine-readable — `tools/layer-adopted.sh
+<MINION_* key>` parses it (`on` → adopted/standing practice, `off` →
+remote-mutating layer tools silently no-op even when the env gate is on,
+`unset` → the env gate alone decides). The shipped default `unset` is
+safe: leaving it preserves env-gate-only behavior. Set it to `on`/`off`
+when you make the adoption decision for this repo.
+
+- Memory recall (`MINION_MEMORY`) — adopted: unset — date: YYYY-MM-DD; gate
+  persisted in: `~/.zshenv` / direnv / CI env / other (non-interactive agent
+  shells do **not** read `~/.zshrc` — verify from a fresh tool shell)
+- Second brain (`MINION_SECONDBRAIN`) — adopted: unset — date: YYYY-MM-DD;
+  vault path: `MINION_SECONDBRAIN_VAULT` (default `~/second-brain/`); gate
   persisted in: `~/.zshenv` / direnv / CI env / other (same non-interactive
   `~/.zshrc` gotcha as memory recall — verify from a fresh tool shell)
-- Skill adoption (`MINION_SKILLS`): on / off — date: YYYY-MM-DD; gate
+- Skill adoption (`MINION_SKILLS`) — adopted: unset — date: YYYY-MM-DD; gate
   persisted in: `~/.zshenv` / direnv / CI env / other (same non-interactive
   `~/.zshrc` gotcha — verify from a fresh tool shell). Even when off, the
   unconditional protections stand (the `skills/vendored/` manifest exclusion +
   forbidden-path gate, the hard-stop-#2 instance, and the Skill-Provenance
   SME); adopt skills only through the airlock — see `docs/skill-adoption-model.md`
-- Issue mirror (`MINION_ISSUES`): on / off — date: YYYY-MM-DD
-- Coordinator mode (`projects/` + `MEMORY.md` declaration): on / off — date: YYYY-MM-DD
+- Issue mirror (`MINION_ISSUES`) — adopted: unset — date: YYYY-MM-DD
+- Coordinator mode (`projects/` + `MEMORY.md` declaration) — adopted: unset —
+  date: YYYY-MM-DD (this `adopted:` token is documentation-only — there is no
+  `MINION_*` gate key for coordinator mode, and `tools/layer-adopted.sh` does
+  not parse this line)
 - Adopted layers' backing capabilities listed `active` in `minions/capabilities.md`: yes/no
 
 ## 5. Escalation Policy (Operator Optional)

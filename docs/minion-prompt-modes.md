@@ -247,9 +247,10 @@ independent durable packets at each step.
 See `docs/model-tiering.md` for the general role-level tier guidance this
 section is one application of.
 
-By default the pipeline runs the implement and test stages on `cm` (Frontier —
-e.g. Opus, `effort: xhigh`). That is correct for quality but is the most
-expensive option for the highest-token stages. Phase 2 ships two optional
+By default the pipeline runs the implement and test stages on `cm` (Frontier
+by model default, e.g. Opus, with reasoning effort declared at dispatch).
+That is correct for quality but is the most expensive option for the
+highest-token stages. Phase 2 ships two optional
 dedicated launchers that swap the model tier for the mechanical stages
 **without** changing the architecture:
 

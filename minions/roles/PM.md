@@ -148,6 +148,13 @@ like reviewer verdicts: distribute them in the brief rather than leaving
 the spawned minion to re-derive its environment (see MEMORY.md, Execution
 Quality).
 
+When PM authors a dispatch brief, the brief names the model tier and
+reasoning effort for the work, chosen per `docs/model-tiering.md` and the
+activity, not the role name; a dispatch that deviates from the tier map
+carries a one-line rationale. Launcher pins are fallback defaults — the
+dispatch-time declaration is the operative choice (see MEMORY.md,
+Execution Quality).
+
 ## Guardrails
 
 - do not directly change product code, tests, migrations, or runtime config

@@ -2,6 +2,180 @@
 
 All notable changes to this repository are tracked here.
 
+## 2026-07-12 (v1.37.0 — Instruction-surface size budgets; template manages its own size)
+
+- Commit hash: 4729f1a (staging merge)
+- Downstream field driver: a CLAUDE.md grew to 160 KB before anyone noticed
+  — the thin-pointer discipline was prose-only, with no mechanism that
+  notices bootstrap-surface growth. This release adds one.
+- New `tools/tests/instruction-size.test.sh`: a whole-file word-budget
+  guard for the instruction/bootstrap surface (`CLAUDE.md`, `AGENTS.md`,
+  `MEMORY.md`, role charters, SME files, etc). Budgets apply to the WHOLE
+  file — below-delimiter, downstream-owned content counts too, because
+  whole-file size is the token cost every session pays at bootstrap.
+  No-arg self-test (33 checks) plus a real-tree sweep, `--root` override,
+  and a `--report` mode that prints a percent-of-budget pressure table
+  without failing. Precedence is override-exact > override-class >
+  default-exact > default-class; non-numeric arithmetic inputs fail loud
+  (never silent); named-vs-class de-dupe; all mutation-verified.
+- New `docs/instruction-size-budgets.md`: the canonical budgets reference
+  plus a downstream-owned `## Local Overrides` section below a split-merge
+  delimiter, consumed fail-open by the guard — an absent or malformed
+  override always falls back to template defaults, and an override can
+  raise, set, or deliberately tighten a budget — never remove a surface
+  from checking or block the guard. Default budgets: entry pointers 600;
+  `INIT.md`/`AI.md` 1800; `MEMORY.md` 9000; `capabilities.md` 1500;
+  `review-matrix.md` 1200; `feedback.md` 3000; `smes/README.md` 2000;
+  role charters class 2400 (`PM.md` exact 3000); SME files class 1100.
+  Budgets are sized from template measurements; current tree max usage is
+  77% of budget. Field data from adoption surfaced two surface classes:
+  guide-class content (e.g. onboarding walkthroughs) relocates cleanly at
+  roughly 75% size reduction with zero information loss, while
+  binding-rules class content (guardrails, hard-stops) bottoms out —
+  promote or override it, never delete the lesson.
+- MEMORY.md: new "Instruction-Surface Size Budgets" subsection documenting
+  the promote-don't-delete overflow protocol — when a surface approaches
+  or exceeds its budget, relocate the content to its canonical home and
+  leave a pointer, rather than deleting it to fit — plus a stub lifecycle
+  added to the Feedback Capture Rule (promote → condense to pointer stub →
+  prune aged stubs), field-proven downstream.
+- Wired `docs/export-manifest.md` and `docs/operator-onboarding-checklist.md`
+  for the new doc and guard; `export-seed-check.sh` gained a `WAIVER` entry
+  for the new surface.
+- SME panel: Shell/Test-Harness (3 findings, all closed, real-bash-3.2
+  verified); Governance-Invariant (no blocker, 4 findings applied);
+  Upgrade-Path (ship-eligible conditional on its Required Changes entry,
+  now in `docs/downstream-upgrade-playbook.md`); Export/Privacy (clean,
+  7/7). SM review skipped with rationale (no network/secrets/privilege
+  surface; injection inputs locked by the guard's self-test). CM read-only
+  verdict: SHIP.
+- No governance-token change, no new hard-stop.
+
+## 2026-07-12 (v1.36.1 — pre-export drift-audit fixes)
+
+- Commit hash: 16efcf0 (staging merge)
+- Fixes from the pre-export drift audit of the v1.36.0 tree (28-agent
+  workflow: 15 launcher-triplet parity checks + 7 doc-claim lenses, every
+  finding adversarially verified; 19 of 22 sweep surfaces came back clean;
+  full report in the audit run record):
+  - `minions/smes/cross-family-launcher.md`: stale bench count corrected —
+    "15-file parity: 5 SMEs × 3 families" → "18-file parity: 6 SMEs × 3
+    families" (drifted when the Skill-Provenance SME joined the default
+    bench in v1.32.0 and was never updated).
+  - Class A (mainline-authoritative) file enumeration now includes
+    `.github/copilot-instructions.md` in all four places it is defined
+    (`AI.md`, `docs/branching-and-release-model.md`, `MEMORY.md` Branch
+    Coordination Plane, and the `docs/export-manifest.md` Class-A note —
+    the fourth found by the Governance-Invariant SME during review of this
+    fix). The Copilot entry point is a sibling of
+    `CLAUDE.md`/`AGENTS.md`, which were already enumerated; its
+    branch-authoritativeness was previously undefined. PM adopted the
+    audit's upholding verifier argument (explicit beats undefined for a
+    definitional list); no behavior change for repos that never fork the
+    entry points on feature branches.
+- No governance-token change, no new hard-stop, docs-only.
+
+## 2026-07-12 (v1.36.0 — Remote-tool --help guards; adoption-record cross-check)
+
+- Commit hash: 37e4654 (staging merge)
+- **`--help`/`-h`/`help` guards exit 0 before any side effect** in both
+  remote-mutating tools. `tools/issue-board-bootstrap.sh` previously had **no
+  arg parsing at all** — this was the issue #32 incident: probing it with
+  `--help` during INIT capability enumeration ran a real bootstrap and
+  created 13 labels on a downstream repo. It now guards `-h|--help|help`
+  before any side effect; unknown args reject with usage + exit 2.
+  `tools/issue-sync.sh` gains the same help arm (previously exited 2 on
+  `--help`, now exits 0).
+- **New shared helper `tools/layer-adopted.sh`**: a three-state adoption-record
+  fail-open cross-check (exit 0/on, 1/off, 2/indeterminate) parsing the new
+  machine-readable `adopted:` token in `docs/operator-onboarding-checklist.md`.
+  Fail-open by construction — only exit 1 (explicit `adopted: off`) gates;
+  a missing checklist, missing helper, or missing record all fall through to
+  the env gate alone deciding, i.e. pre-change behavior. Both
+  `issue-board-bootstrap.sh` and `issue-sync.sh` consult it after the
+  `MINION_ISSUES` env gate: gate on + repo records `adopted: off` → silent
+  no-op. This closes the incident's second root cause — a machine-global
+  `MINION_ISSUES=on` bleeding into a repo that never opted in to the issue
+  mirror.
+- Docs synced: `MEMORY.md` Optional Layers convention bullet documents the
+  adoption-record cross-check and the fail-open guarantee;
+  `docs/operator-onboarding-checklist.md` converts the Optional Layers
+  section to the machine-readable `adopted:` token with an explanatory intro
+  paragraph; `docs/issue-mirror-model.md` notes the cross-check and points at
+  `tools/layer-adopted.sh`; `docs/export-manifest.md` gains a row for the new
+  tool; `minions/smes/shell-test-harness.md` charter lists updated for the new
+  tool and its test suite.
+- Tests: new `layer-adopted.test.sh` suite (22 cases, including mutation-verified
+  prose-masking cases guarding against the helper matching `adopted:` text
+  inside comments/prose rather than the real key line);
+  `issue-board-bootstrap.test.sh` grows 20→36 (help guard, unknown-arg
+  rejection, adoption cross-check wiring, helper-absent fail-open);
+  `issue-sync.test.sh` grows 59→68 (same categories). Both callers' test
+  suites include a helper-absent fail-open case verified at the actual
+  integration point, closing SME findings F1/F2 (F1 mutant-verified). Full
+  12-suite sweep green.
+- Reviewed by SM (Frontier — acceptable to ship, no reachable finding;
+  injection/spoofing/pathological-input cases empirically probed, 3
+  informational safe-direction notes), Governance-Invariant SME (PASS all
+  axes, 1 optional doc nit — resolved above), Export/Privacy SME (clear to
+  export/public-mirror, 0 uncovered files, 1 optional parenthetical nit —
+  resolved above), Upgrade-Path SME (drafted the Required Changes entry
+  below), Shell/Test-Harness SME (mutation-tested; found the F1/F2 test gaps
+  closed in this release). CM read-only final-gate verdict: **SHIP** —
+  spec-exact, tests load-bearing, no new findings.
+- Driven by downstream field report on Gitea issue #32 (the remote-mutating
+  `--help` incident described above).
+- **OPTIONAL for downstream** — see the 1.36.0 entry in
+  `docs/downstream-upgrade-playbook.md`. No governance-token change, no new
+  hard-stop; the adoption-record cross-check can only add a no-op, never
+  enable a gate-off layer or block a call.
+
+## 2026-07-10 (v1.35.0 — Tier declaration at dispatch; CM effort lock retired)
+
+- Commit hash: 13a5886 (staging merge)
+- **Orchestrator declares model tier + reasoning effort at every dispatch.**
+  Wired at three layers so the rule survives at the surfaces orchestrators
+  actually re-read at dispatch time, not just in a standalone doc: `MEMORY.md`
+  (Execution Quality) gains a new dispatch-brief bullet — "Dispatch briefs
+  declare the capability tier" — naming model tier and effort per
+  `docs/model-tiering.md` and the actual activity, not the role name;
+  `minions/roles/PM.md` gains a matching PM charter duty in the dispatch-brief
+  paragraph cluster; `docs/model-tiering.md`'s "The effort dial" section and
+  per-family mechanics are rewritten from "pins enforce" to "orchestrator
+  declares, pins are fallback defaults" — covering the three Claude
+  dispatch-time levers (per-dispatch model override, per-stage effort option
+  on workflow spawns, session-inherited effort as fallback), Codex's static
+  `model_reasoning_effort` as that family's fallback default (no per-dispatch
+  override — launcher choice is the lever there), and Copilot's advisory-prose
+  posture.
+- **`cm`'s Claude-launcher effort lock is retired.** `.claude/agents/cm.md`
+  no longer pins `effort: xhigh`; `model: opus` stays as a fail-safe default.
+  Effort for `cm` (including review/final-gate passes) is now declared at
+  dispatch instead of pinned. `.claude/agents/README.md` and
+  `.codex/agents/README.md` doc-sync to match — the Claude table/prose drop
+  the `effort: xhigh` claim, and the Codex README notes its static
+  `model_reasoning_effort` values are a fallback default, not an enforced
+  ceiling. `.codex/agents/cm.toml`'s `model_reasoning_effort = "high"` is
+  unchanged (that family has no per-dispatch override).
+- `INIT.md`'s model-tiering bootstrap line now points at the normative rule:
+  dispatch briefs declare tier + effort per `MEMORY.md` (Execution Quality),
+  not just the advisory doc.
+- A new governance guard (`tools/tests/governance-consistency.test.sh`) checks
+  that the tier-declaration law's presence survives in `MEMORY.md` and
+  `minions/roles/PM.md`; it checks presence only, never per-dispatch tier
+  compliance (that boundary is unchanged from `docs/model-tiering.md`'s
+  existing "advisory, safe to ignore" stance).
+- Driven by downstream field report on Gitea issue #33 (SSI-website): a
+  frontier orchestrator dispatched a whole milestone at inherited defaults
+  because tiering was wired at one layer, and the same downstream reset CM's
+  effort lock to let the orchestrator/PM right-size effort per dispatch.
+  `feedback.md` carries the dated learning entry
+  (`promoted -> v1.35.0`).
+- OPTIONAL for downstream — see the 1.35.0 entry in
+  `docs/downstream-upgrade-playbook.md`. No governance-token change, no new
+  hard-stop; guard is presence-only (advisory compliance, per
+  `docs/model-tiering.md`).
+
 ## 2026-07-09 (v1.34.0 — Default SME bench: 6 infrastructure SMEs ship as template defaults)
 
 - Commit hash: pending (staging→main PR merge)
@@ -865,7 +1039,7 @@ All notable changes to this repository are tracked here.
 
 - Commit hash: pending (staging→main PR merge)
 - Codifies the live 2026-07-02 export of a privacy-safe copy of this
-  template to a public repo (a public mirror),
+  template to a public repo (github.com/deamonkai/minions-template),
   publishing fresh history rather than canonical history.
 - New `docs/runbooks/public-export.md` (Operator/PM-owned): manifest-
   filtered export from a tagged canonical release using
@@ -1189,7 +1363,7 @@ All notable changes to this repository are tracked here.
 ## 2026-06-24 (v1.16.0 — Downstream feedback: review-ergonomics quick wins)
 
 - Commit hash: pending (next commit)
-- Adopted the low-risk, broadly-applicable items from a downstream trading-bot project
+- Adopted the low-risk, broadly-applicable items from a a downstream trading-bot project
   downstream feedback packet (heavy-use observations). Bumped template version to
   `1.16.0-1.0.0`. Deferred (Operator's call): parallel/domain-scoped review
   cadence, and the shadow-first risk posture + operator-facing-craft items.

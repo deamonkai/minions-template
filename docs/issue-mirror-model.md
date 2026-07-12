@@ -254,3 +254,8 @@ than `on`.
 
 See `docs/runbooks/issue-board-setup.md` for per-host board setup recipes
 and CLI authentication notes.
+
+When `MINION_ISSUES=on`, `issue-sync.sh` and `issue-board-bootstrap.sh`
+additionally honor an explicit `adopted: off` in this repo's onboarding
+checklist by no-op'ing (fail-open otherwise); see `tools/layer-adopted.sh`
+and the Optional Layers convention in `MEMORY.md`.

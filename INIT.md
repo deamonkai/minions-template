@@ -33,7 +33,7 @@ SM, DM, OM, and RM discipline, durable evidence, and milestone execution.
    - read [.github/agents/README.md](.github/agents/README.md) when using Copilot custom agents
    - read [.codex/agents/README.md](.codex/agents/README.md) when using Codex custom agents
    - read [.claude/agents/README.md](.claude/agents/README.md) when using Claude Code subagents
-   - model-tier guidance for spawning minions: [docs/model-tiering.md](docs/model-tiering.md) — advisory
+   - model-tier guidance for spawning minions: [docs/model-tiering.md](docs/model-tiering.md) — advisory; dispatch briefs declare tier + effort per `MEMORY.md` (Execution Quality)
    - read [docs/minion-prompt-modes.md](docs/minion-prompt-modes.md)
    - read [docs/project/mailbox-collaboration-model.md](docs/project/mailbox-collaboration-model.md)
    - read [minions/mail/README.md](minions/mail/README.md)

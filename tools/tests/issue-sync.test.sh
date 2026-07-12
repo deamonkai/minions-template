@@ -16,9 +16,27 @@ check() { local desc="$1"; shift; if "$@"; then echo "ok   - $desc"; pass=$((pas
 TMP="$(mktemp -d)"; mkdir -p "$TMP/p"
 ( cd "$TMP" && unset MINION_ISSUES; "$SUT" sync --type mail --packet p >/dev/null 2>&1 ); check "disabled -> exit 0 noop" test $? -eq 0
 
+# --help -> exit 0, usage on stderr, no tea.args
+"$SUT" --help > "$TMP/help.out" 2>&1; check "--help -> exit 0" test $? -eq 0
+check "--help -> output greps usage" bash -c "grep -qi usage '$TMP/help.out'"
+# bare help -> exit 0
+"$SUT" help >/dev/null 2>&1; check "bare help -> exit 0" test $? -eq 0
+
 # enabled but host CLI absent -> graceful no-op exit 0
 ( cd "$TMP" && git init -q && git remote add origin https://git.example.net/o/r.git
   PATH="/usr/bin:/bin" MINION_ISSUES=on "$SUT" sync --type mail --packet p >/dev/null 2>&1 ); check "cli absent -> exit 0 noop" test $? -eq 0
+rm -rf "$TMP"
+
+# env on + adopted:off (gitea-create-style setup) -> exit 0, no tea.args, no sidecar
+TMP="$(mktemp -d)"; BIN="$TMP/bin"; PKT="$TMP/minions/mail/2026-06-29-cm-to-sm-adoptedoff"; mkdir -p "$PKT"
+printf 'hi\n' > "$PKT/request.md"
+bash "$MKFAKE" "$BIN" tea 0 "https://git.example.net/o/r/issues/99"
+( cd "$TMP" && git init -q && git remote add origin https://git.example.net/o/r.git
+  mkdir -p docs && printf 'Issue mirror (MINION_ISSUES) — adopted: off — date: 2026-07-10\n' > docs/operator-onboarding-checklist.md
+  PATH="$BIN:$PATH" MINION_ISSUES=on "$SUT" sync --type mail --packet "$PKT" >/dev/null 2>&1 )
+check "adopted:off -> exit 0" test $? -eq 0
+check "adopted:off -> no tea.args" bash -c "! test -e '$BIN/tea.args'"
+check "adopted:off -> no .issue sidecar" bash -c "! test -e '$PKT/.issue'"
 rm -rf "$TMP"
 
 # host detection
@@ -202,6 +220,27 @@ check "0.14.1 edit -> 'issues edit' invoked" bash -c "grep -q edit '$BIN/tea.arg
 check "0.14.1 edit -> --add-labels passed" bash -c "grep -q -- '--add-labels' '$BIN/tea.args'"
 check "0.14.1 edit -> --labels NOT passed (anchored, edit argv only)" bash -c "! grep -qxF -- '--labels' '$BIN/tea.args'"
 check "0.14.1 edit -> --body NOT passed" bash -c "! grep -qxF -- '--body' '$BIN/tea.args'"
+rm -rf "$TMP"
+
+# --- F2: helper-absent fail-open at the caller integration point ---
+# Copy the tool (+ its deps) into a temp dir, then delete layer-adopted.sh so
+# the SUT's `$(dirname "$0")/layer-adopted.sh` resolves to nothing (exit 127).
+# Even with a checklist recording adopted:off, a MISSING helper must mean
+# proceed: the fail-open cross-check can only ADD a no-op, never enable one
+# on its own absence.
+TMP="$(mktemp -d)"; BIN="$TMP/bin"; TOOLCOPY="$TMP/toolcopy"
+PKT="$TMP/minions/mail/2026-06-29-cm-to-sm-helperabsent"; mkdir -p "$PKT"
+printf 'hi\n' > "$PKT/request.md"
+mkdir -p "$TOOLCOPY"
+cp -r "$ROOT/tools/"*.sh "$TOOLCOPY/" 2>/dev/null
+rm -f "$TOOLCOPY/layer-adopted.sh"
+check "helper-absent fixture -> layer-adopted.sh really gone" bash -c "! test -e '$TOOLCOPY/layer-adopted.sh'"
+bash "$MKFAKE" "$BIN" tea 0 "https://git.example.net/o/r/issues/61"
+( cd "$TMP" && git init -q && git remote add origin https://git.example.net/o/r.git
+  mkdir -p docs && printf 'Issue mirror (MINION_ISSUES) — adopted: off — date: 2026-07-10\n' > docs/operator-onboarding-checklist.md
+  PATH="$BIN:$PATH" MINION_ISSUES=on "$TOOLCOPY/issue-sync.sh" sync --type mail --packet "$PKT" >/dev/null 2>&1 )
+check "helper-absent -> exit 0" test $? -eq 0
+check "helper-absent -> proceeds despite adopted:off (issue create happens)" bash -c "test -e '$PKT/.issue'"
 rm -rf "$TMP"
 
 echo "issue-sync: $pass passed, $fail failed"; [ "$fail" -eq 0 ]

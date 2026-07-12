@@ -64,6 +64,7 @@ usage() { echo "usage: issue-sync.sh <render|sync|host> --type <mail|gate|blocke
 [ $# -ge 1 ] || { usage; exit 2; }
 SUB="$1"; shift
 case "$SUB" in
+  -h|--help|help) usage; exit 0;;
   host) resolve_host; exit 0;;
   render|sync) ;;
   *) usage; exit 2;;
@@ -86,6 +87,16 @@ if [ "$SUB" = render ]; then render "$TYPE" "$PACKET" "$TITLE"; exit 0; fi
 
 # Optional + graceful: disabled or CLI absent -> no-op exit 0.
 [ "${MINION_ISSUES:-off}" = "on" ] || { echo "issue-sync: disabled (MINION_ISSUES != on); no-op" >&2; exit 0; }
+
+# Adoption cross-check (fail-open): env gate is primary and already passed. If THIS
+# repo's onboarding checklist explicitly records the layer adopted:off, no-op — guards
+# machine-global MINION_* bleed. Absent/unfilled/unparseable record, missing checklist,
+# or missing helper -> env gate alone decides (current behavior). See docs/issue-mirror-model.md.
+adopt_rc=0; "$(dirname "$0")/layer-adopted.sh" MINION_ISSUES >/dev/null 2>&1 || adopt_rc=$?
+if [ "$adopt_rc" -eq 1 ]; then
+  echo "issue-sync: MINION_ISSUES=on but this repo's onboarding checklist records adopted:off; no-op" >&2
+  exit 0
+fi
 
 HOST="$(resolve_host)"
 CLI=""; case "$HOST" in gitea) CLI=tea;; github) CLI=gh;; *) CLI="";; esac
