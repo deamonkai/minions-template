@@ -2,6 +2,46 @@
 
 All notable changes to this repository are tracked here.
 
+## 2026-07-17 (v1.38.0 — second-brain Obsidian-canonical block-list tags + migrate-tags; locale-portability test fix)
+
+- Commit hash: (staging→main merge; assigned at merge)
+- `tools/second-brain.sh` `capture` now emits frontmatter tags as the
+  Obsidian-canonical YAML block list (a list, no leading `#` — the `#` is for
+  inline *body* tags only) instead of the inline flow array `tags: [a, b]`,
+  and defensively strips a single leading `#` a caller passes on `--tag`. The
+  inline-array form worked but is not Obsidian's documented/canonical form and
+  is less reliably recognized across some Obsidian versions/plugins.
+- New `migrate-tags` subcommand brings existing vaults up to the canonical
+  form: it rewrites only the first frontmatter block of each note (body text —
+  even a body line that looks like a tags array — is never touched), strips a
+  leading `#`, backs up every changed note under a timestamped
+  `.sb-tag-backup-<ts>/` dir (relative paths preserved) before writing, and is
+  idempotent (an already-converted note has no inline-array line to match, so
+  it is skipped). Gated on `MINION_SECONDBRAIN=on`; vault-absent is a silent
+  no-op exit 0, consistent with the other gated subcommands.
+- `tools/tests/second-brain.test.sh` gained block-list capture assertions, a
+  capture strip-`#` case, and a full `migrate-tags` section (gate-off/
+  vault-absent no-ops, conversion, stray-`#` strip, frontmatter-only guarantee,
+  backup creation, already-block-list byte-identity, idempotency, empty
+  `tags: []`, and a trailing-slash-vault backup-path regression guard);
+  `docs/second-brain-model.md` Tool Reference gained the `migrate-tags` row.
+  Suite 116/0; all 13 suites green.
+- Shell/Test-Harness SME review (matrix-required for `tools/*.sh`) cleared it
+  after a MAJOR fix: a trailing-slash `MINION_SECONDBRAIN_VAULT` sent
+  `migrate-tags` backups to a bogus absolute path while reporting success —
+  root-caused by normalizing trailing slashes off `VAULT` at resolution.
+  Driven by downstream issue #40 (Network-Inventory 1.37.0-1.0.0; downstream
+  PR #31 migrated 110 vault notes, 3 with a stray `#`).
+- Locale-portability fix: `tools/tests/governance-consistency.test.sh` no
+  longer false-fails on a pristine clone under macOS's default `en_US.UTF-8`
+  locale — the `expand_scan_entry` self-test's `sort` is pinned `LC_ALL=C`
+  (UTF-8 collation had reordered it against a hard-coded C-collation
+  expectation). Every other `sort` in `tools/` was audited and needs no
+  pinning; locale-collation portability was added to the Shell/Test-Harness
+  SME charter. Verified under `en_US.UTF-8`, `de_DE.UTF-8`, and `C`. Driven by
+  a downstream field report (v1.33.0 → v1.37.0 upgrade).
+
+
 ## 2026-07-12 (v1.37.0 — Instruction-surface size budgets; template manages its own size)
 
 - Commit hash: 4729f1a (staging merge)

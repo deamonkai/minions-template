@@ -30,7 +30,7 @@ repository's commit history is never pushed here — it tracks maintainer-local
 files and personal Operator context across past revisions, so only the current,
 filtered tree is published.
 
-- **Source:** canonical release `v1.37.0`.
+- **Source:** canonical release `v1.38.0`.
 - **History:** fresh — this copy carries no canonical commit history, only its
   own publish-only history.
 

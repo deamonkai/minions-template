@@ -21,10 +21,14 @@ set -uo pipefail
 
 usage() {
   cat <<'EOF' >&2
-usage: second-brain.sh <capture|search|filter|scan|path> [options]
+usage: second-brain.sh <capture|search|filter|scan|path|migrate-tags> [options]
   capture [--title <t>] [--tag <t>]... [--source <path>] [--file <path>]
       body from --file, else stdin; AC-2 filter runs first; clean -> append
       to inbox/, trip -> reject (nothing written)
+  migrate-tags
+      convert existing vault notes' frontmatter tags from inline array
+      (tags: [a, b]) to the Obsidian-canonical block list; strips a leading
+      '#'; backs up every changed note first; idempotent
   search <query> [--limit <n>] [--scope inbox|all]
       read-only recall; rg preferred, grep -r fallback
   filter [--file <path>]
@@ -37,6 +41,9 @@ EOF
 }
 
 VAULT="${MINION_SECONDBRAIN_VAULT:-$HOME/second-brain}"
+# Normalize away trailing slashes so path prefix-strips are exact (e.g. the
+# migrate-tags relative-path backup). Never reduce a bare "/" to empty.
+while [ "$VAULT" != "/" ] && [ "${VAULT%/}" != "$VAULT" ]; do VAULT="${VAULT%/}"; done
 
 gate_on() { [ "${MINION_SECONDBRAIN:-off}" = "on" ]; }
 
@@ -214,14 +221,14 @@ cmd_capture() {
     echo "---"
     [ -n "$title" ] && echo "title: $title"
     if [ "${#tags[@]}" -gt 0 ]; then
-      printf 'tags: ['
-      local first=1 t
+      # Obsidian-canonical: frontmatter tags are ALWAYS a block list, never a
+      # leading '#' (the '#' is for inline body tags only). Emit the block list
+      # and defensively strip a single leading '#' a caller may have passed.
+      echo 'tags:'
+      local t
       for t in "${tags[@]}"; do
-        [ "$first" -eq 1 ] || printf ', '
-        printf '%s' "$t"
-        first=0
+        printf '  - %s\n' "${t#\#}"
       done
-      printf ']\n'
     fi
     [ -n "$source" ] && echo "source: $source"
     echo "date: $(date '+%Y-%m-%d %H:%M:%S')"
@@ -306,6 +313,92 @@ cmd_scan() {
   fi
 }
 
+# One-off migration: rewrite existing notes' FRONTMATTER tags from the inline
+# flow array (tags: [a, b]) to the Obsidian-canonical block list. Frontmatter
+# only — body text is never touched, even a body line that looks like a tags
+# array. Backs up every changed note (relative path preserved) under a
+# timestamped dir before writing, and is idempotent: a note already in block
+# form has no inline-array frontmatter line, so it is skipped.
+cmd_migrate_tags() {
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      *) echo "second-brain: unknown migrate-tags option: $1" >&2; usage; exit 2;;
+    esac
+  done
+
+  gate_on || { echo "second-brain: disabled (MINION_SECONDBRAIN != on); no-op" >&2; exit 0; }
+  [ -d "$VAULT" ] || { echo "second-brain: vault absent ($VAULT); no-op" >&2; exit 0; }
+
+  local ts backup migrated=0 stray=0
+  ts="$(date '+%Y%m%d-%H%M%S')"
+  backup="$VAULT/.sb-tag-backup-$ts"
+
+  local f rel tags_line tmp
+  while IFS= read -r -d '' f; do
+    # The inline-array tags line inside the FIRST frontmatter block only.
+    tags_line="$(awk '
+      NR==1 && $0=="---" {infm=1; next}
+      infm==1 && $0=="---" {exit}
+      infm==1 && /^tags:[[:space:]]*\[.*\][[:space:]]*$/ {print; exit}
+    ' "$f")"
+    [ -n "$tags_line" ] || continue   # no inline-array frontmatter tags -> skip (idempotent)
+
+    tmp="$(mktemp)" || { echo "second-brain: mktemp failed" >&2; exit 4; }
+    if ! awk '
+      BEGIN{infm=0}
+      NR==1 && $0=="---" {infm=1; print; next}
+      infm==1 && $0=="---" {infm=0; print; next}
+      infm==1 && /^tags:[[:space:]]*\[.*\][[:space:]]*$/ {
+        s=$0
+        sub(/^tags:[[:space:]]*\[/, "", s)
+        sub(/\][[:space:]]*$/, "", s)
+        t=s; gsub(/[[:space:]]/, "", t)
+        if (t=="") { print; next }          # empty [] -> leave unchanged
+        # Assumes simple tag tokens (Obsidian tags are alnum/_/-// only — no
+        # embedded commas, spaces, or quotes), so a plain comma split is safe.
+        n=split(s, a, /,/)
+        print "tags:"
+        for (i=1;i<=n;i++){
+          x=a[i]
+          gsub(/^[[:space:]]+/, "", x); gsub(/[[:space:]]+$/, "", x)
+          sub(/^#/, "", x)                  # strip a single leading '#'
+          print "  - " x
+        }
+        next
+      }
+      {print}
+    ' "$f" > "$tmp"; then
+      rm -f "$tmp"; echo "second-brain: awk failed on $f" >&2; exit 4
+    fi
+
+    if cmp -s "$f" "$tmp"; then rm -f "$tmp"; continue; fi   # no net change (e.g. empty [])
+
+    rel="${f#"$VAULT"/}"
+    mkdir -p "$backup/$(dirname "$rel")" \
+      || { rm -f "$tmp"; echo "second-brain: backup mkdir failed for $rel" >&2; exit 4; }
+    cp "$f" "$backup/$rel" \
+      || { rm -f "$tmp"; echo "second-brain: backup copy failed: $f" >&2; exit 4; }
+    if ! mv "$tmp" "$f"; then
+      rm -f "$tmp"; echo "second-brain: write failed: $f" >&2; exit 4
+    fi
+    migrated=$((migrated + 1))
+    # Count a stray '#' only when a tag actually STARTS with one (right after
+    # the '[' or a ',', modulo spaces) — the exact case sub(/^#/) strips. A
+    # mid-token '#' (e.g. c#pu) is left alone and must not be counted.
+    printf '%s' "$tags_line" | grep -qE '(\[|,)[[:space:]]*#' && stray=$((stray + 1))
+  done < <(find "$VAULT" \
+      \( -name '.git' -o -name '.obsidian' -o -name '.trash' -o -name '.sb-tag-backup-*' \) -prune -o \
+      -type f -name '*.md' -print0)
+
+  if [ "$migrated" -eq 0 ]; then
+    echo "second-brain: no inline-array frontmatter tags found; nothing to migrate" >&2
+    exit 0
+  fi
+  echo "second-brain: migrated $migrated note(s) to block-list tags; backup at $backup"
+  [ "$stray" -gt 0 ] && echo "second-brain: stripped a leading '#' in $stray note(s)"
+  exit 0
+}
+
 [ $# -ge 1 ] || { usage; exit 2; }
 SUB="$1"; shift
 case "$SUB" in
@@ -314,5 +407,6 @@ case "$SUB" in
   capture) cmd_capture "$@";;
   search)  cmd_search "$@";;
   scan)    cmd_scan "$@";;
+  migrate-tags) cmd_migrate_tags "$@";;
   *) usage; exit 2;;
 esac

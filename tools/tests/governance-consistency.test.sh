@@ -38,7 +38,7 @@ has_old_norm() {
 
 # Self-test the detector — an untested detector is theater. It must CATCH a known-bad
 # sample that defeats line-based grep (wrapped + "asks explicitly"), and must NOT flag
-# a known-good sample (the new posture). Downstream feedback (a downstream trading-bot project SM)
+# a known-good sample (the new posture). Downstream feedback (Molloy Trading Bot SM)
 # found the old line-based detector false-PASSing on exactly this shape.
 __t="$(mktemp)"
 _pos() { printf '%b' "$2" > "$__t"; has_old_norm "$__t"   || { echo "FAIL - detector self-test (missed positive): $1"; fail=1; }; }
@@ -79,7 +79,10 @@ __ge="$(mktemp -d)"
 mkdir -p "$__ge/minions/smes" "$__ge/.claude/agents"
 : > "$__ge/minions/smes/governance-invariant.md"; : > "$__ge/minions/smes/README.md"
 : > "$__ge/.claude/agents/sme-foo.md"; : > "$__ge/.claude/agents/pm.md"
-[ "$(expand_scan_entry 'minions/smes/*.md' "$__ge" | sort | tr '\n' ',')" \
+# LC_ALL=C pins collation: the expected string below is C-order (uppercase
+# README before lowercase governance); under a UTF-8 locale (macOS default)
+# sort collates case-insensitively and this self-test false-fails.
+[ "$(expand_scan_entry 'minions/smes/*.md' "$__ge" | LC_ALL=C sort | tr '\n' ',')" \
     = "minions/smes/README.md,minions/smes/governance-invariant.md," ] \
   || { echo "FAIL - expand_scan_entry self-test (glob did not expand to all matches)"; fail=1; }
 [ "$(expand_scan_entry '.claude/agents/sme-*.md' "$__ge")" = ".claude/agents/sme-foo.md" ] \

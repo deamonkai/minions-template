@@ -194,6 +194,16 @@ Obsidian is installed or running.
 | `filter [--file <path>]` | no (pure/offline) | The AC-2 exclusion primitive alone, testable with the gate off | 0 clean · 3 trip |
 | `scan` | yes | `gitleaks detect --source "$VAULT" --no-git` over the vault | 0 clean/no-op · 5 finding |
 | `path [--check]` | no (pure/offline) | Echo the resolved vault path; `--check` runs the warn-only AC-1 preflight | 0 always |
+| `migrate-tags` | yes | One-off: convert existing notes' **frontmatter** tags from the inline array (`tags: [a, b]`) to the Obsidian-canonical block list, stripping a leading `#`; body text is never touched; every changed note is backed up first; idempotent | 0 migrated/no-op · 4 I/O |
+
+`capture` writes frontmatter tags as the Obsidian-canonical block list (a
+YAML list, no leading `#` — the `#` prefix is for inline *body* tags only) and
+strips a leading `#` a caller passes. `migrate-tags` brings vaults captured by
+older versions (which emitted the inline `tags: [a, b]` array) up to the same
+form: it rewrites only the first frontmatter block, backs up each changed note
+under a timestamped `.sb-tag-backup-<ts>/` dir (relative paths preserved), and
+is safe to re-run — an already-converted note has no inline-array line to
+match, so it is skipped.
 
 `filter` and `path` short-circuit before the `MINION_SECONDBRAIN` gate by
 design — the same split `tools/issue-sync.sh` uses between its pure
