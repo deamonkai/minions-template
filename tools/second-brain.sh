@@ -21,14 +21,26 @@ set -uo pipefail
 
 usage() {
   cat <<'EOF' >&2
-usage: second-brain.sh <capture|search|filter|scan|path|migrate-tags> [options]
+usage: second-brain.sh <capture|capture-batch|search|filter|scan|path|migrate-tags|migrate-frontmatter> [options]
   capture [--title <t>] [--tag <t>]... [--source <path>] [--file <path>]
       body from --file, else stdin; AC-2 filter runs first; clean -> append
       to inbox/, trip -> reject (nothing written)
+  capture-batch [--file <path>]
+      many notes in one call from a directive-prefixed stream (--file or stdin):
+      records separated by a line of '%%%' (trailing whitespace tolerated); each record's leading
+      '@title <t>' / '@tags <a, b>' / '@source <s>' lines set metadata, the rest
+      is body. AC-2 filter runs per record; clean records are written (paths ->
+      stdout), tripped/empty ones skipped (-> stderr). Exit 0 all written,
+      3 if any skipped, 2 no records
   migrate-tags
       convert existing vault notes' frontmatter tags from inline array
       (tags: [a, b]) to the Obsidian-canonical block list; strips a leading
       '#'; backs up every changed note first; idempotent
+  migrate-frontmatter
+      fix existing notes' frontmatter YAML safety: re-quote a title:/source:
+      value that would break YAML (colon-space, trailing colon, leading
+      indicator) and map ':' -> '/' in block-list tags; backs up every changed
+      note first; idempotent (run migrate-tags first if tags are inline arrays)
   search <query> [--limit <n>] [--scope inbox|all]
       read-only recall; rg preferred, grep -r fallback
   filter [--file <path>]
@@ -118,6 +130,13 @@ slugify() { # $1=title -> lowercase, non-alnum runs collapsed to '-', trimmed
   printf '%s' "${s:-note}"
 }
 
+# yaml_dq <str> -> a valid YAML double-quoted scalar. Escapes backslash then
+# double-quote and wraps in quotes, so a free-text value containing a colon or a
+# leading YAML indicator char (# [ { & * ! | > % @ " ...) stays parseable — an
+# unquoted `title: Foo: bar` is invalid YAML and makes Obsidian drop the WHOLE
+# frontmatter block (every tag silently lost).
+yaml_dq() { local s="${1//\\/\\\\}"; s="${s//\"/\\\"}"; printf '"%s"' "$s"; }
+
 cmd_filter() {
   local file=""
   while [ $# -gt 0 ]; do
@@ -182,6 +201,70 @@ cmd_path() {
   exit 0
 }
 
+# write_note <title> <source> <body> [tag...]
+# Shared assemble -> AC-2 filter -> write core for `capture` and `capture-batch`.
+# Assembles frontmatter (Obsidian-canonical block-list tags, a single leading
+# '#' stripped) + body, runs run_filter. Clean -> writes to inbox/ with the
+# slug+timestamp+collision filename logic, echoes the written path to stdout,
+# returns 0. Filter trip -> nothing written, returns run_filter's code (3;
+# class+line already reported to stderr). I/O failure -> returns 4. Never exits;
+# the caller decides. Assumes gate_on and vault presence were already checked.
+write_note() {
+  local title="$1" source="$2" body="$3"; shift 3
+  local tags=("$@")
+  local tmp
+  tmp="$(mktemp)" || { echo "second-brain: mktemp failed" >&2; return 4; }
+  {
+    echo "---"
+    [ -n "$title" ] && printf 'title: %s\n' "$(yaml_dq "$title")"
+    if [ "${#tags[@]}" -gt 0 ]; then
+      # Obsidian-canonical: frontmatter tags are ALWAYS a block list, never a
+      # leading '#' (the '#' is for inline body tags only). Per tag: strip a
+      # single leading '#', and map ':' -> '/' — Obsidian tag names allow only
+      # [A-Za-z0-9_/-], so a colon (e.g. a `branch:dev` namespace) is not a
+      # usable tag; '/' is Obsidian's nested-tag form and preserves the intent.
+      echo 'tags:'
+      local t tn
+      for t in "${tags[@]}"; do
+        tn="${t#\#}"; tn="${tn//:/\/}"
+        printf '  - %s\n' "$tn"
+      done
+    fi
+    [ -n "$source" ] && printf 'source: %s\n' "$(yaml_dq "$source")"
+    echo "date: $(date '+%Y-%m-%d %H:%M:%S')"
+    echo "---"
+    echo
+    printf '%s\n' "$body"
+  } > "$tmp"
+
+  run_filter "$tmp"
+  local rc=$?
+  if [ "$rc" -ne 0 ]; then
+    rm -f "$tmp"
+    return "$rc"
+  fi
+
+  local inbox="$VAULT/inbox"
+  mkdir -p "$inbox" || { rm -f "$tmp"; echo "second-brain: mkdir failed: $inbox" >&2; return 4; }
+
+  local slug ts dest n=1
+  slug="$(slugify "${title:-note}")"
+  ts="$(date '+%Y%m%d-%H%M%S')"
+  dest="$inbox/$ts-$slug.md"
+  while [ -e "$dest" ]; do
+    dest="$inbox/$ts-$slug-$n.md"
+    n=$((n + 1))
+  done
+
+  if ! mv "$tmp" "$dest"; then
+    rm -f "$tmp"
+    echo "second-brain: write failed: $dest" >&2
+    return 4
+  fi
+  echo "$dest"
+  return 0
+}
+
 cmd_capture() {
   local title="" tags=() source="" file=""
   while [ $# -gt 0 ]; do
@@ -215,54 +298,122 @@ cmd_capture() {
   [ -n "$(printf '%s' "$body" | tr -d '[:space:]')" ] \
     || { echo "second-brain: empty body" >&2; usage; exit 2; }
 
-  local tmp
-  tmp="$(mktemp)" || { echo "second-brain: mktemp failed" >&2; exit 4; }
-  {
-    echo "---"
-    [ -n "$title" ] && echo "title: $title"
-    if [ "${#tags[@]}" -gt 0 ]; then
-      # Obsidian-canonical: frontmatter tags are ALWAYS a block list, never a
-      # leading '#' (the '#' is for inline body tags only). Emit the block list
-      # and defensively strip a single leading '#' a caller may have passed.
-      echo 'tags:'
-      local t
-      for t in "${tags[@]}"; do
-        printf '  - %s\n' "${t#\#}"
-      done
-    fi
-    [ -n "$source" ] && echo "source: $source"
-    echo "date: $(date '+%Y-%m-%d %H:%M:%S')"
-    echo "---"
-    echo
-    printf '%s\n' "$body"
-  } > "$tmp"
+  write_note "$title" "$source" "$body" ${tags[@]+"${tags[@]}"}
+  exit $?
+}
 
-  run_filter "$tmp"
-  local rc=$?
-  if [ "$rc" -ne 0 ]; then
-    rm -f "$tmp"
-    exit "$rc"
+# Batch-capture counters (globals: the record loop + process_batch_record run in
+# the current shell via here-strings, never a pipe, so these persist).
+_SB_WRITTEN=0
+_SB_SKIPPED=0
+_SB_IOERR=0
+
+# process_batch_record <record-text> <index>
+# Parse leading @title/@tags/@source directives, then body; skip empty-body and
+# filter-tripped records (report each to stderr), write clean ones via
+# write_note (path -> stdout). Whitespace-only records are ignored silently
+# (separator artifacts). Updates _SB_WRITTEN / _SB_SKIPPED.
+process_batch_record() {
+  local rec="$1" idx="$2"
+  [ -n "$(printf '%s' "$rec" | tr -d '[:space:]')" ] || return 0
+
+  local title="" source="" tagline="" body="" in_body=0 have_body=0 line
+  local tags=()
+  while IFS= read -r line || [ -n "$line" ]; do
+    if [ "$in_body" -eq 0 ]; then
+      case "$line" in
+        '@title '*)  title="${line#@title }";   continue;;
+        '@title')    title="";                  continue;;
+        '@source '*) source="${line#@source }"; continue;;
+        '@source')   source="";                 continue;;
+        '@tags '*)   tagline="${line#@tags }";   continue;;
+        '@tags')     tagline="";                continue;;
+        *) in_body=1;;
+      esac
+    fi
+    if [ "$have_body" -eq 0 ]; then body="$line"; have_body=1
+    else body="$body
+$line"; fi
+  done <<< "$rec"
+
+  [ -n "$(printf '%s' "$body" | tr -d '[:space:]')" ] || {
+    echo "second-brain: skipped record $idx (\"${title:-note}\") — empty body" >&2
+    _SB_SKIPPED=$((_SB_SKIPPED + 1)); return 0
+  }
+
+  # split @tags on commas and/or whitespace into single-token tags (set -f
+  # so a tag glob char is never expanded during word-splitting)
+  if [ -n "$tagline" ]; then
+    local _t
+    set -f
+    for _t in $(printf '%s' "$tagline" | tr ',' ' '); do tags+=("$_t"); done
+    set +f
   fi
 
-  local inbox="$VAULT/inbox"
-  mkdir -p "$inbox" || { rm -f "$tmp"; echo "second-brain: mkdir failed: $inbox" >&2; exit 4; }
+  local out rc
+  out="$(write_note "$title" "$source" "$body" ${tags[@]+"${tags[@]}"})"
+  rc=$?
+  if [ "$rc" -eq 0 ]; then
+    printf '%s\n' "$out"
+    _SB_WRITTEN=$((_SB_WRITTEN + 1))
+  else
+    # rc 3 = AC-2 filter trip (class+line already reported by run_filter); 4 = I/O
+    echo "second-brain: skipped record $idx (\"${title:-note}\") — filter/io (rc $rc)" >&2
+    _SB_SKIPPED=$((_SB_SKIPPED + 1))
+    [ "$rc" -eq 4 ] && _SB_IOERR=$((_SB_IOERR + 1))
+  fi
+}
 
-  local slug ts dest n=1
-  slug="$(slugify "${title:-note}")"
-  ts="$(date '+%Y%m%d-%H%M%S')"
-  dest="$inbox/$ts-$slug.md"
-  while [ -e "$dest" ]; do
-    dest="$inbox/$ts-$slug-$n.md"
-    n=$((n + 1))
+cmd_capture_batch() {
+  local file=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --file)
+        [ $# -ge 2 ] || { echo "second-brain: --file needs a value" >&2; usage; exit 2; }
+        file="$2"; shift 2;;
+      *) echo "second-brain: unknown capture-batch option: $1" >&2; usage; exit 2;;
+    esac
   done
 
-  if ! mv "$tmp" "$dest"; then
-    rm -f "$tmp"
-    echo "second-brain: write failed: $dest" >&2
-    exit 4
+  gate_on || { echo "second-brain: disabled (MINION_SECONDBRAIN != on); no-op" >&2; exit 0; }
+  [ -d "$VAULT" ] || { echo "second-brain: vault absent ($VAULT); no-op" >&2; exit 0; }
+
+  local input
+  if [ -n "$file" ]; then
+    [ -f "$file" ] || { echo "second-brain: --file not found: $file" >&2; exit 4; }
+    input="$(cat "$file")"
+  else
+    input="$(cat)"
   fi
-  echo "$dest"
-  exit 0
+
+  _SB_WRITTEN=0; _SB_SKIPPED=0; _SB_IOERR=0
+  # rec_has (not [ -z "$rec" ]) tracks whether the current record has started, so
+  # a leading BLANK line is preserved as the body's first line instead of being
+  # dropped — dropping it would shift a following '@'-line from body to directive.
+  local rec="" idx=0 line rec_has=0 is_fence rest
+  while IFS= read -r line || [ -n "$line" ]; do
+    # record separator: a line of '%%%' optionally followed by trailing whitespace
+    case "$line" in
+      %%%) is_fence=1;;
+      %%%*) rest="${line#%%%}"
+            [ -z "$(printf '%s' "$rest" | tr -d '[:space:]')" ] && is_fence=1 || is_fence=0;;
+      *) is_fence=0;;
+    esac
+    if [ "$is_fence" -eq 1 ]; then
+      idx=$((idx + 1)); process_batch_record "$rec" "$idx"; rec=""; rec_has=0
+    elif [ "$rec_has" -eq 0 ]; then rec="$line"; rec_has=1
+    else rec="$rec
+$line"; fi
+  done <<< "$input"
+  idx=$((idx + 1)); process_batch_record "$rec" "$idx"
+
+  if [ "$_SB_WRITTEN" -eq 0 ] && [ "$_SB_SKIPPED" -eq 0 ]; then
+    echo "second-brain: no records found" >&2; exit 2
+  fi
+  echo "second-brain: batch — $_SB_WRITTEN written, $_SB_SKIPPED skipped" >&2
+  # I/O failure on any record trumps a content skip: exit 4 (environment) over 3.
+  [ "$_SB_IOERR" -gt 0 ] && exit 4
+  [ "$_SB_SKIPPED" -eq 0 ] && exit 0 || exit 3
 }
 
 cmd_search() {
@@ -387,7 +538,8 @@ cmd_migrate_tags() {
     # mid-token '#' (e.g. c#pu) is left alone and must not be counted.
     printf '%s' "$tags_line" | grep -qE '(\[|,)[[:space:]]*#' && stray=$((stray + 1))
   done < <(find "$VAULT" \
-      \( -name '.git' -o -name '.obsidian' -o -name '.trash' -o -name '.sb-tag-backup-*' \) -prune -o \
+      \( -name '.git' -o -name '.obsidian' -o -name '.trash' \
+         -o -name '.sb-tag-backup-*' -o -name '.sb-frontmatter-backup-*' \) -prune -o \
       -type f -name '*.md' -print0)
 
   if [ "$migrated" -eq 0 ]; then
@@ -399,14 +551,89 @@ cmd_migrate_tags() {
   exit 0
 }
 
+# One-off migration for the frontmatter-YAML-safety gaps that older captures
+# left in existing notes (fixed forward in write_note): re-quote a `title:` /
+# `source:` scalar whose unquoted value would break YAML (a colon-space, a
+# trailing colon, or a leading indicator char) — an invalid block makes Obsidian
+# drop ALL tags — and map ':' -> '/' inside block-list tag items (a colon is not
+# a valid Obsidian tag char). Frontmatter only; body untouched. Backs up every
+# changed note first; idempotent (an already-quoted title / colon-free tag is
+# left as-is). Run `migrate-tags` first if a vault still has inline-array tags.
+cmd_migrate_frontmatter() {
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      *) echo "second-brain: unknown migrate-frontmatter option: $1" >&2; usage; exit 2;;
+    esac
+  done
+
+  gate_on || { echo "second-brain: disabled (MINION_SECONDBRAIN != on); no-op" >&2; exit 0; }
+  [ -d "$VAULT" ] || { echo "second-brain: vault absent ($VAULT); no-op" >&2; exit 0; }
+
+  local ts backup migrated=0
+  ts="$(date '+%Y%m%d-%H%M%S')"
+  backup="$VAULT/.sb-frontmatter-backup-$ts"
+
+  local f rel tmp
+  while IFS= read -r -d '' f; do
+    tmp="$(mktemp)" || { echo "second-brain: mktemp failed" >&2; exit 4; }
+    if ! awk '
+      BEGIN{infm=0; intags=0}
+      NR==1 && $0=="---" {infm=1; print; next}
+      infm==1 && $0=="---" {infm=0; intags=0; print; next}
+      infm==1 {
+        if ($0 ~ /^[^ ]/) intags=0            # any top-level key ends a tags block
+        if ($0 ~ /^(title|source): /) {
+          key=$0; sub(/:.*/, "", key)
+          val=$0; sub(/^[^:]*: /, "", val)
+          if (val !~ /^".*"$/ && (val ~ /: / || val ~ /:[ \t]*$/ || val ~ /^[#!&*|>@%]/)) {
+            gsub(/\\/, "\\\\", val); gsub(/"/, "\\\"", val)
+            printf "%s: \"%s\"\n", key, val; next
+          }
+          print; next
+        }
+        if ($0 ~ /^tags:/) { intags=1; print; next }
+        if (intags==1 && $0 ~ /^[ ]+- /) { line=$0; gsub(/:/, "/", line); print line; next }
+        print; next
+      }
+      {print}
+    ' "$f" > "$tmp"; then
+      rm -f "$tmp"; echo "second-brain: awk failed on $f" >&2; exit 4
+    fi
+
+    if cmp -s "$f" "$tmp"; then rm -f "$tmp"; continue; fi   # nothing to fix in this note
+
+    rel="${f#"$VAULT"/}"
+    mkdir -p "$backup/$(dirname "$rel")" \
+      || { rm -f "$tmp"; echo "second-brain: backup mkdir failed for $rel" >&2; exit 4; }
+    cp "$f" "$backup/$rel" \
+      || { rm -f "$tmp"; echo "second-brain: backup copy failed: $f" >&2; exit 4; }
+    if ! mv "$tmp" "$f"; then
+      rm -f "$tmp"; echo "second-brain: write failed: $f" >&2; exit 4
+    fi
+    migrated=$((migrated + 1))
+  done < <(find "$VAULT" \
+      \( -name '.git' -o -name '.obsidian' -o -name '.trash' \
+         -o -name '.sb-tag-backup-*' -o -name '.sb-frontmatter-backup-*' \) -prune -o \
+      -type f -name '*.md' -print0)
+
+  if [ "$migrated" -eq 0 ]; then
+    echo "second-brain: no frontmatter-safety issues found; nothing to migrate" >&2
+    exit 0
+  fi
+  echo "second-brain: fixed frontmatter in $migrated note(s) (title/source quoting, ':' -> '/' tags); backup at $backup"
+  exit 0
+}
+
 [ $# -ge 1 ] || { usage; exit 2; }
 SUB="$1"; shift
 case "$SUB" in
   filter)  cmd_filter "$@";;
   path)    cmd_path "$@";;
   capture) cmd_capture "$@";;
+  capture-batch) cmd_capture_batch "$@";;
   search)  cmd_search "$@";;
   scan)    cmd_scan "$@";;
   migrate-tags) cmd_migrate_tags "$@";;
+  migrate-frontmatter) cmd_migrate_frontmatter "$@";;
   *) usage; exit 2;;
 esac

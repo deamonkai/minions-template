@@ -38,7 +38,7 @@ has_old_norm() {
 
 # Self-test the detector — an untested detector is theater. It must CATCH a known-bad
 # sample that defeats line-based grep (wrapped + "asks explicitly"), and must NOT flag
-# a known-good sample (the new posture). Downstream feedback (Molloy Trading Bot SM)
+# a known-good sample (the new posture). Downstream feedback (a downstream project's SM)
 # found the old line-based detector false-PASSing on exactly this shape.
 __t="$(mktemp)"
 _pos() { printf '%b' "$2" > "$__t"; has_old_norm "$__t"   || { echo "FAIL - detector self-test (missed positive): $1"; fail=1; }; }

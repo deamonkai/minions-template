@@ -53,6 +53,23 @@ complete until every `REQUIRED` item is confirmed present in the live repo. The
 `Criticality` column in `docs/export-manifest.md` marks the `baseline` files
 that most often carry these.
 
+### 1.39.0 — second-brain capture-batch
+
+No required changes — adopt normally. Additive `capture-batch` subcommand in
+the optional `MINION_SECONDBRAIN` layer; `tools/second-brain.sh` plus its tests
+and docs are `template-replace`. No governance-token / hard-stop change.
+
+### 1.38.0 — second-brain block-list tags + migrate-tags; locale test fix
+
+No required changes — adopt normally. `capture` now emits Obsidian block-list
+frontmatter tags and a new `migrate-tags` subcommand arrives (optional
+`MINION_SECONDBRAIN` layer, `template-replace`). Also re-vendor
+`tools/tests/governance-consistency.test.sh`: it stops false-failing on macOS's
+default UTF-8 locale (a `sort` pinned `LC_ALL=C`) — a baseline governance-guard
+portability fix that benefits **every** downstream regardless of whether it uses
+the `MINION_SECONDBRAIN` layer, so don't skim past it as second-brain-only. No
+governance-token / hard-stop change.
+
 ### 1.37.0 — Instruction-surface size budgets (whole-file word guard)
 
 OPTIONAL feature with a REQUIRED awareness item.
@@ -184,7 +201,8 @@ surfaces converge on upgrade; one deliberate behavior change to know about.
 
 ### 1.34.0 — Default SME bench (6 infrastructure SMEs ship as template defaults)
 
-OPTIONAL (additive) with one REQUIRED pre-upgrade check.
+OPTIONAL (additive) with a REQUIRED pre-upgrade name-collision check and a
+REQUIRED-IF-ADOPTED verbatim-bench dedup (both below).
 
 - The 6 generic infrastructure SMEs — `governance-invariant`,
   `cross-family-launcher`, `export-privacy`, `upgrade-path`,
@@ -206,6 +224,30 @@ OPTIONAL (additive) with one REQUIRED pre-upgrade check.
   same name, RENAME it before upgrading — the `template-replace` glob will
   otherwise overwrite it with the default. Downstream SMEs with distinct names
   are unaffected.
+- **REQUIRED-IF-ADOPTED — one-time dedup of a verbatim-adopted bench:** if you
+  earlier adopted the canonical bench VERBATIM into your Local Registry / Local
+  Matrix BELOW the delimiter (against the 1.28.0 "build your own; do not adopt
+  verbatim" guidance), the mechanical split-merge now ships those same default
+  rows ABOVE the delimiter while your verbatim copies remain BELOW — leaving
+  every default-bench SME double-registered. ONCE, before taking the new
+  `minions/smes/README.md` and `minions/review-matrix.md`, delete the duplicated
+  default rows from your Local Registry / Local Matrix, keeping only genuinely
+  downstream-authored rows below the delimiter. This mirrors the 1.28.0 one-time
+  delimiter move; a naive whole-file merge leaves the duplicates in place.
+- **CAUTION — private downstream SMEs are now exportable-by-default:** because
+  this version reclassifies `minions/smes/*.md` and the `sme-*` launchers as
+  `template-replace` (matched by glob), a PRIVATE, downstream-authored SME whose
+  files match those globs is now swept into a public-mirror export by default.
+  If you maintain a public export and have private SMEs, mark each private
+  charter and its launchers `do-not-export` before your next export, AND sweep
+  the SME's key/name as a neutralization token tree-wide (a paired-role,
+  routing, or `capabilities.md` reference can still echo the private name even
+  once the files are excluded) — see the Adding-an-SME checklist in
+  `minions/smes/README.md`. Exclusion is operator-enforced at export Step 1 (the
+  more-specific `do-not-export` row wins over the glob; there is no automated
+  filter), so apply it deliberately. The public-export seed-state reset covers
+  only the below-delimiter Local Registry **and** Local Matrix rows, not the
+  charter / launcher files or any name echo elsewhere.
 
 ### 1.33.0 — Effort calibration + external-capability scouting
 

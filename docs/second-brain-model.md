@@ -190,11 +190,23 @@ Obsidian is installed or running.
 | Subcommand | Gated? | Purpose | Exit codes |
 | --- | --- | --- | --- |
 | `capture [--title <t>] [--tag <t>]... [--source <path>] [--file <path>]` | yes | Filter, then append a note to `inbox/`; body from `--file` or stdin | 0 written · 2 usage/empty body · 3 filter reject · 4 I/O |
+| `capture-batch [--file <path>]` | yes | Save many notes in one call from a directive-prefixed stream (`--file` or stdin): records separated by a line of `%%%` (trailing whitespace tolerated); each record's leading `@title` / `@tags <a, b>` / `@source` lines set metadata, the rest is body. AC-2 filter runs **per record**, write-clean/skip-tripped: clean records written (paths → stdout), tripped/empty ones skipped (→ stderr) | 0 all written · 3 ≥1 skipped · 2 no records · 4 I/O |
 | `search <query> [--limit <n>] [--scope inbox\|all]` | yes | Read-only recall (`rg` preferred, `grep -r` fallback) | 0 always (including zero hits) |
 | `filter [--file <path>]` | no (pure/offline) | The AC-2 exclusion primitive alone, testable with the gate off | 0 clean · 3 trip |
 | `scan` | yes | `gitleaks detect --source "$VAULT" --no-git` over the vault | 0 clean/no-op · 5 finding |
 | `path [--check]` | no (pure/offline) | Echo the resolved vault path; `--check` runs the warn-only AC-1 preflight | 0 always |
 | `migrate-tags` | yes | One-off: convert existing notes' **frontmatter** tags from the inline array (`tags: [a, b]`) to the Obsidian-canonical block list, stripping a leading `#`; body text is never touched; every changed note is backed up first; idempotent | 0 migrated/no-op · 4 I/O |
+| `migrate-frontmatter` | yes | One-off: fix YAML-safety in existing notes — re-quote a `title:` / `source:` value that would break YAML (a colon-space, trailing colon, or leading indicator char), and map `:` → `/` inside block-list tags; body text is never touched; every changed note is backed up first; idempotent. Run `migrate-tags` first if tags are still inline arrays | 0 fixed/no-op · 4 I/O |
+
+**Frontmatter YAML safety.** `capture` writes free-text scalars (`title:`,
+`source:`) as **double-quoted, escaped** YAML values, because an unquoted value
+containing a colon-space (`title: Quarterly review: revenue up`) or a leading
+YAML indicator char (`#`, `[`, `{`, `&`, `*`, `!`, `|`, `>`, `%`, `@`, `"`) is
+invalid YAML — Obsidian then parses **no** frontmatter and silently drops every
+tag on the note. It also maps `:` → `/` in tag values: Obsidian tag names allow
+only `[A-Za-z0-9_/-]`, so a `branch:dev` namespace is not a usable tag; `/` is
+Obsidian's nested-tag form and preserves the intent. `migrate-frontmatter`
+applies both fixes to notes captured by older versions.
 
 `capture` writes frontmatter tags as the Obsidian-canonical block list (a
 YAML list, no leading `#` — the `#` prefix is for inline *body* tags only) and

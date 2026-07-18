@@ -117,7 +117,21 @@ An SME lands only after a PM bench proposal brief and Operator approval (see Gro
    DEFERRED notice per `docs/downstream-onboarding-playbook.md`.
 4. Add `minions/review-matrix.md` rows for any change types this SME
    must review deterministically (optional — discovery covers the rest).
-5. In coordinator mode, bench registry edits go through the coordinator
+5. **If the SME is private / downstream-only:** add a `do-not-export` row for
+   its charter and every launcher to your export manifest. Since 1.34.0 the
+   `minions/smes/*.md` and `sme-*` launcher globs are `template-replace`
+   (exportable by default), so a private SME rides into a public mirror — and
+   into the downstream-onboarding `.minions-template/` snapshot — unless
+   excluded (an Export/Privacy concern, not optional if you export). Exclusion
+   is operator-enforced at export Step 1: the more-specific `do-not-export` row
+   wins over the glob, but there is no automated filter, so apply it
+   deliberately. Excluding the FILES is necessary but not sufficient — also
+   sweep the SME's key/name as a neutralization token tree-wide (public-export
+   runbook Step 2), since a paired-role reference, a `capabilities.md` note, or
+   an above-delimiter routing mention can still echo the private name. The
+   seed-state reset clears only the below-delimiter Local Registry / Local
+   Matrix rows, not the charter/launcher files or any name echo elsewhere.
+6. In coordinator mode, bench registry edits go through the coordinator
    seat, with lane packets as the request path.
 
 Removing an SME: set its registry status to `retired` (rows are never

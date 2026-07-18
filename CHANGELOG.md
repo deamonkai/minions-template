@@ -2,6 +2,92 @@
 
 All notable changes to this repository are tracked here.
 
+## 2026-07-17 (v1.40.0 — second-brain frontmatter YAML safety + migrate-frontmatter)
+
+- Commit hash: (staging→main merge; assigned at merge)
+- **Bug fix (#47):** `tools/second-brain.sh` wrote `title:` and `source:` into
+  frontmatter **unquoted** (in the shared `write_note`, so both `capture` and
+  `capture-batch`). A value with a colon-space or a leading YAML indicator char
+  is invalid YAML — Obsidian then parses no frontmatter and **silently drops
+  every tag** on the note. Both are now emitted as double-quoted,
+  backslash/quote-escaped YAML scalars (new `yaml_dq` helper).
+- **Fix (#49):** tag values are now mapped `:` → `/` before emit (Obsidian tag
+  names allow only `[A-Za-z0-9_/-]`; `/` is the nested-tag form and preserves a
+  `branch:dev`-style namespace's intent). The colon-tag *protocol* doc that
+  prompted #49 is downstream-authored and remains the downstream's to update.
+- **New `migrate-frontmatter` subcommand** fixes existing notes captured by
+  older versions: re-quote a breaking `title:`/`source:` scalar and map `:` →
+  `/` in block-list tags. Frontmatter-only (body untouched), backup-first under
+  a timestamped `.sb-frontmatter-backup-<ts>/` dir, idempotent, and precise
+  (leaves a valid unquoted `http://x` / `ratio 3:1` and non-`tags:` colon items
+  alone). Run `migrate-tags` first if a vault still has inline-array tags.
+- Shell/Test-Harness SME review cleared it after a CONFIRMED data-integrity fix:
+  `migrate-tags`'s find-prune excluded only `.sb-tag-backup-*`, so running both
+  migrators could mutate the other's backup snapshots — both now prune both
+  backup globs (cross-migrator regression tests added).
+- bash-3.2-safe (verified under stock `/bin/bash` 3.2.57); output validated
+  against a strict YAML parser. Docs: `docs/second-brain-model.md` Tool
+  Reference + a Frontmatter-YAML-safety note; `minions/capabilities.md`. Suite
+  177/0; all 13 suites green. Closes #47, #49.
+
+## 2026-07-17 (v1.39.1 — upgrade-playbook + SME-checklist completeness)
+
+- Commit hash: (staging→main merge; assigned at merge)
+- Docs-only. `docs/downstream-upgrade-playbook.md` Version-Specific Required
+  Changes gained the missing **v1.38.0** and **v1.39.0** entries (both "No
+  required changes — adopt normally"), so a downstream upgrading across them
+  confirms rather than infers that nothing is required (issue #43).
+- `docs/downstream-upgrade-playbook.md` 1.34.0 entry: added a
+  REQUIRED-IF-ADOPTED one-time-dedup bullet for a downstream that adopted the
+  canonical SME bench VERBATIM below the delimiter (the split-merge otherwise
+  double-registers every default-bench SME), mirroring the 1.28.0 one-time
+  delimiter-move note (issue #37).
+- `minions/smes/README.md` Adding-an-SME checklist + the 1.34.0 CAUTION:
+  documented that since 1.34.0 the `minions/smes/*.md` and `sme-*` launcher
+  globs are `template-replace` (exportable by default), so a private downstream
+  SME must carry a `do-not-export` row for its charter + launchers — and, per
+  Export/Privacy SME review, the operator must also sweep the SME's key/name as
+  a neutralization token tree-wide (files-excluded-but-name-echoes is a real
+  leak class) (issue #38). `docs/export-manifest.md` gained a Row-precedence
+  note (a specific `do-not-export` row overrides a broader exportable glob;
+  exclusion is operator-applied at export Step 1, no automated filter).
+- Reviewed by the Upgrade-Path SME (#43/#37) and Export/Privacy SME (#38); both
+  verified the claims accurate. No governance-token change, no new hard-stop, no
+  code touched. Closes #43, #37, #38.
+
+## 2026-07-17 (v1.39.0 — second-brain capture-batch: save many notes in one call)
+
+- Commit hash: (staging→main merge; assigned at merge)
+- New `tools/second-brain.sh capture-batch [--file <path>]` subcommand: save
+  many notes in a single invocation by piping a directive-prefixed stream
+  instead of one `capture` call per note (agent capture ergonomics). Closes the
+  doc/tool gap — `MEMORY.md` already described "orchestrator-mediated batched
+  capture," but the tool had no batch mode.
+- Format: records separated by a line of `%%%` (trailing whitespace tolerated);
+  within a record, leading `@title` / `@tags <a, b>` / `@source` lines set
+  metadata and the rest (including a leading blank line) is body. Directives are
+  leading-only, so a `@`-looking body line is kept verbatim. Tags emit as
+  Obsidian-canonical block-list items with a leading `#` stripped.
+- Safety: the AC-2 filter runs **per record**, write-clean / skip-tripped —
+  clean records written (paths → stdout), tripped (secret/SOLE-HOLDER) or
+  empty-body records skipped (reported to stderr, class + line only, never the
+  secret content). Exit `0` all written · `3` ≥1 skipped · `2` no records · `4`
+  I/O (a per-record I/O failure trumps a content skip).
+- Refactor: the assemble → filter → write core of `capture` is extracted into a
+  shared `write_note` helper both subcommands call; single-`capture` behavior is
+  byte-identical (its assertions pass unchanged as the refactor net).
+- Shell/Test-Harness SME review (matrix-required for `tools/*.sh`) cleared after
+  a BLOCKER fix: a record beginning with a blank line dropped the blank and then
+  silently mis-parsed a following `@`-line as a directive (content corruption,
+  exit 0); the record loop now uses a started-flag so a leading blank correctly
+  begins the body. Also from the review: `%%%` fence tolerates trailing
+  whitespace, and per-record I/O exits `4`.
+- bash-3.2-safe (here-strings not pipes, `case` fence match, empty-array guards);
+  verified under stock `/bin/bash` 3.2.57. Tests: new `capture-batch` section in
+  `tools/tests/second-brain.test.sh` (150/0; all 13 suites green). Docs:
+  `docs/second-brain-model.md` Tool Reference + `minions/capabilities.md`.
+
+
 ## 2026-07-17 (v1.38.0 — second-brain Obsidian-canonical block-list tags + migrate-tags; locale-portability test fix)
 
 - Commit hash: (staging→main merge; assigned at merge)

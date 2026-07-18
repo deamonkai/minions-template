@@ -18,6 +18,12 @@ Use this manifest with:
   `.minions-template/` snapshot unless the Operator explicitly chooses
   otherwise
 
+**Row precedence:** a more-specific per-file `do-not-export` row overrides a
+broader exportable/`template-replace` glob (e.g. a private SME excluded from the
+`minions/smes/*.md` glob). There is no automated export filter — exclusion is
+operator-applied at public-export Step 1 — so apply the specific row
+deliberately; the glob does not exclude it for you.
+
 ## Criticality Meanings
 
 `Upgrade strategy` says *how* to bring a file across; `Criticality` says *how
