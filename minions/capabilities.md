@@ -1,12 +1,18 @@
 # minions/capabilities.md — Capability Inventory
 
-Downstream-owned. This file is the per-repo, per-environment record of which
-skills, connectors (MCP), and plugin agents actually exist here, and which
-roles should reach for them. It is the activation record for
-`docs/minion-plugin-pairings.md`: that doc maps *kinds* of integration to
-roles; this file says what is *really present* in this repo's Claude, Codex,
-and Copilot environments. The template ships it as a starter — each
-downstream repo fills and owns its own copy.
+This file is the per-repo, per-environment record of which skills, connectors
+(MCP), and plugin agents actually exist here, and which roles should reach for
+them. It is the activation record for `docs/minion-plugin-pairings.md`: that doc
+maps *kinds* of integration to roles; this file says what is *really present* in
+this repo's Claude, Codex, and Copilot environments.
+
+It is a **split-merge file** (like `minions/smes/README.md` and
+`minions/review-matrix.md`): a template-shipped **Default Capabilities** block
+above the delimiter that ships and upgrades with the template, plus a
+downstream-owned **Local Inventory** below it. Template capability-row updates
+(e.g. a new second-brain subcommand) therefore propagate to every downstream on
+upgrade even if the downstream customized its inventory — the gap that a fully
+downstream-owned file left open.
 
 Every minion reads this file at session bootstrap. When an inventoried
 capability fits the task at hand, using it is an obligation, not a
@@ -26,20 +32,15 @@ capability gap, change, or friction (see "Refreshing this file" below).
 - `absent` — expected/desired but not present here; safe to keep listed
   (use-if-available degrades gracefully, and the row records the gap)
 
-## Inventory
+## Inventory schema
 
-The rows below are **EXAMPLES ONLY — replace them** with this repo's real
-inventory during onboarding (see `INIT.md`). Availability columns record
-whether that AI environment carries the capability (`yes` / `no`).
+Each row records a capability and where it is really present. The availability
+columns are `yes` / `no` per AI environment. Example row (illustrative only —
+your real inventory goes in the Local Inventory section below the delimiter):
 
 | Capability | Kind | Claude | Codex | Copilot | Status | Paired roles | Use for |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `deep-research` (EXAMPLE — replace) | skill | yes | no | no | active | RM | Multi-source, cited research reports — recommend-only applies |
-| Sentry (EXAMPLE — replace) | connector | yes | no | no | deferred | CM, OM | Error context and incident triage; deferred until authenticated |
-| code-reviewer (EXAMPLE — replace) | agent | no | no | no | absent | CM | Deeper review passes — CM still owns the verdict |
-| `tools/second-brain.sh` (local second brain) | skill | yes | yes | yes | active | all roles | Local fast-onboard corpus (capture/capture-batch/search/filter/scan/path/migrate-tags/migrate-frontmatter) gated on `MINION_SECONDBRAIN=on`; `capture-batch` saves many notes in one call (directive-prefixed stream), `migrate-frontmatter` fixes YAML-safety (quoted title/source, `:`→`/` tags) in existing notes; see `docs/second-brain-model.md` |
-| repowise (codebase-intelligence over MCP) | connector | no | no | no | absent | CM, AM | Repo intelligence — dependency graph, git analytics, code-health scores, dead-code, refactor plans — via an external MCP server/SaaS. Scouted 2026-07-09 (Skill-Provenance SME); **AGPL-3.0**, so connector-only — do NOT vendor into the public-mirror tree. Adopt via the connector path (SM frames no-network vs BYO-key), not the skill airlock |
-| adopted skill `<key>` (EXAMPLE — replace) | skill | no | no | no | absent | (per skill) | Airlocked external skill under `skills/vendored/<key>/` — maintainer-local, does not export, so the public row is `absent`. Reached like any capability under the `MINION_SKILLS=on` gate; no-network run posture by default. Record commit SHA + adoption date + run posture per the row schema in `docs/skill-adoption-model.md` |
+| _example: `deep-research`_ | skill | yes | no | no | active | RM | Multi-source, cited research reports — recommend-only applies |
 
 Column notes:
 
@@ -57,6 +58,31 @@ Column notes:
 - **When:** at each milestone/run start, and whenever a `DURABLE LESSONS:`
   or `feedback.md` entry flags a capability gap, change, or friction.
 - **How:** enumerate the live environment in-session per AI tool (skills,
-  connectors, and agents as each tool surfaces them), diff the result
-  against the table above, and fold the updates in at consolidation like
-  any other promoted artifact.
+  connectors, and agents as each tool surfaces them), diff the result against
+  the tables, and fold the updates into the **Local Inventory** at
+  consolidation like any other promoted artifact. The **Default Capabilities**
+  rows above the delimiter are template-owned — take template updates to them
+  on upgrade; do not hand-edit them downstream.
+
+## Default Capabilities (template-shipped)
+
+Capability rows for tooling the template itself provides. These ship and
+**upgrade** with the template (template-replace, above the delimiter), so a
+description change (e.g. a new `second-brain.sh` subcommand) reaches every
+downstream on upgrade. The **Status** column is the template's default; a
+downstream records its OWN activation of these capabilities in
+`docs/operator-onboarding-checklist.md` (Optional Layers) and MAY carry a
+status-override row in its Local Inventory below if its adoption differs — the
+row's DESCRIPTION stays template-owned and refreshes on upgrade.
+
+| Capability | Kind | Claude | Codex | Copilot | Status | Paired roles | Use for |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `tools/second-brain.sh` (local second brain) | skill | yes | yes | yes | active | all roles | Local fast-onboard corpus (capture/capture-batch/search/filter/scan/path/migrate-tags/migrate-frontmatter) gated on `MINION_SECONDBRAIN=on`; `capture-batch` saves many notes in one call (directive-prefixed stream), `migrate-frontmatter` fixes YAML-safety (quoted title/source, `:`→`/` tags) in existing notes; see `docs/second-brain-model.md` |
+| repowise (codebase-intelligence over MCP) | connector | no | no | no | absent | CM, AM | Repo intelligence — dependency graph, git analytics, code-health scores, dead-code, refactor plans — via an external MCP server/SaaS. Scouted 2026-07-09 (Skill-Provenance SME); **AGPL-3.0**, so connector-only — do NOT vendor into the public-mirror tree. Adopt via the connector path (SM frames no-network vs BYO-key), not the skill airlock |
+
+<!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->
+
+## Local Inventory (this repo)
+
+| Capability | Kind | Claude | Codex | Copilot | Status | Paired roles | Use for |
+| --- | --- | --- | --- | --- | --- | --- | --- |

@@ -53,6 +53,65 @@ complete until every `REQUIRED` item is confirmed present in the live repo. The
 `Criticality` column in `docs/export-manifest.md` marks the `baseline` files
 that most often carry these.
 
+### 1.41.0 — capabilities.md split-merge delimiter
+
+OPTIONAL structure change with a REQUIRED-IF-ADOPTED one-time migration.
+
+- `minions/capabilities.md` becomes a split-merge file (like
+  `minions/smes/README.md`): a template-shipped **Default Capabilities** block
+  above a new delimiter (`template-replace` — the `tools/second-brain.sh` and
+  repowise rows now ship and upgrade, so a template capability-row change
+  propagates) plus a downstream-owned **Local Inventory** below it. The file was
+  `downstream-owned` before, so template capability-row updates never reached a
+  customized copy (the #45 gap — a downstream that had DROPPED the
+  `second-brain.sh` row while still running the capability silently missed every
+  later update to it).
+- **REQUIRED-IF-ADOPTED — one-time delimiter migration:** if your
+  `minions/capabilities.md` is a filled/customized copy (no delimiter under
+  1.40.0 and earlier), move your own capability rows BELOW the new
+  `<!-- ... DOWNSTREAM CONTENT BELOW ... -->` delimiter (into "Local Inventory")
+  ONCE before taking the new template file — exactly as 1.28.0 / 1.34.0 required
+  for the SME registry and matrix. After the one-time move, future upgrades are
+  mechanical replace-above; a naive whole-file `template-replace` WITHOUT this
+  migration drops your filled inventory, so treat it as merge-blocking. This
+  supersedes the 1.23.0 "upgrades never overwrite the filled inventory"
+  guarantee for `capabilities.md` — above the delimiter now ships and upgrades.
+- **REQUIRED-IF-ADOPTED — dedup the now-template-shipped rows:** the pre-1.41
+  template shipped `tools/second-brain.sh` and `repowise` as **real rows** in the
+  (then downstream-owned) Inventory, so a vendored downstream copy carries them.
+  Those two rows now live in **Default Capabilities** above the delimiter — so
+  when you move your rows down, DELETE your copies of `tools/second-brain.sh` and
+  `repowise` from the moved set, or you double-register them. This is the same
+  one-time dedup the 1.34.0 verbatim-bench entry required; a naive move without
+  it leaves two identical rows for each.
+- **RECOMMENDED — capture a non-default status as an override:** template-
+  replace-above overwrites the **Status** cell of a Default-Capabilities row on
+  every upgrade (it ships `second-brain.sh` as `active`). If your real status
+  differs (e.g. you run with `MINION_SECONDBRAIN` off → `deferred`/`absent`), add
+  a status-override row for it in your Local Inventory below the delimiter as
+  part of the one-time move, and/or record adoption in
+  `docs/operator-onboarding-checklist.md` (Optional Layers). Only the row's
+  DESCRIPTION is template-owned; the status stays yours.
+- **Public-export note:** `export-seed-check.sh` gained `minions/capabilities.md`
+  as a `SEED_FILES` entry. If you maintain a local public-mirror export, reset
+  the below-delimiter Local Inventory to header-only at export (same handling as
+  the SME registry/matrix). No governance-token change, no new hard-stop.
+
+### 1.40.0 — second-brain frontmatter YAML safety + migrate-frontmatter
+
+No required changes — adopt normally. `capture`/`capture-batch` now write
+`title:`/`source:` as quoted YAML scalars and map `:` → `/` in tags (Obsidian
+safety); a new `migrate-frontmatter` subcommand fixes existing notes. All in the
+optional `MINION_SECONDBRAIN` layer, `template-replace`. No governance-token /
+hard-stop change.
+
+### 1.39.1 — upgrade-playbook + SME-checklist completeness
+
+No required changes — adopt normally. Docs-only: the upgrade playbook gained the
+missing 1.38.0/1.39.0 entries and a 1.34.0 verbatim-bench dedup bullet; the
+Adding-an-SME checklist and `export-manifest.md` gained the private-SME
+`do-not-export` guidance. Nothing to merge unless you maintain a public export.
+
 ### 1.39.0 — second-brain capture-batch
 
 No required changes — adopt normally. Additive `capture-batch` subcommand in

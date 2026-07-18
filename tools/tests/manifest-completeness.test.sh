@@ -16,6 +16,16 @@
 # that can never be export-classified. Everything else must come from the
 # manifest — extend the manifest, not the allowlist.
 #
+# Two downstream-context exclusions keep the guard green in a real downstream repo
+# with zero template drift (it enumerates TEMPLATE paths only):
+#   - the vendored template snapshot (`.minions-template/`, `.minions-template.next/`)
+#     is excluded built-in — every file in it is an export-ready copy already
+#     covered by its root-level manifest row, not separately manifested;
+#   - a downstream's OWN files (project code, local tooling) are excluded via the
+#     fail-open `tools/tests/manifest-completeness.allow` list (the manifest
+#     analogue of `governance-scan.allow`). The template ships it with no active
+#     entries, so its own sweep is unchanged.
+#
 # Row extraction is the same awk pass as tools/upgrade-classify.sh (first
 # backticked path in table cell 2). Matching mirrors that script's lookup():
 # exact rows, trailing-slash directory rows, and the manifest's documented
@@ -44,6 +54,72 @@ check() { local desc="$1"; shift; if "$@"; then echo "ok   - $desc"; pass=$((pas
 # here on purpose: it is export-relevant and carries its own manifest row.
 ALLOW=(".gitattributes" ".gitmodules")
 allowed() { local f="$1" a; for a in "${ALLOW[@]}"; do [ "$a" = "$f" ] && return 0; done; return 1; }
+
+# Vendored template snapshot: a downstream commits an export-ready copy of the
+# template under .minions-template/ (and stages upgrades under
+# .minions-template.next/) per docs/downstream-onboarding-playbook.md. Every file
+# in it is an export-ready copy of a file already covered by its root-level
+# manifest row, not separately manifested — so the snapshot is excluded from the
+# completeness sweep by construction. Template convention, always excluded.
+is_vendored_snapshot() {
+  case "$1" in .minions-template/*|.minions-template.next/*) return 0;; esac
+  return 1
+}
+
+# Downstream-context allowlist (fail-open): a downstream's OWN tracked files —
+# project code (app/, src/, ...), local tooling, assets — are not template-managed
+# and carry no manifest row. tools/tests/manifest-completeness.allow lists
+# repo-relative paths or globs (* ? []) to exclude from the sweep, one per line,
+# '#' comments. Absent or comment-only -> no downstream exclusions (the template
+# ships it with no active entries). The manifest analogue of governance-scan.allow.
+ds_allow=()
+DS_ALLOW_FILE="$ROOT/tools/tests/manifest-completeness.allow"
+
+# is_overbroad_allow <entry>: 0 when the entry has NO literal path anchor (it is
+# built only from glob metacharacters `* ? / [ ]`), so it would match ~every path
+# and silently neuter this completeness guard. Such an entry (`*`, `**`, `*/`, …)
+# is rejected at load time — a downstream allowlist must never turn "catch every
+# unmanifested file" into "catch nothing" while the suite still prints green.
+# A real glob keeps its literal anchor (`*.png` -> `.png`, `app/` -> `app`).
+is_overbroad_allow() {
+  local s="$1"
+  s="${s//\*/}"; s="${s//\?/}"; s="${s//\//}"; s="${s//\[/}"; s="${s//\]/}"
+  [ -z "$s" ]
+}
+
+# load_ds_allow <file>: populate ds_allow from the fail-open allow file (one
+# path/glob per line, '#' comments), skipping blank lines and rejecting
+# over-broad entries with a loud stderr warning.
+load_ds_allow() {
+  ds_allow=()
+  [ -f "$1" ] || return 0
+  local _line
+  while IFS= read -r _line; do
+    _line="${_line%%#*}"; _line="$(printf '%s' "$_line" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+    [ -n "$_line" ] || continue
+    if is_overbroad_allow "$_line"; then
+      echo "manifest-completeness: WARN ignoring over-broad allow entry '$_line' (built only from glob metacharacters — it would exclude ~every file and neuter this guard)" >&2
+      continue
+    fi
+    ds_allow+=("$_line")
+  done < "$1"
+}
+load_ds_allow "$DS_ALLOW_FILE"
+# ds_allowed <relpath>: 0 when the path matches a downstream-allow entry. Same
+# matcher shape as covered() — exact, directory prefix, glob, directory glob.
+ds_allowed() {
+  local f="$1" p
+  [ "${#ds_allow[@]}" -eq 0 ] && return 1
+  for p in ${ds_allow[@]+"${ds_allow[@]}"}; do
+    [ "$p" = "$f" ] && return 0
+    case "$p" in
+      *[*?[]*/) case "$f" in $p*)    return 0;; esac;;
+      *[*?[]*)  case "$f" in $p)     return 0;; esac;;
+      */)       case "$f" in "$p"*)  return 0;; esac;;
+    esac
+  done
+  return 1
+}
 
 # parse_manifest <file>: fill man_paths with the first backticked path of each
 # data row — the identical awk extraction used by tools/upgrade-classify.sh.
@@ -100,6 +176,43 @@ check "self: dir-glob row covers mail/2026-01/packet.md"  covered "mail/2026-01/
 check "self: unlisted file is uncovered"                  not_covered "zzz.md"
 rm -f "$TMPM"
 
+# --- self-test the downstream-context excludes (an untested guard is theater) --
+not_vendored() { ! is_vendored_snapshot "$1"; }
+check "self: vendored snapshot .minions-template/ excluded"      is_vendored_snapshot ".minions-template/AI.md"
+check "self: staged snapshot .minions-template.next/ excluded"   is_vendored_snapshot ".minions-template.next/MEMORY.md"
+check "self: a normal path is NOT a vendored snapshot"           not_vendored "minions/smes/README.md"
+check "self: a look-alike prefix is NOT excluded"                not_vendored ".minions-template-notes/x.md"
+_saved_ds=("${ds_allow[@]+${ds_allow[@]}}")
+ds_allow=("app/" "src/*.ts" "svelte.config.js")
+not_ds() { ! ds_allowed "$1"; }
+check "self: ds-allow directory prefix covers app/lib/x.svelte"  ds_allowed "app/lib/x.svelte"
+check "self: ds-allow glob covers src/main.ts"                   ds_allowed "src/main.ts"
+check "self: ds-allow exact covers svelte.config.js"             ds_allowed "svelte.config.js"
+check "self: ds-allow does NOT cover an unlisted file"           not_ds "docs/other.md"
+check "self: ds-allow prefix does NOT bleed to appx/x"           not_ds "appx/x"
+ds_allow=("${_saved_ds[@]+${_saved_ds[@]}}")
+# empty ds-allow (template default) excludes nothing
+ds_allow=()
+check "self: empty ds-allow matches nothing"                     not_ds "anything.md"
+ds_allow=("${_saved_ds[@]+${_saved_ds[@]}}")
+
+# over-broad allow entries must be rejected (they would neuter the guard)
+not_overbroad() { ! is_overbroad_allow "$1"; }
+check "self: '*' is over-broad (rejected)"                       is_overbroad_allow "*"
+check "self: '**' is over-broad (rejected)"                      is_overbroad_allow "**"
+check "self: '*/' is over-broad (rejected)"                      is_overbroad_allow "*/"
+check "self: '[]' is over-broad (rejected)"                      is_overbroad_allow "[]"
+check "self: 'app/' is NOT over-broad"                           not_overbroad "app/"
+check "self: '*.png' is NOT over-broad"                          not_overbroad "*.png"
+check "self: 'src/*.ts' is NOT over-broad"                       not_overbroad "src/*.ts"
+# loader end-to-end: a '*' line is dropped, safe entries kept — the guard is not neutered
+TMPA="$(mktemp)"; printf '# comment\napp/\n*\nsrc/*.ts\n' > "$TMPA"
+load_ds_allow "$TMPA" 2>/dev/null
+check "self: loader keeps the 2 safe entries, drops the over-broad '*'" test "${#ds_allow[@]}" -eq 2
+check "self: after loader, a real unlisted file is still caught"        not_ds "docs/some-orphan.md"
+rm -f "$TMPA"
+load_ds_allow "$DS_ALLOW_FILE"   # restore the real (empty) allow set
+
 # --- the real sweep -----------------------------------------------------------
 parse_manifest "$MANIFEST"
 check "manifest exists and has rows ($MANIFEST)" test "${#man_paths[@]}" -gt 0
@@ -116,6 +229,8 @@ while IFS= read -r f; do
   [ -n "$f" ] || continue
   total=$((total+1))
   allowed "$f" && continue
+  is_vendored_snapshot "$f" && continue
+  ds_allowed "$f" && continue
   if not_covered "$f"; then
     echo "UNCOVERED (no manifest row): $f"
     uncovered=$((uncovered+1))

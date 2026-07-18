@@ -1,0 +1,28 @@
+# Downstream-context allowlist for manifest-completeness.test.sh.
+#
+# The completeness guard requires every git-tracked file to be classified by
+# docs/export-manifest.md. That manifest enumerates TEMPLATE paths — a downstream
+# repo also tracks files the template knows nothing about (its own project code,
+# local tooling, assets), which would otherwise fail the guard as UNCOVERED even
+# with zero template drift.
+#
+# List those downstream-OWNED paths here to exclude them from the completeness
+# sweep. One repo-relative path or glob per line; text after '#' is a comment.
+# Entries may be:
+#   - an exact path            app/svelte.config.js
+#   - a directory prefix (/)   app/            (everything under app/)
+#   - a glob (* ? [])          src/*.ts        assets/*.png
+# A directory prefix or glob keeps future files under it covered automatically.
+#
+# Keep entries specific. An over-broad entry built only from glob metacharacters
+# (`*`, `**`, `*/`, ...) would exclude ~every file and silently neuter the guard;
+# such entries are REJECTED at load time with a warning, never applied.
+#
+# This file is DOWNSTREAM-OWNED and fail-open: absent or comment-only means no
+# downstream exclusions (the template ships it with no active entries — it has no
+# downstream project code of its own). It is the manifest analogue of
+# tools/tests/governance-scan.allow. The vendored template snapshot itself
+# (.minions-template/ and .minions-template.next/) is excluded by the guard
+# built-in and does NOT need an entry here.
+#
+# --- downstream entries below (none in the template) ---

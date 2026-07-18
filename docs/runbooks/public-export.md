@@ -84,16 +84,18 @@ Procedure:
    curated rule, promotion path, format — no Operator-specific examples or
    history), matching the seed style `docs/export-manifest.md` already
    specifies for downstream onboarding.
-5. The template-default SME bench SHIPS as starters: the "Default Bench
-   (template-shipped)" / "Default Matrix (template-shipped)" sections
-   ABOVE the split-merge delimiter in `minions/smes/README.md` and
-   `minions/review-matrix.md` publish with the tree — they are generic
+5. The template-default blocks SHIP as starters: the "Default Bench
+   (template-shipped)" / "Default Matrix (template-shipped)" / "Default
+   Capabilities (template-shipped)" sections ABOVE the split-merge delimiter
+   in `minions/smes/README.md`, `minions/review-matrix.md`, and
+   `minions/capabilities.md` publish with the tree — they are generic
    template infrastructure. Reset ONLY the BELOW-delimiter "Local
-   Registry (this repo)" / "Local Matrix (this repo)" sections to
-   header-only seed state; any downstream-project-added SMEs stay local
-   and never publish (the feedback.md-stub treatment, generalized).
-   Step 3 gate 4 enforces the header-only below-delimiter state
-   mechanically — skipping this reset fails the pre-push gates.
+   Registry (this repo)" / "Local Matrix (this repo)" / "Local Inventory
+   (this repo)" sections to header-only seed state; any downstream-project-
+   added SMEs, routing rows, or capability rows stay local and never publish
+   (the feedback.md-stub treatment, generalized). Step 3 gate 4 enforces the
+   header-only below-delimiter state mechanically — skipping this reset fails
+   the pre-push gates.
 
 **Verify** — for each neutralized token:
 

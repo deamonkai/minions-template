@@ -186,7 +186,10 @@ the same convention:
   `docs/operator-onboarding-checklist.md` → Optional Layers — not tribal
   knowledge. A layer marked `on` there is expected standing practice for that
   repo, and its backing capability is listed `active` in
-  `minions/capabilities.md` so the utilization obligation applies; the
+  `minions/capabilities.md` so the utilization obligation applies — for a
+  template-shipped Default Capability (above the split-merge delimiter, whose
+  status the template owns) that `active` marker lives in a Local Inventory
+  status-override row or the checklist itself, not the template-owned row; the
   silent-no-op guarantee above still holds if the gate or tooling is absent.
   "Mandatory" for an optional layer therefore means *standing practice with
   graceful degradation*, never a hard gate that blocks a workflow.
@@ -388,9 +391,16 @@ targets workflows, not every dispatch.
 
 ### Capability Inventory
 
-`minions/capabilities.md` is the downstream-owned record of which skills,
-connectors (MCP), and plugin agents actually exist in this repo's AI
-environments — the activation record for `docs/minion-plugin-pairings.md`.
+`minions/capabilities.md` is the record of which skills, connectors (MCP), and
+plugin agents actually exist in this repo's AI environments — the activation
+record for `docs/minion-plugin-pairings.md`. It is a split-merge file: a
+template-shipped **Default Capabilities** block above the delimiter (ships and
+upgrades, so a template capability-row change propagates) plus a
+downstream-owned **Local Inventory** below it — the same two-tier pattern as
+`minions/smes/README.md`. A capability's activation **status** stays the
+downstream's call even for a template-shipped row (recorded in the
+onboarding-checklist Optional Layers or a Local Inventory override); only the
+row's DESCRIPTION is template-owned.
 
 - Every minion reads it at session bootstrap, alongside this file.
 - When an inventoried capability fits the task and the charter permits its

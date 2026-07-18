@@ -41,7 +41,7 @@ ROOT="${ROOT_ARG:-$(cd "$(dirname "$0")/.." && pwd)}"
 ROOT="$(cd "$ROOT" 2>/dev/null && pwd)" || { echo "FAIL - export-seed-check: not a directory: ${ROOT_ARG:-}" >&2; exit 2; }
 
 # Files whose below-delimiter section must be header-only in a public export.
-SEED_FILES=(minions/smes/README.md minions/review-matrix.md)
+SEED_FILES=(minions/smes/README.md minions/review-matrix.md minions/capabilities.md)
 
 # Delimited, exportable files whose below-delimiter section is downstream-reserved
 # scaffolding — EMPTY in canonical, not maintainer content — so they need no manual

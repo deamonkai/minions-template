@@ -2,6 +2,42 @@
 
 All notable changes to this repository are tracked here.
 
+## 2026-07-17 (v1.41.0 — capabilities.md split-merge; manifest-completeness downstream scope)
+
+- Commit hash: (staging→main merge; assigned at merge)
+- **`minions/capabilities.md` becomes a split-merge file (#45).** It was
+  `downstream-owned`, so a downstream that customized (or dropped a row from) its
+  copy silently missed every later template capability-row change — including
+  updates to a capability it was actively running. It now has a template-shipped
+  **Default Capabilities** block above a `<!-- … DOWNSTREAM CONTENT BELOW … -->`
+  delimiter (`template-replace`; carries `tools/second-brain.sh` + repowise,
+  which now ship and upgrade) plus a downstream-owned **Local Inventory** below —
+  the same two-tier pattern as `minions/smes/README.md`. Activation *status*
+  stays the downstream's (recorded in the onboarding-checklist Optional Layers or
+  a Local Inventory override row); only a row's DESCRIPTION is template-owned.
+  Wiring: manifest reclass `downstream-owned` → `template-replace`;
+  `export-seed-check.sh` `SEED_FILES` += `capabilities.md` (below-delimiter resets
+  to header-only at export); public-export runbook Step 2 reset; MEMORY.md
+  Capability-Inventory + Optional-Layers update; a 1.41.0 upgrade entry with a
+  REQUIRED-IF-ADOPTED one-time delimiter migration + dedup (the second-brain/
+  repowise rows now ship above the delimiter). Reviewed by a 4-SME panel
+  (Shell/Test-Harness + Export/Privacy SHIP-CLEAN — the latter a net privacy
+  improvement; Governance-Invariant + Upgrade-Path cleared after doc fixes).
+- **`manifest-completeness.test.sh` stays green on a conformant downstream (#44).**
+  It flagged the committed `.minions-template/` vendored snapshot and a
+  downstream's own project code as UNCOVERED. Now the snapshot
+  (`.minions-template/`, `.minions-template.next/`) is excluded built-in, and a
+  fail-open `tools/tests/manifest-completeness.allow` (the analogue of
+  `governance-scan.allow`) lets a downstream list its own paths — with an
+  over-broad-entry reject so a `*` can't silently neuter the guard (Shell/Test-
+  Harness SME finding). The template ships the allow file with no active entries.
+- Also backfilled the missing **1.40.0** and **1.39.1** upgrade-playbook entries
+  (the #43 completeness invariant), and neutralized a downstream project name in
+  a `governance-consistency.test.sh` comment (it had been public in the mirror
+  since v1.38.0 — a bare-surname neutralization-sweep miss now fixed at source).
+- Closes #44, #45. All 13 suites green.
+
+
 ## 2026-07-17 (v1.40.0 — second-brain frontmatter YAML safety + migrate-frontmatter)
 
 - Commit hash: (staging→main merge; assigned at merge)

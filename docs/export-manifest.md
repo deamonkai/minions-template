@@ -47,10 +47,11 @@ much it matters that you do*. This is the stable, file-level signal; the
   current but safe to adopt lazily; lagging one does not break the operating
   model.
 - `n/a`: `do-not-export` and `downstream-owned` files — not adopted from the
-  template, so file-level criticality does not apply. One exception:
-  `minions/capabilities.md` is `downstream-owned` yet rated `baseline`,
-  because the session bootstrap read order depends on it — its starter must
-  land at first export even though upgrades never touch the filled inventory.
+  template, so file-level criticality does not apply. Note:
+  `minions/capabilities.md` is a `template-replace` split-merge file rated
+  `baseline` — its template-shipped **Default Capabilities** block above the
+  delimiter ships and upgrades, while the **Local Inventory** below stays
+  downstream-owned (the same two-tier pattern as `minions/smes/README.md`).
 
 > **Note:** Class-A files (`MEMORY.md`, `AI.md`, `CLAUDE.md`, `AGENTS.md`,
 > `.github/copilot-instructions.md`, `minions/roles/*`, `ROADMAP.md`,
@@ -156,7 +157,7 @@ template repo.
 | `tools/export-seed-check.sh` | yes | `template-replace` | `feature` | PM / OM | public-export pre-push gate (runbook Step 3, gate 4): asserts Local Registry / Local Matrix are header-only below the split-merge delimiter in the export tree; point `SEED_FILES` at the downstream's own delimited local sections |
 | `.gitleaks.toml` | yes | `template-replace` | `feature` | PM / OM | repo-root gitleaks config for the public-export gitleaks gate (`docs/runbooks/public-export.md` Step 2); extends the default ruleset and allowlists only the second-brain AC-2 test fixtures (intentionally secret-shaped test data) — must export with the tree so gitleaks honors it; extend narrowly, never broaden past the actual test surface |
 | `tools/sme-charter-check.sh` | yes | `template-replace` | `feature` | PM / CM | mechanical SME-charter validator (required sections, non-empty negative discovery, Local Registry row, launcher parity in all three families); not a domain-merit judge — see `docs/designing-an-sme.md` |
-| `tools/tests/` | yes | `template-replace` | `feature` | CM | test suites (`xtool-call`, `governance-consistency`, `upgrade-classify`, `issue-sync`, `issue-board-bootstrap`, `manifest-completeness`, `second-brain`, `skill-airlock`, `skill-scout`, `layer-adopted`, `instruction-size`), fixtures, and the `governance-scan.allow` scan list; adopt as reference and regression harness |
+| `tools/tests/` | yes | `template-replace` | `feature` | CM | test suites (`xtool-call`, `governance-consistency`, `upgrade-classify`, `issue-sync`, `issue-board-bootstrap`, `manifest-completeness`, `second-brain`, `skill-airlock`, `skill-scout`, `layer-adopted`, `instruction-size`), fixtures, and the `governance-scan.allow` / `manifest-completeness.allow` allowlists (the latter is downstream-owned, fail-open — list your own project paths there so the completeness guard stays green); adopt as reference and regression harness |
 | `.claude/commands/second-opinion.md` | yes | `template-replace` | `feature` | PM | `/second-opinion` slash command; read-only cross-vendor review via `tools/xtool-call.sh` |
 | `.claude/commands/delegate.md` | yes | `template-replace` | `feature` | PM | `/delegate` slash command; isolated-worktree cross-vendor implementation via `tools/xtool-call.sh` |
 | `.claude/commands/handoff.md` | yes | `template-replace` | `feature` | PM | `/handoff` slash command; flush-then-snapshot session handoff (ephemeral, deleted on pickup) |
@@ -189,7 +190,7 @@ template repo.
 | `docs/coordinator-mode.md` | yes | `template-replace` | `feature` | PM | coordinator-mode overlay (opt-in multi-project) |
 | `docs/runbooks/add-submodule.md` | yes | `template-replace` | `reference` | PM | submodule registration sequence (coordinator overlay) |
 | `.github/instructions/documentation-quality.instructions.md` | yes | `template-replace` | `feature` | DM | submodule doc-quality instructions (coordinator/submodule repos) |
-| `minions/capabilities.md` | yes | `downstream-owned` | `baseline` | PM | per-repo capability inventory; bootstrap read + activation record for `docs/minion-plugin-pairings.md`. Template ships the starter (instructions + example rows); downstream fills and owns the content — do not overwrite the filled inventory during upgrades |
+| `minions/capabilities.md` | yes | `template-replace` | `baseline` | PM | per-repo capability inventory; bootstrap read + activation record for `docs/minion-plugin-pairings.md`. Split-merge: the template-shipped Default Capabilities block above the delimiter ships and upgrades (so a template capability-row change propagates); the Local Inventory below the delimiter is downstream-owned and resets at export. Take the template above the marker, preserve downstream content below it — same handling as `minions/smes/README.md` |
 | `minions/handoffs/README.md` | yes | `template-replace` | `feature` | PM | session-handoff surface protocol (ephemeral courier, delete-on-pickup) |
 | `minions/handoffs/*.md` (snapshots) | no | `downstream-owned` | `n/a` | PM | transient session snapshots; never exported; deleted on pickup |
 | `minions/smes/README.md` | yes | `template-replace` | `feature` | PM | expertise-layer surface protocol (SMEs: advisory class, not roles); a template-shipped Default Bench (above the delimiter) ships and upgrades; the Local Registry below the delimiter is downstream-added and resets at export |

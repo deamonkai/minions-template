@@ -102,7 +102,14 @@ clone.
    - use `minions/chat/` for PM daily summaries
 11. Commit the vendored snapshot and exported live files together so the repo has
    a clear starting baseline.
-12. After onboarding is approved, future template changes should use
+12. If you adopt `tools/tests/` as a regression harness, list your own
+   project paths (project code, local tooling, assets) in
+   `tools/tests/manifest-completeness.allow` — one repo-relative path or glob
+   per line — so the completeness guard stays green on downstream-owned files it
+   can't classify. The vendored snapshot (`.minions-template/`,
+   `.minions-template.next/`) is excluded by the guard built-in and needs no
+   entry. The file is fail-open (absent/empty = no exclusions).
+13. After onboarding is approved, future template changes should use
    `docs/downstream-upgrade-playbook.md`.
 
 ## Deferred Launcher Families
