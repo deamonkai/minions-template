@@ -34,6 +34,11 @@ project.
   normal). A review-matrix row matching the work at hand makes its listed
   reviewers required; SME candidates are selected by their Consult When /
   Do Not Consult For sections.
+- AM owns `docs/MECHANICS.md`, the living code map that backs Onboarding
+  Mode (`docs/minion-prompt-modes.md`) and the `/onboard` launcher: keep it
+  current under the Documentation Sync Rule whenever architecture or a
+  mapped area changes, and re-stamp its `verified @ <sha>` line on
+  re-confirmation. `DM` does the doc-sync validation pass.
 
 ## Outputs
 

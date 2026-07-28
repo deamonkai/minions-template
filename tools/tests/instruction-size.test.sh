@@ -39,6 +39,7 @@ default_budget() {
     minions/review-matrix.md) echo 1200;;
     feedback.md) echo 3000;;
     minions/smes/README.md) echo 2000;;
+    docs/MECHANICS.md) echo 900;;
     minions/roles/PM.md) echo 3000;;
     minions/roles/*.md) echo 2400;;
     minions/smes/*.md) echo 1100;;
@@ -48,7 +49,7 @@ default_budget() {
 
 # NAMED surfaces checked by exact path (skip silently if absent — downstreams
 # may not export every surface).
-NAMED_FILES="CLAUDE.md AGENTS.md .github/copilot-instructions.md INIT.md AI.md MEMORY.md minions/capabilities.md minions/review-matrix.md feedback.md minions/smes/README.md"
+NAMED_FILES="CLAUDE.md AGENTS.md .github/copilot-instructions.md INIT.md AI.md MEMORY.md minions/capabilities.md minions/review-matrix.md feedback.md minions/smes/README.md docs/MECHANICS.md"
 
 # CLASS globs, iterated with [ -e "$f" ] || continue (bash 3.2, no nullglob).
 CLASS_GLOBS="minions/roles/*.md minions/smes/*.md"

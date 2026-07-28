@@ -30,6 +30,15 @@ Use these surfaces in this order:
 8. `.github/agents/`, `.codex/agents/`, and `.claude/agents/` for
   tool-specific launch config only.
 
+Note on ranks 4–6: `tools/archive-reporter.sh` is **read-only** — it prints
+`git rm` commands for a human to run at milestone boundaries, it does not
+execute them. The pruning it prints may remove aged, closed units from
+`minions/mail/`, `minions/plans/`, and `minions/chat/`, so those surfaces can
+be partial once a human has run the commands. `minions/ARCHIVED.md` indexes
+what was migrated, and git history remains the durable copy
+(`git checkout <sha> -- <path>`). See `MEMORY.md` (Coordination-Surface
+Hygiene) and `docs/archive-reporter-model.md`.
+
 `feedback.md` sits outside this ranking: read it at session start for Operator
 working-style context (it is shared across all tools), but it is a capture log,
 not a source of truth — `MEMORY.md` outranks it. Promote durable items out of
@@ -47,7 +56,7 @@ feature branches. This affects which copy of a file is authoritative:
 
 **Class A — mainline-authoritative files:** `MEMORY.md`, `AI.md`, `CLAUDE.md`,
 `AGENTS.md`, `.github/copilot-instructions.md`, `minions/roles/*`,
-`ROADMAP.md`, `TODO.md`, `minions/chat/`.
+`ROADMAP.md`, `TODO.md`, `minions/chat/`, `minions/ARCHIVED.md`.
 These are authoritative ONLY on the mainline. A copy seen on a feature branch
 may be stale — merge `dev` in to refresh before relying on them.
 

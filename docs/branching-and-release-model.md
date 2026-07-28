@@ -74,7 +74,7 @@ branching model.
 
 **Class A — mainline-authoritative:**
 `MEMORY.md`, `AI.md`, `CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`,
-`minions/roles/*`, `ROADMAP.md`, `TODO.md`, `minions/chat/`
+`minions/roles/*`, `ROADMAP.md`, `TODO.md`, `minions/chat/`, `minions/ARCHIVED.md`
 
 **Class B — travels with the branch:**
 that feature's `minions/mail/<packet>/`, `minions/plans/<plan>`, its spec and

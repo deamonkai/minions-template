@@ -23,6 +23,12 @@ Operating rules:
   subagent's final message, or hidden tool memory as authoritative until the
   useful result is written into a repo surface (`minions/mail/`,
   `minions/plans/`, `minions/chat/`, `MEMORY.md`, `CHANGELOG.md`, etc.).
+- `tools/archive-reporter.sh` (read-only) lists closed+aged coordination units
+  and prints `git rm` + `minions/ARCHIVED.md` commands for a human to run at
+  milestones; it never mutates. So `minions/mail/`, `minions/plans/`, and
+  `minions/chat/` may be partial once pruning has run — `minions/ARCHIVED.md`
+  indexes migrated units and git history stays the durable copy. See
+  `MEMORY.md` (Coordination-Surface Hygiene) and `docs/archive-reporter-model.md`.
 - When `MINION_MEMORY=on`, the orchestrator queries the memory recall
   layer at run start and folds hits into dispatch briefs (recall is input,
   not authority; verify runtime facts live). Unset/off, or tools/API

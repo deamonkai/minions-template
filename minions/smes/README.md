@@ -2,9 +2,10 @@
 
 This directory holds Subject-Matter Expert charters: advisory expertise
 modules that roles consult for domain findings. The template ships this
-README, `sme-template.md`, and a default bench of infrastructure SMEs
-(above the delimiter) as starters; each downstream repo adds its own SMEs
-below the delimiter. An empty downstream section is normal — absence of
+README, `sme-template.md`, and a default bench of infrastructure SMEs — plus,
+as of the Design/UX addition, one product-domain (craft) reviewer — (above
+the delimiter) as starters; each downstream repo adds its own SMEs below the
+delimiter. An empty downstream section is normal — absence of
 downstream-added SMEs never blocks any workflow.
 
 ## Class, not role
@@ -177,9 +178,10 @@ expertise).
 
 ## Default Bench (template-shipped)
 
-Template-owned infrastructure SMEs (generic template plumbing). These ship
-with the template and are replaced on upgrade; a downstream may mark any
-one `do-not-export` with an explicit manifest row.
+Template-owned infrastructure SMEs (generic template plumbing), plus the
+Design/UX craft reviewer (product-domain, not plumbing). These ship with the
+template and are replaced on upgrade; a downstream may mark any one
+`do-not-export` with an explicit manifest row.
 
 | SME | Charter | Domain | Consult when | Do not consult | Paired roles | RM domain | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -189,6 +191,7 @@ one `do-not-export` with an explicit manifest row.
 | Upgrade-Path SME | `upgrade-path.md` | downstream upgrade impact | template-replace shape changes, delimiter moves, version bumps | maintainer-local files | PM, DM | downstream-upgrade-patterns | active |
 | Shell/Test-Harness SME | `shell-test-harness.md` | bash/awk guard quality | tools/*.sh or test-guard edits | markdown-only changes | CM, OM | shell-test-patterns | active |
 | Skill-Provenance SME | `skill-provenance.md` | external-skill trust | adopt-candidate, wrapper-charter authoring, re-adoption of a newer SHA | framework-native skills, non-skill capabilities | PM, SM, RM | external-skill-provenance | active |
+| Design/UX Reviewer SME | `design-ux.md` | UI/UX craft quality | UI/component/style/token changes, new user-facing surfaces, accessibility-affecting changes | backend/API logic, security, content-truth, architecture boundaries | CM, AM, DM | ui-design-practices | active |
 
 <!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->
 

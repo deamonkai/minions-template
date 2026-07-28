@@ -25,6 +25,7 @@ disagreement.
 | minions/roles/*.md (class) | 2400 |
 | minions/roles/PM.md (exact) | 3000 |
 | minions/smes/*.md (class) | 1100 |
+| docs/MECHANICS.md | 900 |
 
 `minions/roles/PM.md` carries an exact-path budget of 3000, above the
 `minions/roles/*.md` class ceiling of 2400 — the exact-path row wins over

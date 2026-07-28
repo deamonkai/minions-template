@@ -2,6 +2,144 @@
 
 All notable changes to this repository are tracked here.
 
+## 2026-07-22 (v1.45.0 — Design/UX Reviewer SME: first product-domain reviewer in the bench)
+
+- Commit hash: (staging→main merge; assigned at merge)
+- **New Design/UX Reviewer SME (`minions/smes/design-ux.md`)** — the Default
+  Bench's 7th member and its **first product-domain (craft)** reviewer; every
+  prior default-bench SME was infrastructure/template-plumbing. It gives an
+  advisory, findings-only (ship/iterate/block) read on the visual, interaction,
+  and accessibility quality of user-facing changes — distinct from correctness
+  (CM), security (SM), architecture (AM), or content-truth (DM), with those
+  adjacent domains named in its Do Not Consult For.
+- **Charter + 3 cross-family launchers** (`sme-design-ux` in Claude/Codex/
+  Copilot, behaviorally identical), a Default Bench registry row
+  (`minions/smes/README.md`), and 3 routing rows in `minions/review-matrix.md`
+  — all above the split-merge delimiter (template-owned, converge on upgrade).
+- **New `docs/DESIGN.md` — a `seed only`, downstream-owned convention** the SME
+  reviews against (the design analogue of `docs/MECHANICS.md`): the template
+  ships the structure + placeholder shape (tokens, typography, layout, a11y
+  targets, component states, theming, motion) with a `STUB BOUNDARY` marker;
+  each downstream fills its real values.
+- Built subagent-driven and reviewed by a **4-SME matrix panel** —
+  Cross-Family Launcher (launchers byte-identical), Governance-Invariant
+  (charter boundaries disjoint, guardrails intact), Export/Privacy (SAFE —
+  `DESIGN.md` seed generic, gate-5-visible), Upgrade-Path (1.45.0 entry +
+  collision guidance). SME core cleared on first pass; conditions were
+  doc-wiring only. OM-Test validated the dev→staging promotion (14/14).
+  No governance-token change, no new hard-stop.
+
+## 2026-07-22 (v1.44.0 — session onboarding command + living code map)
+
+- Commit hash: (staging→main merge; assigned at merge)
+- **New `/onboard` command + tool-neutral Onboarding Mode.** Deterministic
+  session-start onboarding: the **Onboarding Mode** (`docs/minion-prompt-modes.md`)
+  plus its Claude launcher (`.claude/commands/onboard.md`) execute the
+  `CLAUDE.md` read-chain to completion, read `docs/MECHANICS.md` and flag its
+  staleness, check `minions/handoffs/` for a pending snapshot (absorb into the
+  ready-state, **hold** the delete), surface `MINION_*` gates, and emit a
+  ready-state report — the forcing function that turns "did you actually read
+  your own rules" from a silent read into a visible, checkable artifact. It is
+  the read-only inbound complement to `/handoff`; it mutates nothing.
+- **New `docs/MECHANICS.md` — a living code map.** The system-at-a-glance
+  (components, entry points, guard surface) that the process/governance docs
+  never covered — the pragmatic, no-dependency fill for the `absent`
+  codebase-intelligence slot. It carries a `verified @ <sha>` + `Mapped areas:`
+  staleness contract that `/onboard` reads to flag the map FRESH or PARTIAL.
+  Always-read summary is instruction-size budgeted (enforced by the guard);
+  `AM` owns it under the Documentation Sync Rule and re-stamps `verified @` on
+  re-confirmation, `DM` does doc-sync. Ships **seed-only** (template dogfoods
+  its own map, downstream fills its own).
+- **Wiring:** `minions/roles/AM.md` (ownership duty), `minions/capabilities.md`
+  (Default-Capabilities row, `/onboard` usable in all three environments via
+  the tool-neutral mode), `MEMORY.md` (short unconditional pointer),
+  `docs/export-manifest.md` (rows), `docs/downstream-upgrade-playbook.md` (1.44.0
+  entry).
+- Built subagent-driven across three tasks, each reviewed by the matrix-routed
+  SME (Shell/Test-Harness proved the budget guard fires; Governance-Invariant
+  verified the hard-stop enumeration; a closeout panel of Export/Privacy,
+  Upgrade-Path, and Cross-Family Launcher applied conditions). `/onboard`
+  dogfooded live (staleness correctly flagged PARTIAL, zero mutation);
+  OM-Test validated the dev→staging promotion (14/14 suites). No
+  governance-token change, no new hard-stop.
+
+## 2026-07-21 (v1.43.0 — archive reporter: read-only repo-thinning tool)
+
+- Commit hash: (staging→main merge; assigned at merge)
+- **New `tools/archive-reporter.sh` — a read-only reporter of stale coordination
+  units.** As a project ages, closed `minions/mail/` packets, `minions/plans/`,
+  and `minions/chat/` threads accumulate and become high-impact grep and recall
+  noise. The reporter lists the units safe to archive — closed (by their
+  `Status:` marker) and aged — and **prints** the `git rm` + `minions/ARCHIVED.md`
+  row commands for a human or orchestrator to run at a milestone boundary. It
+  never mutates the tree, has no `run` subcommand, and needs no `MINION_*` gate;
+  the person running the printed command is the safety boundary.
+- **Predicate:** closed reuses the existing `Status:` lifecycle (position-bound
+  to the first 10 lines / column 0 / outside fenced blocks; directory units read
+  `verdict.md` → `response.md` → `request.md`) AND aged (git last-commit time,
+  default 30 days, floor 7, `MINION_ARCHIVE_AGE_DAYS` override; shallow-clone
+  empty git-log → not-aged). **Screens:** sole-holder (tolerant pattern incl.
+  Unicode dashes), referenced-by-live-surface (immutable ledgers exempt),
+  not-removable (uncommitted / untracked / subdir / symlink / non-text / `.issue`).
+- **Safety enforced two ways** in `tools/tests/archive-reporter.test.sh` (61
+  cases, bash-3.2.57 + 5.1): a behavioral no-mutation test (snapshot tree, run,
+  assert byte-identical) as the load-bearing gate, plus a textual detector that
+  catches a mutating verb or repo-path redirect added by a future edit.
+- **`minions/ARCHIVED.md`** (the migration index) is Class A / downstream-owned /
+  not exported — created downstream on first prune; the manifest pre-classifies
+  it so `manifest-completeness` stays green when the first row is appended. Class-A
+  pruning (`chat/` + `ARCHIVED.md`) happens on the integration mainline at the
+  milestone gate, never as an off-branch touch.
+- Built as the proportionate read-only subset chosen over a full automated-sweep
+  design (three review rounds; SHIP-WITH-CONDITIONS from SM + Shell/Test,
+  NEEDS-WORK-on-proportionality from AM — the automated `run` path and ledger
+  thinning are deferred, see `TODO.md`). Reviewed by Shell/Test-Harness SME
+  (code; a read-only-invariant-test BLOCKER + a ledger-regex MINOR fixed and
+  re-verified) and by Governance-Invariant + Export/Privacy + Upgrade-Path SMEs
+  (wiring; all conditions applied). Docs: new `docs/archive-reporter-model.md`;
+  `MEMORY.md` Coordination-Surface Hygiene; `minions/roles/PM.md` milestone duty;
+  `minions/capabilities.md` row; `AI.md` / `AGENTS.md` /
+  `.github/copilot-instructions.md` partial-surface note. OM-Test validated the
+  promotion (14/14 suites, zero-mutation runtime, guards green). No
+  governance-token change, no new hard-stop.
+
+## 2026-07-18 (v1.42.0 — TODO.md / ROADMAP.md surfaces: `seed only` export class)
+
+- Commit hash: (staging→main merge; assigned at merge)
+- **`TODO.md` and `ROADMAP.md` now exist, closing a self-application gap.**
+  `MEMORY.md` (Shared Rules) has declared both required since the baseline, and
+  `docs/export-manifest.md` classed them "currently required by the workflow but
+  not shipped as a template file" — so the template mandated two surfaces it
+  neither shipped nor maintained, and every downstream adopter started by
+  inventing the format. Both files now exist in canonical with real content.
+- **Manifest reclass `downstream required` → `seed only`** for both rows,
+  adopting the existing `feedback.md` precedent (`Initial export: seed only`,
+  strategy `downstream-owned`): the template ships the *shape* — section
+  structure, status/horizon conventions, ownership and Class-A notes — while the
+  repo's own backlog and direction stay canonical-only. Downstreams get a usable
+  scaffold instead of a bare requirement; they keep their own content on upgrade.
+- **Public-export Step 2 item 4 generalized from one file to a class** — it now
+  resets every `seed only` surface and defers to the manifest as the authority on
+  membership; **new Step 1 item 2a** copies `seed only` rows explicitly (the
+  class is enumerated mechanically via `grep 'seed only' docs/export-manifest.md`);
+  **new Step 3 gate 5** fails closed on a surviving `STUB BOUNDARY` marker (the
+  grep is anchored, for the same reason `export-seed-check.sh` anchors its
+  delimiter scan). Coverage limit stated: gate 5 sees only marker-bearing files
+  (`TODO.md`, `ROADMAP.md`); `feedback.md`'s reset stays operator-verified, with
+  the durable `export-seed-check.sh` `seed only` leg filed in `TODO.md`.
+- **New `Initial Export Meanings` legend** in `docs/export-manifest.md`; **new
+  onboarding step 7a** ("take the seed, then own it"). Both new files are
+  downstream-owned in full (no template-managed half), so the split-merge
+  machinery does not apply and the `STUB BOUNDARY` markers are labelled as
+  distinct from the `DOWNSTREAM CONTENT BELOW` token.
+- Reviewed by the two `minions/review-matrix.md` reviewers required for a
+  manifest/export change: Export/Privacy SME (`seed only` is correct, explicitly
+  against `do-not-export`; found F1 + a dangling reference) and Upgrade-Path SME
+  (`seed only` + `downstream-owned` correct; found the onboarding contradiction,
+  the missing legend, and the missing version entry; confirmed
+  `tools/upgrade-classify.sh` behavior byte-identical). No governance-token
+  change, no new hard-stop, no `MEMORY.md` edit.
+
 ## 2026-07-17 (v1.41.0 — capabilities.md split-merge; manifest-completeness downstream scope)
 
 - Commit hash: (staging→main merge; assigned at merge)
@@ -36,7 +174,6 @@ All notable changes to this repository are tracked here.
   a `governance-consistency.test.sh` comment (it had been public in the mirror
   since v1.38.0 — a bare-surname neutralization-sweep miss now fixed at source).
 - Closes #44, #45. All 13 suites green.
-
 
 ## 2026-07-17 (v1.40.0 — second-brain frontmatter YAML safety + migrate-frontmatter)
 
@@ -123,7 +260,6 @@ All notable changes to this repository are tracked here.
   `tools/tests/second-brain.test.sh` (150/0; all 13 suites green). Docs:
   `docs/second-brain-model.md` Tool Reference + `minions/capabilities.md`.
 
-
 ## 2026-07-17 (v1.38.0 — second-brain Obsidian-canonical block-list tags + migrate-tags; locale-portability test fix)
 
 - Commit hash: (staging→main merge; assigned at merge)
@@ -162,7 +298,6 @@ All notable changes to this repository are tracked here.
   pinning; locale-collation portability was added to the Shell/Test-Harness
   SME charter. Verified under `en_US.UTF-8`, `de_DE.UTF-8`, and `C`. Driven by
   a downstream field report (v1.33.0 → v1.37.0 upgrade).
-
 
 ## 2026-07-12 (v1.37.0 — Instruction-surface size budgets; template manages its own size)
 
@@ -1525,7 +1660,7 @@ All notable changes to this repository are tracked here.
 ## 2026-06-24 (v1.16.0 — Downstream feedback: review-ergonomics quick wins)
 
 - Commit hash: pending (next commit)
-- Adopted the low-risk, broadly-applicable items from a a downstream trading-bot project
+- Adopted the low-risk, broadly-applicable items from a trading-bot
   downstream feedback packet (heavy-use observations). Bumped template version to
   `1.16.0-1.0.0`. Deferred (Operator's call): parallel/domain-scoped review
   cadence, and the shadow-first risk posture + operator-facing-craft items.

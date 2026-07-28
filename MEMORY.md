@@ -332,6 +332,14 @@ resuming session verifies claims against repo truth (files win), then
 DELETES the snapshot — the deletion commit is the pickup receipt. Surface
 protocol: `minions/handoffs/README.md`.
 
+## Session Onboarding (inbound complement to `/handoff`)
+
+`/onboard` (Onboarding Mode, `docs/minion-prompt-modes.md`) runs the
+CLAUDE.md read-chain, reads the `docs/MECHANICS.md` code map (flagging
+staleness), checks `minions/handoffs/` for a pending snapshot, surfaces
+`MINION_*` gates, and emits a ready-state report — read-only, unconditional,
+no gate required.
+
 ## Mailbox Bootstrap
 
 When a minion needs to open or answer a mailbox packet, bootstrap in this
@@ -425,7 +433,7 @@ See `docs/branching-and-release-model.md` for the full model.
 through the milestone, not as incidental mid-feature touches):
 `MEMORY.md`, `AI.md`, `CLAUDE.md`, `AGENTS.md`,
 `.github/copilot-instructions.md`, `minions/roles/*`,
-`ROADMAP.md`, `TODO.md`, `minions/chat/`
+`ROADMAP.md`, `TODO.md`, `minions/chat/`, `minions/ARCHIVED.md`
 
 **Class B — travels with the branch** (merges up with the code):
 the feature's `minions/mail/<packet>/`, `minions/plans/<plan>`, its spec
@@ -715,6 +723,30 @@ Every minion has a defined role with specific responsibilities and boundaries:
 - Provide complete context, constraints, and acceptance criteria
 - Do not attempt to do another minion's job without explicit Operator assignment
 - Escalate scope or conflict immediately to the Operator rather than working around role boundaries
+
+## Coordination-Surface Hygiene
+
+As a project ages, closed coordination units (`minions/mail/` packets,
+`minions/plans/`, `minions/chat/` threads) accumulate and become high-impact
+grep and recall noise. `tools/archive-reporter.sh` is a **read-only** tool
+that lists the units safe to archive — closed (by their `Status:` marker) and
+aged — and **prints** the `git rm` + `minions/ARCHIVED.md` row commands for a
+human or orchestrator to run. It never mutates the tree, has no `run`
+subcommand, and needs no `MINION_*` gate; the person running the printed
+command is the safety boundary. PM runs it at milestone/run start and acts on
+the candidate list (the same cadence as the `minions/capabilities.md`
+refresh); its `unmarked-but-aged` line surfaces drift when closure-marking
+falls behind. Because `minions/chat/` and the `minions/ARCHIVED.md` index are
+**Class A** (mainline-authoritative), the actual pruning `git rm` and the
+`ARCHIVED.md` append are performed **on the integration mainline at the
+milestone gate**, never as an incidental mid-feature touch on a branch —
+running the report to review candidates is safe anywhere (it only prints), but
+acting on it follows the Class-A cadence. `minions/ARCHIVED.md` is the index
+of migrated units — git history stays the durable copy
+(`git checkout <sha> -- <path>`), so a `mail`, `plans`, or `chat` surface may
+be partial once pruning has run. Model:
+`docs/archive-reporter-model.md`. The automated-removal variant is deferred
+(see `TODO.md`); the reporter is the shipped subset.
 
 ## Handoff Order
 

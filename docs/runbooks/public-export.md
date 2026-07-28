@@ -47,6 +47,17 @@ marked `Initial export: yes` that downstream onboarding uses (see
    `do-not-export` row (`.mm.md`, `AI/README.md`, `AI/decisions.md`,
    `AI/open-questions.md`, `AI/specs/`, `AI/plans/`) and every
    `downstream-owned` row that has no public-facing purpose.
+2a. **Also copy every `seed only` row** — these are neither `yes` nor excluded
+   above, so they need naming explicitly or a literal reading of item 2 drops
+   them and the export ships without the seeds. They enter the tree WITH their
+   canonical content and are stripped to their stubs in Step 2 item 4; they are
+   never published as copied. Enumerate the class mechanically rather than from
+   memory:
+
+   ```bash
+   grep 'seed only' docs/export-manifest.md
+   # today: feedback.md, TODO.md, ROADMAP.md, docs/MECHANICS.md
+   ```
 3. Deliberately **add `README.md`** even though the manifest classes it
    `downstream-owned` (a downstream project is expected to replace it with
    project-specific content). The public copy is different: it has no
@@ -80,10 +91,35 @@ Procedure:
 3. Neutralize every hit coherently: rewrite the line or heading to the
    generic underlying guidance, and fix every cross-reference that pointed
    at the old heading text or section name so nothing dangles.
-4. Reset `feedback.md` to a clean capture-log stub (purpose, capture-vs-
-   curated rule, promotion path, format — no Operator-specific examples or
-   history), matching the seed style `docs/export-manifest.md` already
-   specifies for downstream onboarding.
+4. Reset every `seed only` surface to a clean stub. The manifest's
+   `Initial export: seed only` class is the authority on which files these
+   are, so a surface added to that class later is covered here without
+   editing this step. Today that class is:
+   - `feedback.md` — a clean capture-log stub (purpose, capture-vs-curated
+     rule, promotion path, format — no Operator-specific examples or
+     history).
+   - `TODO.md` — section shape and status conventions only, no backlog
+     items.
+   - `ROADMAP.md` — horizon headings and entry conventions only, no
+     template-maintenance direction.
+   - `docs/DESIGN.md` — structure and placeholder shape only, no project
+     content.
+
+   Each ships the shape a downstream needs and none of this repo's content,
+   matching the seed style `docs/export-manifest.md` already specifies for
+   downstream onboarding. `TODO.md` and `ROADMAP.md` in particular carry
+   template-maintenance backlog that names downstream projects and
+   maintainer infrastructure — the reset is a privacy step, not tidiness.
+
+   The reset removes each file's `STUB BOUNDARY` marker line along with
+   everything below it, leaving only the seed. Step 3 gate 5 checks exactly
+   that, so leaving the marker in place fails the gate.
+
+   **Coverage caveat.** Gate 5 catches a skipped reset on `TODO.md`,
+   `ROADMAP.md`, and `docs/MECHANICS.md`, which carry the boundary marker.
+   `feedback.md` has no marker and no gate — its reset remains
+   operator-applied and machine-unverified, as it has been since it joined
+   the class. Confirm that stub by eye.
 5. The template-default blocks SHIP as starters: the "Default Bench
    (template-shipped)" / "Default Matrix (template-shipped)" / "Default
    Capabilities (template-shipped)" sections ABOVE the split-merge delimiter
@@ -196,7 +232,35 @@ pushed. These are pre-push hard gates, not optional checks.
    # Expected: ok - export seed classification complete
    ```
 
-If any gate fails, fix it in the export tree and re-run all four gates
+5. **Seed-stub guard** — the `seed only` surfaces that carry a `STUB
+   BOUNDARY` marker must have been stripped to their stubs (Step 2, item 4).
+   The reset removes the marker line itself, so a surviving marker means the
+   reset was skipped and this repo's backlog or direction is about to publish:
+
+   ```bash
+   grep -rlE '^[[:space:]]*<!-- STUB BOUNDARY' <export-tree>/ --exclude-dir=.git
+   # Expected: no output
+   ```
+
+   **The anchor is load-bearing** — the same reason `export-seed-check.sh`
+   anchors its `DOWNSTREAM CONTENT BELOW` scan. An unanchored `grep 'STUB
+   BOUNDARY'` also matches this runbook and
+   `docs/downstream-upgrade-playbook.md`, which name the token in prose while
+   documenting this gate; both export, so the unanchored form fails on a
+   correctly-reset tree. Matching only the structural comment opener
+   distinguishes a real marker from a mention of one.
+
+   Run against canonical this fails by design — like gate 4's header-only leg,
+   it is an export-tree check run after the Step 2 reset.
+
+   **Known coverage limit:** this gate observes only marker-bearing files
+   (`TODO.md`, `ROADMAP.md`, `docs/MECHANICS.md`, `docs/DESIGN.md`). `feedback.md` is in the same `seed only` class
+   but carries no marker, so its reset stays operator-verified. Closing that —
+   a `seed only` leg in `tools/export-seed-check.sh` that compares each
+   surface against its stub — is tracked in `TODO.md`; this grep is the
+   interim, no-new-tooling guard, not the durable answer.
+
+If any gate fails, fix it in the export tree and re-run all five gates
 from the top — do not push on a partial pass.
 
 ---

@@ -78,8 +78,23 @@ clone.
    - live mail packet history
    - live chat summary history
    - downstream `CHANGELOG.md`
-   - `ROADMAP.md`
-   - `TODO.md`
+7a. **Take the `seed only` seeds, then own them.** `ROADMAP.md`, `TODO.md`, and
+   `feedback.md` are `downstream-owned` like the files above — the template
+   never overwrites your content on upgrade — but unlike them the template
+   ships a usable seed: section structure, status and horizon conventions,
+   ownership and Class-A notes, with no template content. `MEMORY.md` requires
+   `README.md`, `ROADMAP.md`, and `TODO.md`, so these are not optional
+   surfaces.
+
+   - If the project already has its own, keep it — take nothing.
+   - If it does not, adopt the seed and fill it in. Do not start from a blank
+     file; the seed is what stops every downstream reinventing the format.
+
+   List the class mechanically rather than from memory:
+
+   ```bash
+   grep 'seed only' .minions-template/docs/export-manifest.md
+   ```
 8. Run the onboarding checklist with the Operator and fill in project-specific
    decisions.
 9. Wire this project's minion↔plugin pairings: review

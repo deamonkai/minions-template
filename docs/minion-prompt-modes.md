@@ -75,6 +75,7 @@ formula:
 | `/research` | RM | An issue or unknown needs in-depth, vendor-documentation-grounded research before a decision | Issue framing, vendor-doc findings, corroborating evidence, ranked options with tradeoffs, recommended next step, sources |
 | `/ship` | PM (orchestrator) | A bounded feature should run the automated plan → implement → test → review pipeline end to end | Stage chain (AM spec, CM changes, CM tests, optional SM, read-only CM verdict), gates, one durable artifact, no merge — see Pipeline Mode below |
 | `/handoff` | PM (orchestrator seat) | The session is ending, compaction is near, or the Operator is handing off with work in flight | Flush of all durability obligations, then one self-contained snapshot in `minions/handoffs/` committed on the active branch; deleted on pickup — see Handoff Mode below |
+| `/onboard` | PM (orchestrator seat) | The session is starting and needs deterministic context load-in | Read-chain confirmation, code-map freshness (FRESH/PARTIAL), pending-handoff fold-in, gate state, ready-state report — read-only — see Onboarding Mode below |
 | `SME consult` | any consulting role | A change touches a registered SME's Consult When conditions, or a review-matrix row requires one | Findings-only packet (findings, risks, options, recommendation — no DECISION, no NEXT OWNER); consulting role owns the decision — see SME Consult Mode below |
 
 ## Role Mapping
@@ -286,6 +287,56 @@ How Phase 2 holds together:
   hand. No `/ship` orchestrator exists in those families to prefer them over
   `cm`, or to fall back to `cm` when a stage launcher is absent (see
   `.claude/agents/README.md`).
+
+## Onboarding Mode (`/onboard`)
+
+Onboarding mode deterministically onboards the session orchestrator at
+session start. For Claude the command is `.claude/commands/onboard.md`;
+Codex, Copilot, and other tool-native orchestrators run the identical
+protocol by prompt from this section. Optional argument: `/onboard <seat>`
+(default: the session orchestrator / PM seat).
+
+**Read-only invariant:** `/onboard` reads and reports; it mutates nothing —
+no commits, no writes, no handoff deletion. Any pending handoff snapshot is
+folded into the report and its deletion held (see step 3).
+
+In order:
+
+1. **Read-chain.** Execute the `CLAUDE.md` read-chain to completion — see
+   `CLAUDE.md` for the source of order; do not re-list it here. Confirm each
+   surface was read.
+2. **Code map.** If `docs/MECHANICS.md` is present, read its Summary/Index in
+   full, then parse its `verified @ <sha>` and `Mapped areas:` anchor lines.
+   Run `git log --oneline <sha>..HEAD -- <mapped areas>`. A non-empty result
+   means the map has drifted since it was last confirmed against HEAD: flag
+   it **PARTIAL** and report the commit count and which mapped area(s)
+   changed. An empty result means **FRESH**. If `docs/MECHANICS.md` is
+   absent, note "no code map" and proceed.
+3. **Pending handoff.** Check `minions/handoffs/` for a pending snapshot.
+   Verify its claims against repo truth (files win over a stale snapshot's
+   claims), fold its `## Session Reset` section into the ready-state report,
+   and note any stale claims found. Hold the delete: per
+   `minions/handoffs/README.md` the snapshot is only deleted — as the pickup
+   receipt — once work actually resumes, not during onboarding itself.
+4. **Gates.** Surface `MINION_*` gate state (memory, secondbrain, skills,
+   issues) as presumptive — the resumer re-verifies live before relying on
+   it, the same discipline as a handoff snapshot's Environment Gates.
+5. **Ready-state report.** Emit the report below. This report is the forcing
+   function: onboarding is not complete until it is emitted. Write `none`
+   rather than omitting a line.
+
+```
+/onboard
+→ read-chain: AI.md ✓ MEMORY.md ✓ feedback.md ✓ role charter (<seat>) ✓
+  capabilities ✓ SMEs/review-matrix ✓
+→ code map: docs/MECHANICS.md verified @ <sha> (<N> commits ago;
+  <area> changed <k>× since — PARTIAL, verify that section) | FRESH | none
+→ handoff: <'<topic>' — VERIFIED, folded below (held); stale: <notes>> | none pending
+→ gates: <MINION_* = on/off list> (presumptive)
+→ READY: seat=<seat>, posture=autonomous (3 hard-stops: merge-to-main,
+  destructive-without-rollback, unresolved-AI-disagreement),
+  single-writer durability in effect. Awaiting task.
+```
 
 ## Handoff Mode (`/handoff`)
 

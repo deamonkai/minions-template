@@ -8,6 +8,27 @@ Use this manifest with:
 - `docs/downstream-onboarding-playbook.md` for first export into a downstream repo
 - `docs/downstream-upgrade-playbook.md` for later template migrations
 
+## Initial Export Meanings
+
+The `Initial export` column says whether a file goes into an export tree at
+all — the downstream-onboarding export and the public-mirror export both read
+it. `Upgrade strategy` then says what happens to it on *later* upgrades.
+
+- `yes`: copy into the export tree as-is.
+- `no`: never copied.
+- `seed only`: copy the file, then strip it to its content-free seed — the
+  structure, conventions, and rules a downstream needs, with none of this
+  repo's content. The seed ships; the content does not. Public-export Step 2
+  item 4 performs the strip, and the class is enumerated mechanically with
+  `grep 'seed only' docs/export-manifest.md` rather than from memory.
+- `bootstrap reference only`: copy as a starting point that the downstream is
+  expected to replace wholesale (today: `README.md`).
+
+The distinction that matters: `bootstrap reference only` ships something that
+*describes this repo* and invites replacement; `seed only` ships a *shape* that
+never described this repo in the first place. A file whose value to a
+downstream is its structure rather than its text belongs in `seed only`.
+
 ## Strategy Meanings
 
 - `template-replace`: usually replace from the new template version, then
@@ -55,7 +76,7 @@ much it matters that you do*. This is the stable, file-level signal; the
 
 > **Note:** Class-A files (`MEMORY.md`, `AI.md`, `CLAUDE.md`, `AGENTS.md`,
 > `.github/copilot-instructions.md`, `minions/roles/*`, `ROADMAP.md`,
-> `TODO.md`, `minions/chat/`) are
+> `TODO.md`, `minions/chat/`, `minions/ARCHIVED.md`) are
 > mainline-authoritative per the branching model
 > (`docs/branching-and-release-model.md` §Coordination Plane).
 
@@ -150,8 +171,11 @@ template repo.
 | `minions/mail/*/` live packet history | no | `downstream-owned` | `n/a` | PM / Operator | preserve downstream packet history; do not export template packet history |
 | `minions/chat/*.md` daily/topic history | no | `downstream-owned` | `n/a` | PM / Operator | preserve downstream summary history; do not export template history |
 | `minions/plans/*.md` live plan docs | no | `downstream-owned` | `n/a` | PM / DM | preserve project-specific plans and status |
-| `ROADMAP.md` | downstream required | `downstream-owned` | `n/a` | PM / DM | currently required by the workflow but not shipped as a template file |
-| `TODO.md` | downstream required | `downstream-owned` | `n/a` | PM / DM | currently required by the workflow but not shipped as a template file |
+| `minions/ARCHIVED.md` | no | `downstream-owned` | `n/a` | PM / Operator | coordination archive index; created on first `archive-reporter` prune; downstream-owned history (like `CHANGELOG.md`), Class A / not exported. The row exists so `manifest-completeness` stays green once the file is first appended — never add a row by hand |
+| `ROADMAP.md` | seed only | `downstream-owned` | `n/a` | PM / DM | ship the seed (horizon headings + the entry conventions); downstream keeps its own approved direction — do not overwrite with template roadmap content |
+| `TODO.md` | seed only | `downstream-owned` | `n/a` | PM / DM | ship the seed (section shape + status conventions); downstream keeps its own backlog — do not overwrite with template backlog items |
+| `docs/MECHANICS.md` | seed only | `downstream-owned` | `n/a` | AM / DM | living code map (system-at-a-glance); ships the shape, downstream fills its own; on-demand detail in `docs/mechanics/` |
+| `docs/DESIGN.md` | seed only | `downstream-owned` | `n/a` | CM / DM | design-standards scaffold the Design/UX Reviewer SME reviews UI changes against; ships the standards headings + placeholder shape, downstream fills its own real token/theme/component values — do not overwrite with template placeholder content |
 | `tools/xtool-call.sh` | yes | `template-replace` | `feature` | PM / CM | cross-tool orchestration wrapper (Codex / Copilot, review / delegate postures); adopt if project uses cross-vendor review |
 | `tools/upgrade-classify.sh` | yes | `template-replace` | `reference` | PM / CM | upgrade helper: classifies a template change-set (manifest class + live-vs-snapshot divergence) for downstream upgrades; see `docs/downstream-upgrade-playbook.md` |
 | `tools/export-seed-check.sh` | yes | `template-replace` | `feature` | PM / OM | public-export pre-push gate (runbook Step 3, gate 4): asserts Local Registry / Local Matrix are header-only below the split-merge delimiter in the export tree; point `SEED_FILES` at the downstream's own delimited local sections |
@@ -161,6 +185,7 @@ template repo.
 | `.claude/commands/second-opinion.md` | yes | `template-replace` | `feature` | PM | `/second-opinion` slash command; read-only cross-vendor review via `tools/xtool-call.sh` |
 | `.claude/commands/delegate.md` | yes | `template-replace` | `feature` | PM | `/delegate` slash command; isolated-worktree cross-vendor implementation via `tools/xtool-call.sh` |
 | `.claude/commands/handoff.md` | yes | `template-replace` | `feature` | PM | `/handoff` slash command; flush-then-snapshot session handoff (ephemeral, deleted on pickup) |
+| `.claude/commands/onboard.md` | yes | `template-replace` | `feature` | PM | `/onboard` slash command; read-only session-start ready-state report (read-chain, code-map staleness, pending-handoff fold-in, gate state) |
 | `docs/cross-tool-orchestration.md` | yes | `template-replace` | `feature` | PM / DM | exported cross-tool orchestration protocol doc; operator reference for the review/delegate/ship workflow |
 | `docs/risk-posture-shadow-first.md` | yes | `template-replace` | `feature` | PM / AM | optional shadow-first / dark-ship risk posture for behavior-changing changes with a comparable incumbent; opt-in, no code shipped |
 | `docs/instruction-size-budgets.md` | yes | `template-replace` | `feature` | PM / DM | instruction-surface word-budget reference + downstream override surface; split-merge per delimiter — template default-budget table above the marker, Local Overrides below are downstream-owned; consumed fail-open by tools/tests/instruction-size.test.sh |
@@ -179,6 +204,8 @@ template repo.
 | `.issue` sidecars (`minions/mail/*/*.issue`) | no | `downstream-owned` | `n/a` | CM / Operator | Class B / downstream-owned; not exported from template |
 | `docs/memory-recall-model.md` | yes | `template-replace` | `feature` | PM | canonical memory-recall (Mnemoverse) view-layer model |
 | `docs/runbooks/memory-recall-setup.md` | yes | `template-replace` | `reference` | OM | operator setup: `MINION_MEMORY`, extension, API key, smoke test |
+| `tools/archive-reporter.sh` | yes | `template-replace` | `feature` | PM / CM | read-only reporter of closed+aged coordination units (mail/plans/chat); prints `git rm` + `ARCHIVED.md` row for a human to run at milestones, never mutates; no `run` subcommand, no `MINION_*` gate |
+| `docs/archive-reporter-model.md` | yes | `template-replace` | `feature` | PM | canonical archive-reporter model (read-only subset; the automated `run` path is deferred) |
 | `tools/second-brain.sh` | yes | `template-replace` | `feature` | PM / CM | optional local second-brain vault tool (capture/search/filter/scan/path), default-off (`MINION_SECONDBRAIN=on`) |
 | `docs/second-brain-model.md` | yes | `template-replace` | `feature` | PM | canonical local second-brain (Obsidian-backed corpus) model |
 | `docs/runbooks/second-brain-setup.md` | yes | `template-replace` | `reference` | OM | operator setup: `MINION_SECONDBRAIN`/`MINION_SECONDBRAIN_VAULT`, vault containment, smoke test |

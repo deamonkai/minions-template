@@ -51,6 +51,9 @@ upgrade.
 | `tools/*.sh` or test-guard edit | Shell/Test-Harness SME | guard-quality review |
 | skill adopt-candidate (external skill into `skills/vendored/`) | Skill-Provenance SME, Shell/Test-Harness SME, SM, Export/Privacy SME, Governance-Invariant SME | PM convenes and routes the panel; Skill-Provenance SME synthesizes the returned findings; RM supplies `external-skill-provenance` provenance; PM decides, Operator approves |
 | adopted-skill wrapper-charter authoring (framework-native wrapper text) | Governance-Invariant SME, Skill-Provenance SME | Gov-Invariant reviews the framework-authored wrapper prose (advisory-on-text); Skill-Provenance confirms it neutralizes the upstream injection surface; a role writes the wrapper with `WRITTEN-BY:` attribution |
+| UI / component / style / token / theme change | Design/UX Reviewer SME | craft-quality review against `docs/DESIGN.md` |
+| new user-facing surface | Design/UX Reviewer SME (+ SM if it handles input/auth) | Design/UX reviews craft; SM reviews only when the surface handles input/auth |
+| accessibility-affecting change | Design/UX Reviewer SME | contrast, focus order, semantics, keyboard path, reduced-motion, ARIA |
 
 <!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->
 

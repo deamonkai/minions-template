@@ -13,9 +13,11 @@ It provides a baseline operating model for:
 - OM-Test / OM (runtime and operational validation)
 - RM (in-depth research, vendor-doc-grounded options, out-of-box next steps; recommends only)
 
-It also ships a **default bench of six infrastructure SMEs** (Subject-Matter
-Experts) — advisory, recommend-only expertise modules the roles consult for
-domain findings. See [minions/smes/README.md](minions/smes/README.md).
+It also ships a **default bench of seven SMEs** (Subject-Matter Experts) —
+advisory, recommend-only expertise modules the roles consult for domain
+findings: six infrastructure SMEs covering the template's own plumbing, plus a
+Design/UX Reviewer for the craft quality of user-facing changes. See
+[minions/smes/README.md](minions/smes/README.md).
 
 Copilot users can run these roles from [.github/agents](.github/agents),
 Codex users from [.codex/agents](.codex/agents), and Claude Code users from
@@ -30,7 +32,7 @@ repository's commit history is never pushed here — it tracks maintainer-local
 files and personal Operator context across past revisions, so only the current,
 filtered tree is published.
 
-- **Source:** canonical release `v1.41.0`.
+- **Source:** canonical release `v1.45.0`.
 - **History:** fresh — this copy carries no canonical commit history, only its
   own publish-only history.
 
@@ -53,14 +55,37 @@ Relative to the canonical repository, this public copy:
   and `tools/tests/fixtures/second-brain/` are dropped because their
   deliberately-fake, provider-shaped fixtures trip public secret-scanning push
   protection. The second-brain tool and feature themselves still ship.
-- **Resets `feedback.md`** to a clean capture-log stub (no Operator history).
-- **Resets the downstream-local SME sections** — the "Local Registry (this
-  repo)" and "Local Matrix (this repo)" sections below the split-merge delimiter
-  in `minions/smes/README.md` and `minions/review-matrix.md` — to header-only
-  seed state. The template-shipped **Default Bench / Default Matrix** (six
-  infrastructure SMEs, above the delimiter) ship in full.
-- **Neutralizes personal phrasing** throughout (names, absolute paths, and
-  condition-specific references genericized).
+- **Resets the `seed only` surfaces to their stubs** — `feedback.md`,
+  `TODO.md`, `ROADMAP.md`, `docs/MECHANICS.md`, and `docs/DESIGN.md` ship the
+  structure, conventions, and rules a downstream needs, with none of this
+  repo's backlog, direction, code map, or design values.
+- **Resets the downstream-local sections** — "Local Registry (this repo)",
+  "Local Matrix (this repo)", and "Local Inventory (this repo)" below the
+  split-merge delimiter in `minions/smes/README.md`,
+  `minions/review-matrix.md`, and `minions/capabilities.md` — to header-only
+  seed state. The template-shipped **Default Bench / Default Matrix / Default
+  Capabilities** (the seven-SME bench and its routing, above the delimiter)
+  ship in full.
+- **Neutralizes personal phrasing** throughout (names, hostnames and org/repo
+  paths, absolute paths, and condition-specific references genericized —
+  runbook examples use `git.example.com` / `Example-Org`).
+
+### Upgrading from the previously published `v1.41.0`
+
+This publish jumps `v1.41.0` → `v1.45.0`, so `v1.42.0`, `v1.43.0`, and
+`v1.44.0` never appeared here on their own. Every intervening entry is in
+[docs/downstream-upgrade-playbook.md](docs/downstream-upgrade-playbook.md)
+(Version-Specific Required Changes) and all four are OPTIONAL/additive — but
+they are stated per-version, so for a multi-version jump check all of them.
+Two classes are worth collecting up front:
+
+- **Name collisions** — rename yours first, or the `template-replace` glob
+  overwrites it: `minions/smes/design-ux.md` and `sme-design-ux.*` launchers
+  (1.45.0), `.claude/commands/onboard.md` (1.44.0), `tools/archive-reporter.sh`
+  and its test (1.43.0).
+- **Do not blind-copy** these downstream-owned surfaces from the snapshot:
+  `TODO.md` / `ROADMAP.md` (1.42.0), `docs/MECHANICS.md` (1.44.0),
+  `docs/DESIGN.md` (1.45.0). They ship as seeds; yours is the real one.
 
 ## Using Copilot, Codex, or Claude Minion Agents
 
@@ -158,6 +183,12 @@ template:
 - [minions/roles](minions/roles): role charters
 - [minions/smes](minions/smes): Subject-Matter Expert charters (advisory bench)
 - [minions/review-matrix.md](minions/review-matrix.md): change-type review routing
+- [minions/capabilities.md](minions/capabilities.md): per-repo capability
+  inventory (which skills, connectors, and agents actually exist here)
+- [docs/MECHANICS.md](docs/MECHANICS.md): the code map — system-at-a-glance,
+  read at session start; downstream fills it in
+- [docs/DESIGN.md](docs/DESIGN.md): design standards the Design/UX Reviewer SME
+  reviews UI changes against; downstream fills in its own real values
 - [minions/plans](minions/plans): formal planning artifacts
 - [minions/mail](minions/mail): mailbox packet coordination
 - [minions/chat](minions/chat): PM-owned continuity summaries

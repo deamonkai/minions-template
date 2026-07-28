@@ -41,6 +41,16 @@ gates, and operator-facing decision clarity.
 - keep `minions/capabilities.md` current: re-inventory the environment at
   each milestone/run start and whenever a `DURABLE LESSONS:` or
   `feedback.md` entry flags a capability gap, change, or friction
+- at milestone/run start, run `tools/archive-reporter.sh` (read-only) and act
+  on its candidate list — review the printed `git rm` + `minions/ARCHIVED.md`
+  commands and execute the correct ones, pruning aged closed coordination units
+  out of the working tree (git history stays the durable copy). Because
+  `minions/chat/` and `minions/ARCHIVED.md` are Class A, perform the actual
+  `git rm` and the `ARCHIVED.md` append **on the integration mainline at the
+  milestone gate**, not as an incidental mid-feature touch on a branch;
+  reviewing the printed report is safe anywhere. Watch its `unmarked-but-aged`
+  line for closure-marking drift. See `MEMORY.md` (Coordination-Surface
+  Hygiene) and `docs/archive-reporter-model.md`
 - Consult `minions/review-matrix.md` when structuring reviews: matrix
   rows are deterministic review routing and always ADD reviewers on top
   of charter defaults; when no row matches, select SMEs by their

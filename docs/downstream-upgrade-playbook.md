@@ -53,6 +53,143 @@ complete until every `REQUIRED` item is confirmed present in the live repo. The
 `Criticality` column in `docs/export-manifest.md` marks the `baseline` files
 that most often carry these.
 
+### 1.45.0 — Design/UX SME (first product-domain reviewer in the Default Bench)
+
+**OPTIONAL — additive.**
+
+A 7th default-bench SME, `design-ux` (UI/UX craft: visual, interaction, and
+accessibility review against `docs/DESIGN.md`), joins the Default Bench.
+
+- Its charter (`minions/smes/design-ux.md`) and its `sme-design-ux`
+  launchers (Claude/Codex/Copilot) are `template-replace` and converge on
+  sync. Its registry row (`minions/smes/README.md`) and its 3 routing rows
+  (`minions/review-matrix.md`) land above the split-merge delimiter and
+  converge on sync too.
+- **Pre-upgrade name-collision check (only if you already have one):** a
+  downstream that authored its own `design-ux.md` charter or a
+  `sme-design-ux` launcher must rename it before upgrading, or the
+  `template-replace` globs overwrite it. Same shape as the 1.34.0 / 1.36.0 /
+  1.37.0 / 1.43.0 / 1.44.0 collision notes.
+- **`docs/DESIGN.md` is `seed only`, downstream-owned** — structure only, a
+  placeholder shape. Nothing overwrites an existing downstream
+  `docs/DESIGN.md` on a normal per-manifest-row upgrade. **CAUTION —
+  snapshot-wide copy:** an upgrade that copies `.minions-template/` wholesale
+  into the live repo, rather than per-manifest-row, will clobber an existing
+  downstream `docs/DESIGN.md` with the template seed — same as the 1.42.0 /
+  1.44.0 seed CAUTIONs.
+- Manifest: the charter and 3 launchers are covered by the existing
+  `minions/smes/*.md` and `sme-*` globs; `docs/DESIGN.md` gets its own
+  seed-only row.
+- No governance-token change, no new hard-stop.
+
+### 1.44.0 — session onboarding (`/onboard` + `docs/MECHANICS.md` code map)
+
+**OPTIONAL — additive; adopting changes nothing until you run `/onboard`.**
+
+New Onboarding Mode (`docs/minion-prompt-modes.md`) plus its Claude launcher
+(`.claude/commands/onboard.md`) execute the CLAUDE.md read-chain, read
+`docs/MECHANICS.md` (flagging staleness), check `minions/handoffs/` for a
+pending snapshot (absorb, hold the delete), surface `MINION_*` gates, and
+emit a ready-state report. It is read-only end to end — nothing changes
+until you actually invoke `/onboard`.
+
+- `MEMORY.md` and `minions/roles/AM.md` carry it: `AM.md` is
+  `template-replace` and converges on sync (it gains the `docs/MECHANICS.md`
+  ownership + refresh duty); `MEMORY.md` is `manual-merge` — hand-carry the
+  short Session Onboarding pointer paragraph.
+- `docs/MECHANICS.md` is **seed-only, downstream-owned** — pre-classified in
+  `docs/export-manifest.md` so the `manifest-completeness` guard stays green
+  the first time a downstream commits its own filled-in copy; the template
+  ships only the structure and a `verified @ <sha>` staleness convention, no
+  project content.
+- The new `.claude/commands/onboard.md` launcher and the Onboarding Mode
+  section in `docs/minion-prompt-modes.md` are `template-replace` and arrive
+  on a normal sync; `minions/capabilities.md` gains a Default-Capabilities row
+  (also `template-replace`).
+- **Pre-upgrade name-collision check (only if you already have one):** a
+  downstream that authored its own `.claude/commands/onboard.md` must rename
+  it before upgrading — `template-replace` overwrites it. Same shape as the
+  1.36.0 / 1.37.0 / 1.43.0 collision notes.
+- **`docs/MECHANICS.md` is `downstream-owned`, not a rename case.** If you
+  already have a file at this path, nothing overwrites it on a normal
+  per-manifest-row upgrade — keep it as-is. The actual risk is the same as
+  the 1.42.0 `TODO.md`/`ROADMAP.md` **CAUTION — snapshot-wide copy**: an
+  upgrade that copies `.minions-template/` wholesale into the live repo,
+  rather than per-manifest-row, will clobber an existing downstream
+  `docs/MECHANICS.md` with the template seed. If you have neither, adopt the
+  seed and fill it in. If you upgrade by bulk copy, exclude this path
+  explicitly, or diff before overwriting.
+- No governance-token change, no new hard-stop.
+
+### 1.43.0 — archive reporter (read-only repo-thinning tool)
+
+**OPTIONAL — no required changes; adopt normally.**
+
+New `tools/archive-reporter.sh` (+ `tools/tests/archive-reporter.test.sh`,
+`docs/archive-reporter-model.md`) is a **read-only** tool: it lists closed and
+aged coordination units (`minions/mail/`, `minions/plans/`, `minions/chat/`)
+and **prints** `git rm` + `minions/ARCHIVED.md` row commands for a human or
+orchestrator to run at a milestone boundary. It never mutates the tree, has no
+`run` subcommand, and needs no `MINION_*` gate — so adopting it changes nothing
+until you choose to run it, and running it only prints suggestions.
+
+- All three new files are `template-replace` (`tools/archive-reporter.sh` and
+  `docs/archive-reporter-model.md` as exact rows; the test via the existing
+  `tools/tests/` directory row) and arrive on a normal template sync.
+- **Pre-upgrade name-collision check (only if you already have one):** a
+  downstream that authored its own `tools/archive-reporter.sh` or
+  `tools/tests/archive-reporter.test.sh` must rename it before upgrading, or
+  the template-replace overwrites it. New name, so a collision is unlikely; the
+  check is the same shape as the 1.36.0 / 1.37.0 collision notes.
+- Governance surfaces: `minions/roles/PM.md` (milestone-run duty) and
+  `minions/capabilities.md` (a Default-Capabilities row, above the 1.41.0
+  split-merge delimiter — complete that delimiter migration first if jumping
+  from ≤1.40) are `template-replace` and converge on sync. The rest are
+  `manual-merge` and must be hand-carried: `MEMORY.md` gains a
+  Coordination-Surface Hygiene paragraph, and `AI.md` / `AGENTS.md` /
+  `.github/copilot-instructions.md` each gain a note that `minions/mail|plans|chat`
+  may be partial once pruning has run. These notes are informational — a
+  downstream that never runs the reporter has complete surfaces regardless — so
+  dropping one on a hand-merge has no coherence consequence.
+- `minions/ARCHIVED.md` is **not** shipped by this version — the reporter only
+  prints the row for a human to append; the file is created downstream on first
+  use. The manifest already classifies it (`no` / `downstream-owned`, Class A),
+  so your `manifest-completeness` guard stays green the first time the reporter's
+  row is appended and committed — you never add a manifest row by hand. (The
+  automated variant that would create/append it is deferred.)
+- No governance-token change, no new hard-stop, no behavior change unless you
+  run the tool.
+
+### 1.42.0 — `TODO.md` / `ROADMAP.md` ship as `seed only`
+
+**OPTIONAL — no required changes; one CAUTION.**
+
+`MEMORY.md` has always required `README.md`, `ROADMAP.md`, and `TODO.md`, but
+the template shipped only the first — the manifest classed the other two
+"required by the workflow but not shipped as a template file", so every adopter
+invented its own format. The template now ships both as `seed only`
+(structure, status/horizon conventions, ownership and Class-A notes; no
+template content), joining `feedback.md` in that class. A new **Initial Export
+Meanings** legend in `docs/export-manifest.md` defines the class.
+
+- **Upgrade strategy is unchanged (`downstream-owned`).** Nothing overwrites a
+  downstream `TODO.md` or `ROADMAP.md` on upgrade. A downstream that already
+  authored either is unaffected and need do nothing.
+- **If you have neither**, adopt the seeds and fill them in — see
+  `docs/downstream-onboarding-playbook.md` step 7a. Optional, but it is the
+  cheapest way to satisfy a `MEMORY.md` requirement you already carry.
+- **CAUTION — snapshot-wide copy.** These are the first `seed only` files at
+  paths a downstream commonly already occupies. The manifest row protects you,
+  but only if consulted: an upgrade that copies `.minions-template/` wholesale
+  into the live repo, rather than per-manifest-row, will clobber an existing
+  downstream `TODO.md`/`ROADMAP.md` with the template seed. Same failure shape
+  as the 1.34.0 SME name-collision check. If you upgrade by bulk copy, exclude
+  these two paths explicitly, or diff before overwriting.
+- **Public-export adopters:** if you run your own public mirror, the export
+  runbook gained a Step 1 item 2a (copy `seed only` rows explicitly) and a
+  Step 3 gate 5 (`grep -rl 'STUB BOUNDARY'`, expect zero hits) that catches a
+  skipped stub reset. Adopt both if you publish; skip if you do not.
+
 ### 1.41.0 — capabilities.md split-merge delimiter
 
 OPTIONAL structure change with a REQUIRED-IF-ADOPTED one-time migration.
