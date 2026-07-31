@@ -13,12 +13,6 @@ It provides a baseline operating model for:
 - OM-Test / OM (runtime and operational validation)
 - RM (in-depth research, vendor-doc-grounded options, out-of-box next steps; recommends only)
 
-It also ships a **default bench of seven SMEs** (Subject-Matter Experts) —
-advisory, recommend-only expertise modules the roles consult for domain
-findings: six infrastructure SMEs covering the template's own plumbing, plus a
-Design/UX Reviewer for the craft quality of user-facing changes. See
-[minions/smes/README.md](minions/smes/README.md).
-
 Copilot users can run these roles from [.github/agents](.github/agents),
 Codex users from [.codex/agents](.codex/agents), and Claude Code users from
 [.claude/agents](.claude/agents). All are thin launchers around the durable
@@ -32,7 +26,7 @@ repository's commit history is never pushed here — it tracks maintainer-local
 files and personal Operator context across past revisions, so only the current,
 filtered tree is published.
 
-- **Source:** canonical release `v1.45.0`.
+- **Source:** canonical release `v1.47.0`.
 - **History:** fresh — this copy carries no canonical commit history, only its
   own publish-only history.
 
@@ -67,25 +61,35 @@ Relative to the canonical repository, this public copy:
   Capabilities** (the seven-SME bench and its routing, above the delimiter)
   ship in full.
 - **Neutralizes personal phrasing** throughout (names, hostnames and org/repo
-  paths, absolute paths, and condition-specific references genericized —
-  runbook examples use `git.example.com` / `Example-Org`).
+  paths, absolute paths, downstream project names, and condition-specific
+  references genericized — runbook examples use `git.example.com` /
+  `Your-Org`).
 
-### Upgrading from the previously published `v1.41.0`
+### Upgrading from the previously published `v1.45.0`
 
-This publish jumps `v1.41.0` → `v1.45.0`, so `v1.42.0`, `v1.43.0`, and
-`v1.44.0` never appeared here on their own. Every intervening entry is in
+This publish jumps `v1.45.0` → `v1.47.0`, so `v1.46.0` never appeared here on
+its own. Both intervening entries are in
 [docs/downstream-upgrade-playbook.md](docs/downstream-upgrade-playbook.md)
-(Version-Specific Required Changes) and all four are OPTIONAL/additive — but
-they are stated per-version, so for a multi-version jump check all of them.
-Two classes are worth collecting up front:
+(Version-Specific Required Changes), and unlike the previous jump these are
+**not** all optional — check both:
 
+- **`1.46.0` — REQUIRED (unconditional, if you run the test-suite guard):**
+  adopt the `STUB BOUNDARY` marker on your five `seed only` files. The export
+  strips that marker, so no published version has ever shipped you the line,
+  and the guard's source-side leg fails on all five without it. Plus a
+  REQUIRED-IF-ADOPTED one-time `AI.md` / `docs/export-manifest.md` split-merge
+  delimiter migration.
+- **`1.47.0` — REQUIRED (unconditional, if you run the governance guard):**
+  merge two new `MEMORY.md` blocks (the landscape-routing dispatch rule and the
+  Hope/Effort creep check), and take `docs/pm-judgment-model.md` **together
+  with** the test suite — the guard now asserts that file exists.
+  REQUIRED-IF-ADOPTED if you maintain your own `tools/*.sh`: a new detector
+  sweeps them for a marker-substring pattern.
 - **Name collisions** — rename yours first, or the `template-replace` glob
-  overwrites it: `minions/smes/design-ux.md` and `sme-design-ux.*` launchers
-  (1.45.0), `.claude/commands/onboard.md` (1.44.0), `tools/archive-reporter.sh`
-  and its test (1.43.0).
+  overwrites it: `docs/pm-judgment-model.md` (1.47.0).
 - **Do not blind-copy** these downstream-owned surfaces from the snapshot:
-  `TODO.md` / `ROADMAP.md` (1.42.0), `docs/MECHANICS.md` (1.44.0),
-  `docs/DESIGN.md` (1.45.0). They ship as seeds; yours is the real one.
+  `TODO.md` / `ROADMAP.md`, `docs/MECHANICS.md`, `docs/DESIGN.md`. They ship as
+  seeds; yours is the real one.
 
 ## Using Copilot, Codex, or Claude Minion Agents
 
@@ -107,6 +111,14 @@ gate evidence, or same-day continuity. See
 [.claude/agents/README.md](.claude/agents/README.md) for practical Operator
 prompt patterns in each tool.
 
+## Important Template Note
+
+This README is template-scaffolding guidance.
+
+When this template is used to create a downstream project, this file should not
+be copied forward as-is. Downstream repositories should replace it with a
+project-specific README to avoid role/process confusion.
+
 ## Repository Purpose
 
 This template exists to make multi-agent coordination explicit, durable, and
@@ -114,7 +126,6 @@ reviewable by combining:
 
 - shared memory and guardrails
 - role-specific context files
-- an advisory expertise layer (SMEs)
 - formal planning artifacts
 - mailbox packet history
 - PM-owned continuity summaries
@@ -181,14 +192,6 @@ template:
 - [.github/agents](.github/agents): Copilot custom agent definitions for the
   minion roles
 - [minions/roles](minions/roles): role charters
-- [minions/smes](minions/smes): Subject-Matter Expert charters (advisory bench)
-- [minions/review-matrix.md](minions/review-matrix.md): change-type review routing
-- [minions/capabilities.md](minions/capabilities.md): per-repo capability
-  inventory (which skills, connectors, and agents actually exist here)
-- [docs/MECHANICS.md](docs/MECHANICS.md): the code map — system-at-a-glance,
-  read at session start; downstream fills it in
-- [docs/DESIGN.md](docs/DESIGN.md): design standards the Design/UX Reviewer SME
-  reviews UI changes against; downstream fills in its own real values
 - [minions/plans](minions/plans): formal planning artifacts
 - [minions/mail](minions/mail): mailbox packet coordination
 - [minions/chat](minions/chat): PM-owned continuity summaries

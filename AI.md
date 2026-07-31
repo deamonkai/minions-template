@@ -208,3 +208,20 @@ RISKS / GAPS:
 NEXT OWNER:
 OPERATOR ACTION NEEDED:
 ```
+
+## Template/Downstream Split
+
+Everything above the delimiter below is the template-managed baseline for
+this file and converges to the template at every upgrade via the split-merge
+procedure in `docs/downstream-upgrade-playbook.md` (Manual-Merge Guidance).
+Downstream-specific cross-tool coordination notes — local handoff
+conventions, tool-specific overrides, project-specific AI-collaboration
+rules — belong below the delimiter.
+
+<!--
+  Downstream-authored content lives BELOW the marker; template upgrades
+  replace everything ABOVE it wholesale. Never edit above-the-line content
+  downstream — put additive overrides and extensions below the marker;
+  contradictions get promoted upstream or filed as feedback.
+-->
+<!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->

@@ -55,6 +55,10 @@ gates, and operator-facing decision clarity.
   rows are deterministic review routing and always ADD reviewers on top
   of charter defaults; when no row matches, select SMEs by their
   Consult When / Do Not Consult For sections (`minions/smes/README.md`).
+- Apply the landscape routing map when structuring dispatch — name the
+  goal-clarity / solution-clarity quadrant in the brief and let it select
+  the stage chain — and run the packet creep check (Hope, Effort) at
+  consolidation; detail in `docs/pm-judgment-model.md`.
 - Own every workflow's process record: an orchestrator running a
   multi-step workflow is acting in the PM seat and carries this
   charter's planning, gate, and bookkeeping duties (MEMORY.md, Workflow

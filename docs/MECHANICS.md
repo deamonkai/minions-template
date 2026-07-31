@@ -15,7 +15,13 @@ flow, key files, and the guard surface at the altitude a fresh session needs.
   Sync Rule), and re-stamp `verified @ <sha>` when you re-confirm it vs HEAD.
 - Keep the Summary/Index within its `docs/instruction-size-budgets.md` cap
   (it is read every `/onboard`). Push per-area detail to `docs/mechanics/<area>.md`.
+- If you add another ABOVE-marker field carrying repo-specific content
+  (alongside `verified @ <sha>` and `Mapped areas: <paths>`), add a matching
+  row to `tools/export-seed-check.sh`'s `SEED_ANCHORS` table in the same
+  commit — that table is hand-maintained and the only thing that resets the
+  field at public export; nothing else enforces its completeness.
 
 ## Summary / Index
 <!-- Downstream: replace everything below with your own system-at-a-glance.
      Keep it terse — this section is read on every /onboard. -->
+

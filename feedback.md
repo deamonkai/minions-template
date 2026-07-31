@@ -20,6 +20,7 @@ mark the entry `promoted -> <where>`:
 
 - general project truth or operator working style -> `MEMORY.md`
 - role-specific behavior -> the relevant `minions/roles/*.md` charter
+- a decision about the template itself -> `AI/decisions.md` (template repo only)
 
 The log is the buffer; the curated files are the truth.
 
@@ -45,4 +46,3 @@ act on them too).
 
 ---
 
-<!-- Capture entries below. This section ships empty; downstream fills it. -->

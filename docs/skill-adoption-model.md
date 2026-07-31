@@ -9,8 +9,11 @@ template without becoming an authority, a leak, or a run-time exfil path.
 those files.
 
 Design of record: `docs/superpowers/specs/2026-07-09-skill-adoption-layer-design.md`
-(rev 2, maintainer-local). This model doc is the exportable, downstream-facing
-distillation of it.
+(rev 2, maintainer-local — lives under `docs/superpowers/`, which is
+`do-not-export`, so this pointer resolves only in the template maintainer's own
+checkout, never in an export tree or a downstream clone). This model doc is
+the exportable, downstream-facing distillation of it, and is the only copy a
+downstream needs.
 
 ## Why a Skill-Adoption Layer
 

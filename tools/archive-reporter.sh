@@ -7,9 +7,8 @@
 # PRINTS — never runs — the `git rm` + ARCHIVED.md-append commands a human
 # or orchestrator can review and execute. There is intentionally no `run`
 # subcommand: emitting one would recreate the deferred full automation this
-# tool exists to avoid. See
-# docs/superpowers/specs/2026-07-21-archive-reporter-design.md for the
-# full design.
+# tool exists to avoid. See docs/archive-reporter-model.md for the full
+# model (the design spec it distills is maintainer-local and does not ship).
 #
 # Exit codes: 0 normal (candidates or none), 2 usage error, 4 a git/IO
 # failure that prevented a correct report.

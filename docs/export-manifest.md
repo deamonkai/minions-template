@@ -20,7 +20,18 @@ it. `Upgrade strategy` then says what happens to it on *later* upgrades.
   structure, conventions, and rules a downstream needs, with none of this
   repo's content. The seed ships; the content does not. Public-export Step 2
   item 4 performs the strip, and the class is enumerated mechanically with
-  `grep 'seed only' docs/export-manifest.md` rather than from memory.
+  `grep 'seed only' docs/export-manifest.md` rather than from memory. A
+  `seed only` file must carry a `STUB BOUNDARY` marker (see the
+  "seed-only `STUB BOUNDARY` marker" subsection under Manual-Merge Guidance
+  in `docs/downstream-upgrade-playbook.md` for the exact line — NOT the
+  split-merge delimiter section, which documents the different
+  `DOWNSTREAM CONTENT BELOW` marker and carries no `STUB BOUNDARY` text) so
+  `tools/export-seed-check.sh` can verify the strip ran.
+  If the file also carries an ABOVE-marker field with repo-specific content
+  (like `docs/MECHANICS.md`'s `verified @ <sha>` / `Mapped areas: <paths>`),
+  add a row for it to that script's `SEED_ANCHORS` table in the same commit
+  — the table is hand-maintained and unenforced by any other guard, so a new
+  above-marker field with no `SEED_ANCHORS` row publishes silently.
 - `bootstrap reference only`: copy as a starting point that the downstream is
   expected to replace wholesale (today: `README.md`).
 
@@ -100,7 +111,7 @@ template repo.
 | `AI/open-questions.md` | no | `do-not-export` | `n/a` | MM / Operator | cross-AI template-maintenance open questions; template-maintainer-local |
 | `AI/feedback/` | no | `do-not-export` | `n/a` | MM / Operator | vendored field-feedback packets + evidence triage; template-maintainer-local |
 | `.gitignore` | yes | `manual-merge` | `baseline` | PM / Operator | not auto-managed and outside most merge tooling; merge new template ignore patterns (e.g. `.pipeline/`) while preserving downstream-specific entries. Confirm during every upgrade |
-| `AI.md` | yes | `manual-merge` | `baseline` | PM / Operator | cross-tool coordination notes for AI assistants; preserve downstream-specific handoff guidance |
+| `AI.md` | yes | `manual-merge` | `baseline` | PM / Operator | cross-tool coordination notes for AI assistants; split-merge per delimiter since 1.46.0 (see playbook) — follows `MEMORY.md`'s prose shape (template content above the marker, downstream-additive notes below under `## Template/Downstream Split`), not a registry table. Never edit above-the-line content downstream; contradictions get promoted upstream or filed as feedback — the pre-delimiter "preserve downstream-specific handoff guidance" (in-place edits) is superseded by this |
 | `CLAUDE.md` | yes | `manual-merge` | `feature` | PM / Operator | Claude Code auto-loaded entry point; thin pointer to `AI.md`/`MEMORY.md`. Preserve downstream project-specific guidance |
 | `AGENTS.md` | yes | `manual-merge` | `feature` | PM / Operator | Codex auto-loaded entry point; thin pointer to `AI.md`/`MEMORY.md`. Preserve downstream project-specific guidance |
 | `.github/copilot-instructions.md` | yes | `manual-merge` | `feature` | PM / Operator | Copilot auto-loaded entry point; thin pointer to `AI.md`/`MEMORY.md`. Preserve downstream project-specific guidance |
@@ -146,13 +157,14 @@ template repo.
 | `docs/minion-prompt-modes.md` | yes | `template-replace` | `baseline` | PM | baseline operator prompt-mode and advisor-posture guidance; carries Pipeline Mode |
 | `docs/model-tiering.md` | yes | `template-replace` | `reference` | PM | advisory model-tier guidance (vendor-neutral bands) |
 | `docs/effort-calibration.md` | yes | `template-replace` | `reference` | PM | PROTOTYPE effort-tier calibration (task-class → reasoning-effort); companion to model-tiering; idea from effortmining (MIT) |
+| `docs/pm-judgment-model.md` | yes | `template-replace` | `feature` | PM | PM domain judgment — landscape routing map (goal-clarity × solution-clarity selects the stage chain) + the Hope/Effort creep check at consolidation; detail behind two `MEMORY.md` laws. `feature`, NOT `reference`: `tools/tests/governance-consistency.test.sh` asserts this file exists, so it cannot be lagged if you run the governance guard — the capability it is required by. Unlike `docs/model-tiering.md`, which sits outside the governance-scanned set and IS safely lazy (Upgrade-Path SME ruling, 1.47.0) |
 | `docs/designing-an-sme.md` | yes | `template-replace` | `reference` | PM | SME design craft (consultable-expertise-vs-process test, disjoint-domain drawing, tier selection, evidence discipline); precedes the Adding-an-SME mechanics and `tools/sme-charter-check.sh` |
 | `docs/minion-plugin-pairings.md` | yes | `template-replace` | `feature` | PM | recommended (conditional) minion-to-plugin/connector/skill pairings; adjust to the downstream stack |
 | `docs/project/mailbox-collaboration-model.md` | yes | `template-replace` | `baseline` | PM | baseline mailbox-first coordination model |
 | `docs/operator-onboarding-checklist.md` | yes | `manual-merge` | `reference` | PM | preserve completed downstream decisions |
 | `docs/downstream-onboarding-playbook.md` | yes | `template-replace` | `reference` | PM | baseline initial onboarding procedure |
 | `docs/downstream-upgrade-playbook.md` | yes | `template-replace` | `reference` | PM | baseline downstream-upgrade procedure; holds Version-Specific Required Changes |
-| `docs/export-manifest.md` | yes | `template-replace` | `reference` | PM | baseline export/merge strategy |
+| `docs/export-manifest.md` | yes | `template-replace` | `reference` | PM | baseline export/merge strategy; split-merge per delimiter since 1.46.0 (see playbook) — registry shape like `minions/capabilities.md`/`minions/smes/README.md`/`minions/review-matrix.md`: the template-shipped Manifest table above the marker ships and upgrades, the downstream-owned Downstream Additions table below it holds project-specific rows and resets at export. A downstream that mechanically `template-replace`s this file WITHOUT first moving its own hand-appended trailing rows into the Downstream Additions table loses that table outright — the exact hazard the delimiter exists to prevent, and self-referential: a botched merge of this file's own manifest row can feed wrong `seed only` / `export=yes` sets into `tools/export-seed-check.sh`, cascading failures onto unrelated paths |
 | `minions/README.md` | yes | `template-replace` | `reference` | PM | directory structure guidance |
 | `minions/roles/PM.md` | yes | `template-replace` | `baseline` | PM | review local role customizations before overwrite; split-merge per delimiter (see playbook) |
 | `minions/roles/AM.md` | yes | `template-replace` | `baseline` | PM / AM | review local role customizations before overwrite; split-merge per delimiter (see playbook) |
@@ -178,7 +190,7 @@ template repo.
 | `docs/DESIGN.md` | seed only | `downstream-owned` | `n/a` | CM / DM | design-standards scaffold the Design/UX Reviewer SME reviews UI changes against; ships the standards headings + placeholder shape, downstream fills its own real token/theme/component values — do not overwrite with template placeholder content |
 | `tools/xtool-call.sh` | yes | `template-replace` | `feature` | PM / CM | cross-tool orchestration wrapper (Codex / Copilot, review / delegate postures); adopt if project uses cross-vendor review |
 | `tools/upgrade-classify.sh` | yes | `template-replace` | `reference` | PM / CM | upgrade helper: classifies a template change-set (manifest class + live-vs-snapshot divergence) for downstream upgrades; see `docs/downstream-upgrade-playbook.md` |
-| `tools/export-seed-check.sh` | yes | `template-replace` | `feature` | PM / OM | public-export pre-push gate (runbook Step 3, gate 4): asserts Local Registry / Local Matrix are header-only below the split-merge delimiter in the export tree; point `SEED_FILES` at the downstream's own delimited local sections |
+| `tools/export-seed-check.sh` | yes | `template-replace` | `feature` | PM / OM | public-export pre-push gate (runbook Step 3, one invocation asserting four properties — the former gates 4 and 5 are collapsed into it): (1) Local Registry / Local Matrix / Local Inventory below the split-merge delimiter are header-only in the export tree — point `SEED_FILES` at the downstream's own delimited local sections, `WAIVER` at delimited files with no downstream content to reset; (2) every delimited exportable file is classified in `SEED_FILES` or `WAIVER`, so a new one can never silently go unenrolled; (3) no `seed only` file's `STUB BOUNDARY` marker survives in the export tree; (4) above-marker staleness anchors (the `SEED_ANCHORS` table, e.g. `docs/MECHANICS.md`'s `verified @ <sha>` / `Mapped areas: <paths>`) read back as their literal placeholders — a downstream with its own above-marker repo-specific fields adds rows to `SEED_ANCHORS`. `--completeness .` runs the source-repo-invariant half (delimiter classification + seed-only marker presence) continuously, independent of any export |
 | `.gitleaks.toml` | yes | `template-replace` | `feature` | PM / OM | repo-root gitleaks config for the public-export gitleaks gate (`docs/runbooks/public-export.md` Step 2); extends the default ruleset and allowlists only the second-brain AC-2 test fixtures (intentionally secret-shaped test data) — must export with the tree so gitleaks honors it; extend narrowly, never broaden past the actual test surface |
 | `tools/sme-charter-check.sh` | yes | `template-replace` | `feature` | PM / CM | mechanical SME-charter validator (required sections, non-empty negative discovery, Local Registry row, launcher parity in all three families); not a domain-merit judge — see `docs/designing-an-sme.md` |
 | `tools/tests/` | yes | `template-replace` | `feature` | CM | test suites (`xtool-call`, `governance-consistency`, `upgrade-classify`, `issue-sync`, `issue-board-bootstrap`, `manifest-completeness`, `second-brain`, `skill-airlock`, `skill-scout`, `layer-adopted`, `instruction-size`), fixtures, and the `governance-scan.allow` / `manifest-completeness.allow` allowlists (the latter is downstream-owned, fail-open — list your own project paths there so the completeness guard stays green); adopt as reference and regression harness |
@@ -228,3 +240,17 @@ template repo.
 | `.claude/agents/sme-*.md` (SME launchers) | yes | `template-replace` | `feature` | PM | template-default SME launchers ship with the bench (Claude/Codex/Copilot) |
 | `.codex/agents/sme-*.toml` (SME launchers) | yes | `template-replace` | `feature` | PM | template-default SME launchers ship with the bench (Claude/Codex/Copilot) |
 | `.github/agents/sme-*.agent.md` (SME launchers) | yes | `template-replace` | `feature` | PM | template-default SME launchers ship with the bench (Claude/Codex/Copilot) |
+
+Downstream-added manifest rows for project-specific files not covered by the
+Manifest table above go in the **Downstream Additions** section below the
+delimiter, using the same schema as the Manifest table. That section is
+header-only in the template; each downstream repo appends its own rows there.
+Replace nothing above the delimiter; add everything project-specific below
+it — do not hand-append rows to the end of the Manifest table above.
+
+<!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->
+
+## Downstream Additions (this repo)
+
+| Path | Initial export | Upgrade strategy | Criticality | Default owner | Notes |
+| --- | --- | --- | --- | --- | --- |

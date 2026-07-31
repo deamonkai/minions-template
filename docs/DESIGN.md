@@ -81,3 +81,4 @@ For each shared component, the required **states** and **variants**:
   before merge.
 - **block** — violates a hard standard: fails the WCAG target, breaks a theme,
   or introduces off-token values with no justification.
+

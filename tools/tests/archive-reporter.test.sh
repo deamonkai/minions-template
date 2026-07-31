@@ -1,10 +1,18 @@
 #!/usr/bin/env bash
 # Dependency-free test harness for tools/archive-reporter.sh (the read-only
-# stale-coordination-unit reporter; see
-# docs/superpowers/specs/2026-07-21-archive-reporter-design.md).
+# stale-coordination-unit reporter; see docs/archive-reporter-model.md for
+# the full model — the design spec it distills is maintainer-local and does
+# not ship).
 # Fixtures are built as throwaway git repos under mktemp — the reporter is
 # never run against the live canonical tree here.
 set -uo pipefail
+
+# Pin to the bash actually stuck at 3.2 on macOS (Apple ships it at /bin/bash and
+# never updates it, for GPLv3 reasons) rather than whatever newer bash (Homebrew,
+# asdf, etc.) resolves first on a dev PATH -- see export-seed-check.test.sh for the
+# full rationale (be53b13). PATH prepend, not a hardcoded /bin/bash literal: this
+# degrades gracefully on a downstream lacking that exact path.
+export PATH="/bin:$PATH"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SUT="$ROOT/tools/archive-reporter.sh"
 [ -f "$SUT" ] || { echo "FAIL - archive-reporter.sh not found at $SUT"; exit 1; }

@@ -41,7 +41,7 @@ explicit Operator approval.
 - Avoid filler openers such as "great question", "you're absolutely right",
   "that makes sense", "absolutely", and "definitely". If you catch yourself
   writing one, delete it and rewrite the sentence.
-- Maintain strong thread continuity and clean context resets across sessions.
+- Maintain strong thread continuity and explicit context resets.
 - If conversation drifts far from the current task, gently reframe with:
   - where work started
   - what has been completed
@@ -604,6 +604,20 @@ size is the token cost every session pays at bootstrap.
   guarantee, not the implementer's model size. Sending bounded,
   spec-driven work out at Frontier without a stated reason is a review
   finding.
+- Dispatch briefs declare the landscape quadrant: a brief for multi-step
+  work names goal clarity and solution clarity, and the quadrant selects
+  the stage chain — clear goal with a clear solution dispatches the
+  implementer directly; clear goal with an unclear solution takes an AM
+  architecture spec first; unclear goal with a clear solution is not
+  dispatched at all until the goal is scoped, which PM does with the
+  requester through the normal conversational path; both unclear routes to
+  RM for research ONLY and never an implementation dispatch, because RM is
+  the role chartered to ingest untrusted external content and its
+  launchers are pinned read-only accordingly. Single-step consults are
+  exempt, as in Workflow Ownership. Declining to dispatch un-scoped work
+  is PM's existing charter duty, NOT a fourth hard-stop — the count of
+  three is unchanged, and this creates no new Operator interrupt.
+  Detail: `docs/pm-judgment-model.md`.
 
 ## Git Handoff Discipline
 
@@ -746,7 +760,8 @@ of migrated units — git history stays the durable copy
 (`git checkout <sha> -- <path>`), so a `mail`, `plans`, or `chat` surface may
 be partial once pruning has run. Model:
 `docs/archive-reporter-model.md`. The automated-removal variant is deferred
-(see `TODO.md`); the reporter is the shipped subset.
+(see that doc's History and deferred work section); the reporter is the
+shipped subset.
 
 ## Handoff Order
 
@@ -849,6 +864,28 @@ Optional section for spawned minions (returned with the packet, not written):
     anchors, backup/recovery paths, checksums, credentials-adjacent state.
     The packet's single writer persists sole-holder facts immediately on
     return, before any other handling of the deliverable.
+
+Before relaying or consolidating a returned packet — and before closing out work
+the writer did itself, which has no returned packet — the single writer runs the
+**creep check** on it, at the same consolidation step it already performs for
+`DURABLE LESSONS:` and `SOLE-HOLDER:`:
+
+- **Hope Creep** — is success claimed on evidence that survives inspection, or
+  on the claim itself? Ask what else would produce this exact evidence. (Case
+  law: a fixture reported green because the script under test crashed, and the
+  crash exited 1 — the code the fixture expected.)
+- **Effort Creep** — is "done" proven by something that would fail if it were
+  not done? Ask what would go red if this were undone. (Case law: a guard
+  correct in code but unproven by any test, where reverting it changed no
+  observable output.)
+
+Scope Creep and Feature Creep get no second check here. They are handled
+*prospectively* by the existing scope-expansion rule — the actor flags expansion
+explicitly and proceeds with the smallest change. Note the asymmetry honestly:
+that rule runs on the actor's self-report, so it does not catch an expansion
+nobody flagged, and this check does not add that coverage. Two questions that
+require thought beat four that invite skimming; widening it is an open question,
+not a solved one. Detail: `docs/pm-judgment-model.md`.
 
 Hard rules:
 

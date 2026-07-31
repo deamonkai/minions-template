@@ -53,6 +53,411 @@ complete until every `REQUIRED` item is confirmed present in the live repo. The
 `Criticality` column in `docs/export-manifest.md` marks the `baseline` files
 that most often carry these.
 
+### 1.47.0 — PM judgment model + guard hardening + doc freshness
+
+Three workstreams ship in this version. Summary of what each asks of you:
+
+| Workstream | Your action |
+| --- | --- |
+| (a) PM judgment model | **REQUIRED** if you run the governance guard — merge two `MEMORY.md` blocks, take the doc with the suite |
+| (b) Guard hardening | **REQUIRED-IF-ADOPTED** — only if you maintain your own `tools/*.sh` |
+| (c) Doc freshness | **No required changes** |
+
+---
+
+**(a) PM judgment model (landscape routing + the creep check)**
+
+**REQUIRED (unconditional, if you run the governance guard) — merge two new
+`MEMORY.md` blocks, and take `docs/pm-judgment-model.md` with the test suite.**
+
+Two forcing functions join the governance baseline: a **landscape routing map**
+(a dispatch brief for multi-step work names its goal-clarity × solution-clarity
+quadrant, and the quadrant selects the stage chain) and a **creep check** (the
+single writer tests a packet — returned, or its own work — for Hope Creep and
+Effort Creep at consolidation). Full model: the new `docs/pm-judgment-model.md`.
+
+- **What converges on a per-manifest-row pass — no action:**
+  `minions/roles/PM.md`'s one-line charter duty (`template-replace`, above the
+  split-merge delimiter) and the new
+  `tools/tests/governance-consistency.test.sh` checks (`template-replace`).
+- **REQUIRED-TOGETHER — the doc and the suite must be taken as a pair.**
+  `governance-consistency` now asserts `docs/pm-judgment-model.md` exists,
+  because two `MEMORY.md` laws and PM's duty line point at it. Adopting the
+  suite without the doc is a red guard. Same relationship as 1.29.0's
+  `tools/sme-charter-check.sh` + its test.
+- **What does NOT converge — the required merge:** `MEMORY.md` is
+  `manual-merge`, so a hand merge can silently drop the two new blocks. Adopt
+  both:
+  1. In **Execution Quality**, the `Dispatch briefs declare the landscape
+     quadrant` bullet, immediately after the existing tier-declaration bullet.
+  2. In the **Completion Handoff Contract**, the creep-check block (Hope Creep
+     / Effort Creep) between optional section 11 and `Hard rules:`.
+- **Why it is merge-blocking if you run the guard:** the checks read
+  `MEMORY.md` **and** `minions/roles/PM.md`. Because `PM.md` converges via
+  `template-replace` while `MEMORY.md` does not, the exact failure mode of a
+  dropped merge is a red `governance-consistency` run naming the `MEMORY.md`
+  clauses only, with `PM.md` pointing at a law that is not present (verified
+  empirically by the Upgrade-Path SME against a synthesized partial-adoption
+  tree: five FAILs, all naming `MEMORY.md`). **Eight** assertions in total: the
+  quadrant rule, PM's duty line, the RM-research-only clause, the
+  not-a-fourth-hard-stop clause, the doc's existence, the creep-check
+  instruction, `Hope Creep`, and `Effort Creep`.
+- **Pre-upgrade name-collision check (only if you already have one):** a
+  downstream that authored its own `docs/pm-judgment-model.md` must rename it
+  before upgrading, or the `template-replace` row overwrites it. New name, so a
+  collision is unlikely; same shape as the 1.36.0 / 1.37.0 / 1.43.0 / 1.44.0 /
+  1.45.0 collision notes.
+- **The checks are bounded to the template-owned half of each file.** They stop
+  at the split-merge delimiter, so a token appearing only in your
+  below-delimiter content cannot satisfy an upstream-law check. If you keep
+  local notes about these rules below the delimiter, that is safe and will not
+  mask a dropped merge — which was the point of the bounding.
+- **No new hard-stop.** The count stays three. The unclear-goal branch is PM
+  declining to dispatch un-scoped work — an existing charter duty, not an
+  Operator interrupt. **Read the guard's coverage precisely:** it asserts the
+  `NOT a fourth hard-stop` clause is *present*; nothing in the suite counts
+  hard-stops. An edit that adds a fourth enumerated hard-stop while leaving
+  that sentence intact stays green. The clause is a documented commitment with a
+  drop-detector, not a mechanically enforced count.
+- **The both-unclear cell is research-only, and that is a separation-of-duties
+  boundary.** It routes to RM, whose findings return through PM; RM never hands
+  work to an implementer. RM is the role *chartered* to ingest untrusted
+  external content and the one pinned read-only for it. If you have customized
+  RM's launchers, keep the pin intact (Claude pins `Read, Grep, Glob,
+  WebSearch, WebFetch, Skill(deep-research)` — note the scoped `Skill(...)`,
+  not a blanket grant; Copilot pins `[read, search, todo]`, and note that in
+  that family every launcher pins `tools:`, so RM is distinguished by lacking
+  `edit` rather than by being restricted at all; Codex has no tool-restriction
+  field, so there it is binding prose only). The pin does not mean untrusted
+  content reaches only RM — other roles can fetch too; it means the role we
+  point at untrusted sources cannot write.
+- Manifest: `docs/pm-judgment-model.md` is `yes` / `template-replace` /
+  `feature` / PM. **`feature`, not `reference`** — the guard asserts the file
+  exists, so it cannot be lazily adopted, and `reference` is defined as safe to
+  lag. `docs/model-tiering.md` looks like the same structural position but sits
+  outside the governance-scanned set (see the 1.33.0 entry), which is exactly
+  what makes it safely lazy and this file not. Upgrade-Path SME ruling.
+- Phase 2 (the Scope Triangle as Operator-facing trade-off vocabulary) is
+  deliberately deferred and deliberately not stubbed.
+
+---
+
+**(b) Guard hardening — marker-vs-prose detector + bash-3.2 test pin**
+
+**REQUIRED-IF-ADOPTED — only if you maintain your own `tools/*.sh`.** Everything
+else converges; `tools/` and `tools/tests/` are `template-replace`.
+
+- **A new live sweep can fail on YOUR scripts.**
+  `tools/tests/governance-consistency.test.sh` gains a `bare_marker_index()`
+  detector that sweeps **every `tools/*.sh`** and fails on an awk
+  `index($N, "TOKEN")` bare-substring test against either structural marker
+  token — `DOWNSTREAM CONTENT BELOW` or `STUB BOUNDARY`. If one of your own
+  tools uses that shape, the guard goes red on **your** file after upgrading,
+  not on a template file.
+  - **The fix, and why it is worth taking rather than suppressing:** replace the
+    bare substring test with the anchored pattern the template now uses
+    everywhere — `$0 ~ /^[[:space:]]*<!--.*DOWNSTREAM CONTENT BELOW.*-->/`. A
+    bare `index()` cannot distinguish a *live structural marker* from *prose
+    about the marker*, which is a defect class with **four** recorded instances
+    in this repo. Three failed closed (a spurious FAIL); the fourth, found in
+    1.47.0's own review, failed **open**.
+  - Scope is deliberately narrow: `tools/*.sh` only, not `tools/tests/*.sh`
+    (which legitimately quote past-defect code in prose), and only the two known
+    marker tokens rather than every conceivable substring test.
+- **The bash-3.2 `PATH` pin now opens all 14 test suites** (`export
+  PATH="/bin:$PATH"`, after `set -uo pipefail`). If you have added your own
+  suites under `tools/tests/`, adopt the same pin so "verified on bash 3.2" is
+  structural rather than dependent on the caller typing a PATH prefix.
+  - **Read the pin's coverage precisely:** it redirects *child* `bash`
+    invocations; it cannot change an already-running interpreter. In the three
+    suites that make no child `bash` call — `governance-consistency`,
+    `manifest-completeness`, `skill-scout` — the pin is inert, and those suites
+    are 3.2-safe on their own merits (POSIX constructs) rather than because of
+    it. Take the pin for the suites that exec a tool; do not read it as blanket
+    3.2 coverage.
+- No governance-token change, no new hard-stop, no manifest change.
+
+---
+
+**(c) Doc freshness — `docs/MECHANICS.md` code-map re-verification**
+
+**No required changes.** Recorded so this version's entry is complete rather
+than silently partial.
+
+`docs/MECHANICS.md` is `seed only` / downstream-owned: the template re-verified
+and re-stamped **its own** map, and nothing overwrites yours on a
+per-manifest-row upgrade. (The standing CAUTION still applies: an upgrade that
+copies `.minions-template/` wholesale into the live repo, rather than
+per-manifest-row, clobbers your `docs/MECHANICS.md` with the template seed —
+same as the 1.42.0 / 1.44.0 / 1.45.0 seed CAUTIONs.)
+
+Worth knowing for your own map, since the rhythm is not obvious: a
+`verified @ <sha>` stamp goes stale at **every** merge that touches a mapped
+area, and `/onboard` will correctly report PARTIAL until someone re-confirms the
+map and re-stamps. PARTIAL means "verify", not "wrong" — in both 1.47.0
+re-stamps the inventories were already accurate and only behavior inside mapped
+areas had changed.
+
+### 1.46.0 — Seed-only marker adoption (unconditional if you run the test-suite guard) + `AI.md` / `docs/export-manifest.md` split-merge delimiter (boundary coverage)
+
+**REQUIRED (unconditional, if you run the test-suite guard) — adopt the
+`STUB BOUNDARY` marker on your five `seed only` files.** **REQUIRED-IF-ADOPTED**
+— one-time `AI.md` / `docs/export-manifest.md` delimiter migration, only if
+you have in-place overrides.
+
+- **REQUIRED — your copy of every `seed only` file is missing its
+  `STUB BOUNDARY` marker, and the new source-repo guard will fail on every
+  one you have adopted.** The five paths are `feedback.md`, `ROADMAP.md`,
+  `TODO.md`, `docs/MECHANICS.md`, and `docs/DESIGN.md` — every row in
+  `docs/export-manifest.md` marked `seed only`. A downstream that upgraded
+  from below 1.44.0 (`docs/MECHANICS.md`) or 1.45.0 (`docs/DESIGN.md`) and
+  never adopted one of those two seeds gets a WARN-and-skip for that path,
+  not a FAIL — `check_leg_s()` skips an absent seed-only path rather than
+  failing on it. It still fails on `feedback.md`/`ROADMAP.md`/`TODO.md` (the
+  older three), which every downstream carries regardless of base version.
+  These ship
+  `downstream-owned`/`template-replace`-adjacent (never overwritten on
+  upgrade), so your existing copies are exactly this repo's content with
+  **no marker at all** — the public-export strip (Step 2 item 4) *removes*
+  the marker (and everything below it) from canonical's own seed-only files
+  before publish; it never adds a marker to anything, and it never touches a
+  downstream's live file, so no version of the template has ever shipped you
+  this line. If your repo runs
+  `tools/export-seed-check.sh --completeness .` (added at 1.28.1,
+  hardened this release), it now asserts marker **presence** on the source
+  side (Leg S) as well as absence on the export side (Leg E) — Leg S will
+  FAIL on every `seed only` file you actually have today, on this upgrade,
+  with no other action taken (an unadopted `docs/MECHANICS.md`/
+  `docs/DESIGN.md` WARNs-and-skips instead, per above). This is not a
+  hypothetical the guard might someday catch;
+  it is the guard's designed behavior on every existing downstream, verified
+  against the real v1.45.0 export tree (zero markers present). Because
+  `tools/tests/` is itself `template-replace` and marketed as this
+  template's regression harness, taking the updated
+  `tools/tests/export-seed-check.test.sh` also brings three fixture cases
+  that run the live repo root — those go red too, and editing the test to
+  silence them is not a fix: the edit reverts on the next `tools/tests/`
+  sync. **This makes the 1.28.1 entry's claim below FALSE for this version
+  onward: "repos that do not publish a public mirror can skip
+  `tools/export-seed-check.sh` entirely; it is inert" no longer holds once
+  you take the completeness leg — it now fails on every seed-only file that
+  never adopted the marker, whether or not you publish.**
+  - **The fix:** (durable version of this instruction lives in the
+    **`seed-only STUB BOUNDARY marker`** subsection under Manual-Merge
+    Guidance below — this entry is the one-time adoption notice, not the
+    permanent home for it) add the marker to each of the five files, at the
+    point where the template's own seed content ends and your project's own
+    content begins. The literal line the guard looks for (`STUB_PATTERN` in
+    `tools/export-seed-check.sh`) is a line beginning with `<!-- STUB
+    BOUNDARY` — copy the full block verbatim from this repo's own copy of
+    the five files (or any current template checkout) so the surrounding
+    prose matches; the opening line is:
+
+    ```
+    <!-- STUB BOUNDARY (not a split-merge delimiter): everything ABOVE is the
+         seed that ships to downstreams and the public mirror; everything BELOW is
+         this repo's own <content>, reset away at public-export Step 2 item 4. ...
+    -->
+    ```
+
+    (fill `<content>` per file — "backlog", "direction", "captured
+    feedback", "map", "values" — matching what `TODO.md`/`ROADMAP.md`/
+    `feedback.md`/`docs/MECHANICS.md`/`docs/DESIGN.md` each say in this
+    repo). This is a one-time, per-file edit; nothing about your existing
+    content changes, and the marker is a comment, invisible to a normal
+    reader.
+  - **If you skip this:** every downstream that runs the guard suite goes
+    red on upgrade, not "might" — the fixture completeness leg and the
+    live-repo Leg S both fail deterministically on a marker-less seed-only
+    file. There is no silent-pass path once the completeness leg is taken.
+- `AI.md` and `docs/export-manifest.md` each become split-merge files: a
+  template-shipped block above a new
+  `<!-- ... DOWNSTREAM CONTENT BELOW ... -->` delimiter, plus a
+  downstream-owned additive section below it (`## Template/Downstream
+  Split` in `AI.md`; `## Downstream Additions (this repo)` in
+  `docs/export-manifest.md`). **`docs/export-manifest.md` joins the
+  registry-shape group** — like `minions/capabilities.md`,
+  `minions/smes/README.md`, and `minions/review-matrix.md`: a template
+  table above the marker, a downstream-owned table below it, header-only in
+  the template. **`AI.md` does NOT** — it follows `MEMORY.md`'s shape
+  instead: prose above the marker, and downstream-additive prose notes
+  below it, not a table. There is no `## Local …` section to expect under
+  `AI.md` after migrating; an adopter looking for one will find nothing
+  there, and that is not a failed migration. Both files were previously
+  undelimited, so a downstream override had no additive place to go — it
+  had to be expressed as an in-place rewrite of a template sentence, or (for
+  the manifest) a row hand-appended to the end of the shared table.
+- **REQUIRED-IF-ADOPTED — check for in-place overrides in `AI.md` and
+  `docs/export-manifest.md` BEFORE replacing:** if your copy of either file
+  carries downstream-specific content expressed as an IN-PLACE REWRITE of a
+  template sentence (not a new row or section appended at the end), you
+  MUST find every such rewrite and move its substance BELOW the new
+  delimiter as an additive note BEFORE taking the new template file —
+  exactly as the 1.28.0 / 1.34.0 / 1.41.0 delimiter migrations required for
+  the SME registry, matrix, and capabilities inventory. `AI.md` is
+  `manual-merge`, not `template-replace` — but a downstream that instead
+  replaces it mechanically anyway (a bulk `.minions-template/` copy, or a
+  hand-merge that just takes the new file wholesale), in violation of its
+  own manifest classification, gets exactly this failure: the file still
+  parses, every guard still passes (nothing detects a semantic revert of
+  prose that still reads as a valid template sentence), and the repo
+  quietly reverts to template-default behavior while continuing to believe
+  it runs its own rules. This is the exact failure mode reported in Gitea
+  #56 §1: a downstream's simplified `feature→main` branching model (no
+  staging tier), expressed as four in-place rewrites of `AI.md`'s branching
+  prose, would have been silently reverted to the template's branching
+  prose by this exact delimiter add, with every guard staying green — a
+  careful adopter who checks the manifest row and sees `manual-merge` and
+  concludes "the mechanical-replace warning doesn't apply to me, I merge by
+  hand" is not safe either: a hand-merge that takes the incoming file
+  wholesale rather than diffing sentence-by-sentence has the identical
+  effect as a mechanical replace. Treat this as merge-blocking — the
+  upgrade is not complete until you have confirmed, file by file, that no
+  in-place override existed, or that every one found was relocated below
+  the delimiter:
+  - `AI.md`: the correct diff base is **your own recorded version**, not
+    "the template's pre-1.46.0 copy" — a downstream sitting at, say, 1.38.0
+    has six versions of undocumented template drift between its base and
+    1.46.0, and diffing against "pre-1.46.0" makes every one of those six
+    versions' legitimate template changes look like an in-place override.
+    Read your base version from `minion-version.md` (the base-template
+    component of `<base-template-version>-<downstream-version>`) — this is
+    exactly what this playbook's own "Detecting Upstream Drift" section
+    above already teaches you to do for any upgrade. Then use the
+    mechanical detector the template already ships, though read its output
+    for what it actually measures, not what the name suggests:
+    `tools/upgrade-classify.sh --old <base-snapshot> --new <1.46-snapshot>
+    --live <repo>` (`tools/upgrade-classify.sh:163`, `cmp -s "$LIVE/$f"
+    "$OLD/$f"`) compares LIVE only against OLD — it never compares LIVE
+    against NEW. `LIVE=diverged` therefore means only "live ≠ old", not "live
+    has an in-place override of new template text" — it is a **candidate
+    flag, not a signal**: every genuinely-adopted upstream change between
+    your base and 1.46.0 that you already merged also reads `diverged`, so an
+    `AI.md` row reading `manual-merge diverged` narrows where to look, it
+    does not confirm an override. This is especially true for `AI.md`, whose
+    pre-1.46.0 manifest row invited in-place preservation of downstream
+    branching-model text — expect it to fire for essentially every downstream
+    that ever touched `AI.md`. Read each flagged row by hand against the
+    incoming template text to confirm before treating it as an override. The
+    step that actually stages the base snapshot this comparison needs is
+    Upgrade Workflow step 2 below (`.minions-template/`).
+  - `docs/export-manifest.md`: any row hand-appended to the end of the
+    shared Manifest table for a project-specific file is now out of place —
+    cut it and paste it into the new "Downstream Additions" table below the
+    delimiter, so the next `template-replace` does not require
+    re-appending it.
+- **Public-export note:** `tools/export-seed-check.sh` gained both files to
+  its `WAIVER` list, not `SEED_FILES` — the below-delimiter section is
+  downstream-reserved scaffolding that ships EMPTY in the canonical/template
+  repo (unlike `minions/capabilities.md`'s Local Inventory, which holds this
+  repo's own real rows that must be reset before a public export). WAIVER
+  still enforces header-only below the delimiter, so if private content is
+  ever added there in a locally-maintained public-export fork, the guard
+  still catches it — the waiver is from the manual reset action, not from
+  the check.
+  - **Correction to the claim below:** "no new reset step is needed for
+    these two files" is right for the *canonical/template* repo (which has
+    nothing to reset because it never fills the below-delimiter section)
+    but is backwards for a downstream that completed the
+    REQUIRED-IF-ADOPTED migration above and now runs its own public-export
+    mirror. Once you have moved real in-place overrides into
+    `AI.md`'s below-delimiter section, that section is no longer
+    empty-in-canonical — it is *your* real content, exactly like
+    `minions/capabilities.md`'s Local Inventory. A WAIVER classification
+    asserts the section stays header-only forever, so publishing with your
+    override notes still in place under a `WAIVER` row fails gate 4 on the
+    very content this entry told you to create. **The remedy, and which half
+    is load-bearing:** moving the file between the `WAIVER` and `SEED_FILES`
+    arrays changes nothing on its own — `is_classified()` accepts a file in
+    either list identically. **Only actually resetting the below-delimiter
+    section to header-only at Step 2 makes the gate pass.** An adopter who
+    moves `AI.md` (and, if it grows real below-delimiter content, `MEMORY.md`
+    and `docs/export-manifest.md` too) from `WAIVER` to `SEED_FILES` in
+    `tools/export-seed-check.sh` and stops there is still red — the array
+    move is bookkeeping that documents which files need a reset, not the
+    reset itself. **Revert warning:** `tools/export-seed-check.sh` is
+    `template-replace` — a downstream's hand-edited `SEED_FILES`/`WAIVER`
+    arrays are silently reverted on the next `tools/` sync, exactly the
+    argument this entry already makes about `tools/tests/` fixture edits
+    above; re-apply your local array edits after every `tools/` re-vendor.
+    They participate in the completeness leg
+    (`export-seed-check.sh --completeness`) either way, but only within its
+    scope: `check_completeness()` scopes to files the manifest marks
+    `export=yes`, so a delimited file you never intend to export is not
+    forced into `SEED_FILES`/`WAIVER` by this leg.
+- **REQUIRED-IF-YOU-PUBLISH — the `SEED_ANCHORS` obligation is entirely new
+  this release** (zero occurrences at v1.45.0, six now in
+  `tools/export-seed-check.sh`). If you run your own public-export mirror,
+  this adds two new hard gate-4 conditions you did not have before: (1) Step
+  2 item 4 of `docs/runbooks/public-export.md` gains a mandatory
+  above-marker anchor-reset sub-step (placeholder `verified @ <sha>` /
+  `Mapped areas: <paths>`), not just the below-marker strip; (2)
+  `anchor_violations()` FAILs when a `seed only` surface's above-marker
+  anchor line is **absent altogether**, not only when it holds a real value.
+  Concretely: a downstream that adopted `docs/MECHANICS.md` and wrote its own
+  code map WITHOUT a `verified @ <sha>` line fails gate 4 on its very next
+  publish — with nothing in the gate output pointing at `SEED_ANCHORS` as the
+  fix. If you publish and have filled in your own `seed only` surfaces with
+  above-marker repo-specific fields, add or confirm the matching
+  `SEED_ANCHORS` row in `tools/export-seed-check.sh` before your next
+  publish.
+- **Also changed in 1.46.0, no dedicated migration needed — OPTIONAL /
+  RECOMMENDED, adopt normally:**
+  - `docs/runbooks/public-export.md` (`template-replace`, rated `reference`)
+    — the seed-state guard (Step 3 gate 4) gains the anchor-reset assertion
+    and the "Known limits" block documenting it; take the updated runbook if
+    you publish.
+  - `tools/export-seed-check.sh` (`template-replace`, rated `feature`) — the
+    `SEED_ANCHORS` table, `anchor_violations()`, and the Leg S/Leg E
+    marker-pair checks all land here; re-vendor together with the runbook
+    above and `tools/tests/export-seed-check.test.sh`.
+  - `docs/minion-prompt-modes.md` (`template-replace`, rated `baseline`) —
+    **RECOMMENDED, and flagged separately because it is a baseline
+    `template-replace` file changing real behavior, not just doc polish.**
+    Onboarding Mode's code-map step gains a third `unverified` branch for an
+    unresolvable `verified @ <sha>` anchor (report unverified, treat as no
+    code map, proceed, instead of surfacing a raw `git` error) — and because
+    `docs/MECHANICS.md` ships its placeholder `verified @ <sha>` anchor
+    literally, **a fresh downstream clone hits this new branch by
+    construction**, on the very first `/onboard` run. A baseline
+    `template-replace` surface changing behavior with no
+    Version-Specific-Required-Changes coverage is exactly the omission this
+    milestone exists to close one level down from code; it is called out
+    here explicitly so it does not recur as its own future finding.
+  - `MEMORY.md` (`manual-merge`) — OPTIONAL. One pointer redirect only: the
+    Coordination-Surface-Hygiene paragraph's dead `TODO.md` reference now
+    points at `docs/archive-reporter-model.md`'s History section. No
+    behavior change; take it on your next `MEMORY.md` merge pass.
+  - `minions/roles/DM.md` (`template-replace`) — OPTIONAL. The Class-A file
+    enumeration in DM's charter now matches `MEMORY.md`'s canonical list
+    (adds `.github/copilot-instructions.md` and `minions/ARCHIVED.md`, a
+    fifth enumeration site v1.36.1's sweep missed). Arrives automatically on
+    a normal charter sync.
+  - `docs/skill-adoption-model.md` (`template-replace`) — OPTIONAL. Its
+    pointer to the maintainer-local design-of-record spec now states
+    explicitly that the pointer resolves only in the template maintainer's
+    own checkout (the spec lives under `do-not-export` `docs/superpowers/`),
+    never in an export tree or downstream clone, and that this model doc is
+    the only copy a downstream needs. Documentation-only.
+- **`CLAUDE.md` doc-sync gap, closed this release:** the 1.43.0 entry below
+  enumerated `MEMORY.md`, `AI.md`, `AGENTS.md`, and
+  `.github/copilot-instructions.md` as gaining the archive-reporter
+  partial-surface note, and omitted `CLAUDE.md` — `CLAUDE.md` never
+  received it, on any release between 1.43.0 and 1.45.0. This is exactly
+  the failure mode this milestone targets: a correct code/doc change (the
+  archive reporter) whose downstream-facing record silently dropped one of
+  its four target surfaces. **REQUIRED-IF-YOU-CUSTOMIZED — if your
+  `CLAUDE.md` never carried the archive-reporter partial-surface note
+  (check for a paragraph mentioning `tools/archive-reporter.sh` near the
+  top Operating Rules), add it now**, matching the note already present in
+  `AI.md` / `AGENTS.md` / `.github/copilot-instructions.md`: `minions/mail/`,
+  `minions/plans/`, and `minions/chat/` may be partial once pruning has
+  run; `minions/ARCHIVED.md` indexes migrated units and git history stays
+  the durable copy. The 1.43.0 entry below is corrected in place with a
+  "(corrected in 1.46.0)" marker rather than treated as append-only, since
+  that entry was already touched by this diff.
+- No governance-token change, no new hard-stop.
+
 ### 1.45.0 — Design/UX SME (first product-domain reviewer in the Default Bench)
 
 **OPTIONAL — additive.**
@@ -125,6 +530,12 @@ until you actually invoke `/onboard`.
 
 **OPTIONAL — no required changes; adopt normally.**
 
+**Tag-history note:** `v1.42.0` and `v1.43.0` tag the same commit (`57751cb`),
+so `git diff v1.42.0..v1.43.0` is empty. A tag-driven upgrade classifier that
+walks tags in order will see `v1.43.0` as a phantom release with no content —
+that is expected, not a sign your diff or checkout is broken; treat the two
+tags' content as identical and read both playbook entries.
+
 New `tools/archive-reporter.sh` (+ `tools/tests/archive-reporter.test.sh`,
 `docs/archive-reporter-model.md`) is a **read-only** tool: it lists closed and
 aged coordination units (`minions/mail/`, `minions/plans/`, `minions/chat/`)
@@ -147,10 +558,14 @@ until you choose to run it, and running it only prints suggestions.
   from ≤1.40) are `template-replace` and converge on sync. The rest are
   `manual-merge` and must be hand-carried: `MEMORY.md` gains a
   Coordination-Surface Hygiene paragraph, and `AI.md` / `AGENTS.md` /
-  `.github/copilot-instructions.md` each gain a note that `minions/mail|plans|chat`
-  may be partial once pruning has run. These notes are informational — a
-  downstream that never runs the reporter has complete surfaces regardless — so
-  dropping one on a hand-merge has no coherence consequence.
+  `.github/copilot-instructions.md` / `CLAUDE.md` each gain a note that
+  `minions/mail|plans|chat` may be partial once pruning has run.
+  **(Corrected in 1.46.0: this entry originally omitted `CLAUDE.md` from that
+  list — the note never reached it until the 1.46.0 entry above closed the
+  gap. If you hand-merged this entry as originally written, check `CLAUDE.md`
+  now.)** These notes are informational — a downstream that never runs the
+  reporter has complete surfaces regardless — so dropping one on a hand-merge
+  has no coherence consequence.
 - `minions/ARCHIVED.md` is **not** shipped by this version — the reporter only
   prints the row for a human to append; the file is created downstream on first
   use. The manifest already classifies it (`no` / `downstream-owned`, Class A),
@@ -187,8 +602,10 @@ Meanings** legend in `docs/export-manifest.md` defines the class.
   these two paths explicitly, or diff before overwriting.
 - **Public-export adopters:** if you run your own public mirror, the export
   runbook gained a Step 1 item 2a (copy `seed only` rows explicitly) and a
-  Step 3 gate 5 (`grep -rl 'STUB BOUNDARY'`, expect zero hits) that catches a
-  skipped stub reset. Adopt both if you publish; skip if you do not.
+  marker-presence check that catches a skipped stub reset — originally a
+  standalone Step 3 gate 5 grep, since folded into the single Step 3 gate 4
+  `tools/export-seed-check.sh` invocation. Adopt the current runbook shape
+  if you publish; skip if you do not.
 
 ### 1.41.0 — capabilities.md split-merge delimiter
 
@@ -1267,9 +1684,11 @@ you want a durable on-disk review artifact, or for large or multi-release jumps.
    `.codex/agents/`, and `.claude/agents/` when the downstream project uses
    Copilot custom agents, Codex custom agents, or Claude Code subagents.
    Review any intentional local downstream divergence before overwriting.
-9. Manually merge files such as `MEMORY.md`, `INIT.md`,
-   `docs/operator-onboarding-checklist.md`, and `minion-version.md`. Confirm
-   every `REQUIRED` item from step 5 landed — especially comm-stack changes in
+9. Manually merge files such as `MEMORY.md`, `AI.md`, `INIT.md`,
+   `docs/operator-onboarding-checklist.md`, and `minion-version.md` (`AI.md`
+   is split-merge since 1.46.0 — see Manual-Merge Guidance below for the
+   mechanical replace-above/preserve-below procedure). Confirm every
+   `REQUIRED` item from step 5 landed — especially comm-stack changes in
    `MEMORY.md` and `manual-merge` edits like `.gitignore`.
 10. Re-review `docs/minion-plugin-pairings.md` (it is `template-replace`, so the
    recommendation map refreshes) and confirm this project's wired pairings — the
@@ -1307,8 +1726,15 @@ categorization is needed:
   shared docs converge to the template baseline unless a coordinator-specific
   override was intentional — review divergence before overwriting, per step 8.
 - **preserve** ≈ `manual-merge` / `downstream-owned`: files such as
-  `MEMORY.md` and `AI.md` diverge intentionally; merge only with explicit
-  review, per steps 9 and 11.
+  `MEMORY.md` and `AI.md` carry coordinator-specific state; merge only with
+  explicit review, per steps 9 and 11. Both are split-merge delimiter files
+  (see Manual-Merge Guidance below) — the delimiter rule supersedes any
+  earlier "diverges in place" framing: coordinator-specific additions belong
+  BELOW the marker as additive notes, never as an in-place rewrite of
+  above-the-marker template text (the same Gitea #56 §1 hazard the 1.46.0
+  entry above describes, and coordinator repos are the heaviest-`AI.md`-
+  divergence population, so this population is exactly where that hazard
+  bites hardest).
 
 Expected intentional divergence: `projects/` (the registry and lane
 scaffolds), the overlay activation state (the coordinator-mode declaration in
@@ -1325,9 +1751,19 @@ not drift to reconcile.
 
 ### Split-merge for delimiter-bearing files
 
-Since template version 1.25.0, the seven role charters (`minions/roles/*.md`)
-and `MEMORY.md` carry a split-merge delimiter. The exact marker line
-(referenced below simply as "the marker") is:
+Since template version 1.25.0, a growing set of governance, role, and
+registry surfaces in this template carry a split-merge delimiter — the seven
+role charters (`minions/roles/*.md`), `MEMORY.md`, `AI.md`,
+`minions/capabilities.md`, `minions/smes/README.md`,
+`minions/review-matrix.md`, `docs/instruction-size-budgets.md`, and
+`docs/export-manifest.md` among them, with more added as the template grows.
+Rather than re-enumerating that list here (a list that has already gone
+stale in this very section once, omitting `AI.md` and `docs/export-manifest.md`
+until the 1.46.0 entry above added them), treat the marker as the source of
+truth: **any file carrying the marker below is a split-merge file** and
+follows the same mechanical procedure regardless of whether it appears in
+the paragraph above. The exact marker line (referenced below simply as "the
+marker") is:
 
 `<!-- ================= DOWNSTREAM CONTENT BELOW — template upgrades replace above this line only ================= -->`
 
@@ -1364,6 +1800,51 @@ After migration, above-the-line content is template-verbatim forever: every
 subsequent upgrade replaces it wholesale via the mechanical split above, and
 no downstream edit made above the line survives.
 
+### seed-only `STUB BOUNDARY` marker
+
+Distinct from the split-merge delimiter above: this marker applies to the
+five `seed only`, fully-downstream-owned files (`feedback.md`, `ROADMAP.md`,
+`TODO.md`, `docs/MECHANICS.md`, `docs/DESIGN.md` — enumerate mechanically via
+`grep 'seed only' docs/export-manifest.md`, never from memory). These files
+have no template-managed half at all, so the split-merge machinery above does
+not apply to them; `tools/export-seed-check.sh` does apply, asserting the
+marker's presence in your live repo (Leg S, `--completeness` mode) and its
+absence in an export tree (Leg E). This subsection is the durable home for
+the marker instruction — the 1.46.0 Version-Specific Required Changes entry
+above is a one-time adoption notice, not where a downstream reads this from
+on a later upgrade or a fresh onboarding.
+
+- **The block** (copy verbatim, filling `<content>` per file — "backlog",
+  "direction", "captured feedback", "map", "values"):
+
+  ```
+  <!-- STUB BOUNDARY (not a split-merge delimiter): everything ABOVE is the
+       seed that ships to downstreams and the public mirror; everything BELOW is
+       this repo's own <content>, reset away at public-export Step 2 item 4. ...
+  -->
+  ```
+
+- **Placement:** at the point where the template's own seed content ends and
+  your project's own content begins in that file — but treat that seam as
+  presumed, not literal, for these five files. Unlike a split-merge file,
+  `ROADMAP.md`/`TODO.md`/`feedback.md` are downstream-owned in full: there is
+  no template-managed half actually enforced above the marker, so "where the
+  seed ends" is a judgment call, not a mechanical boundary. The two error
+  directions are asymmetric: placing the marker too high (near the top,
+  under-capturing your content) at worst ships a thin/incomplete stub if you
+  ever publish — harmless. Placing it too low (near the bottom,
+  over-capturing your content as "seed") risks publishing private backlog,
+  direction, or feedback to a public mirror — irreversible. **When in doubt,
+  place it higher.** For a downstream that never runs a public-export mirror,
+  placement is largely moot either way: Leg S only checks that the marker
+  line is *present* somewhere in the file, not where.
+- **Verify:**
+
+  ```bash
+  bash tools/export-seed-check.sh --completeness .
+  # Expected: ok - export seed classification complete (delimiter completeness + seed-only marker presence)
+  ```
+
 ### `MEMORY.md`
 
 - preserve project-specific facts, constraints, environments, and operating
@@ -1376,6 +1857,23 @@ no downstream edit made above the line survives.
 - new template guardrails, role definitions, and workflow rules arrive in the
   above-the-line half; run `tools/tests/governance-consistency.test.sh` after
   the merge to confirm the governance tokens survived
+
+### `AI.md`
+
+- `AI.md` is delimiter-bearing but follows `MEMORY.md`'s shape, not the
+  registry shape (`minions/capabilities.md`, `minions/smes/README.md`,
+  `minions/review-matrix.md`, `docs/export-manifest.md`): prose above the
+  marker, and downstream-authored prose below it under the file's own
+  `## Template/Downstream Split` heading — not a `## Local …` table. Do not
+  expect a table to appear below `AI.md` after migrating; there is none to
+  find.
+- preserve downstream-specific cross-tool coordination notes, local handoff
+  conventions, and tool-specific overrides below the marker
+- new template cross-tool protocol changes, source-of-truth ordering, and
+  role-agent wiring arrive in the above-the-line half via the mechanical
+  split-merge
+- run `tools/tests/governance-consistency.test.sh` after the merge to
+  confirm governance tokens survived, same as `MEMORY.md`
 
 ### `minions/roles/*.md` (role charters)
 

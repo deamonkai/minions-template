@@ -72,8 +72,9 @@ DM owns the **`staging→main` changelog gate**:
   changes and `manual-merge` (`MEMORY.md`/`AI.md`) hunks are `REQUIRED`
   items with the tokens and files named
 - confirms **Class-A doc-sync** — every Class-A file (`MEMORY.md`, `AI.md`,
-  `CLAUDE.md`, `AGENTS.md`, `minions/roles/*`, `ROADMAP.md`, `TODO.md`,
-  `minions/chat/`) is consistent with the milestone's accepted decisions
+  `CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`,
+  `minions/roles/*`, `ROADMAP.md`, `TODO.md`, `minions/chat/`,
+  `minions/ARCHIVED.md`) is consistent with the milestone's accepted decisions
 - surfaces any unresolved documentation gaps to PM before the PR opens; DM
   does not block the gate but must report residual gaps clearly
 

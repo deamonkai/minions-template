@@ -75,7 +75,7 @@ formula:
 | `/research` | RM | An issue or unknown needs in-depth, vendor-documentation-grounded research before a decision | Issue framing, vendor-doc findings, corroborating evidence, ranked options with tradeoffs, recommended next step, sources |
 | `/ship` | PM (orchestrator) | A bounded feature should run the automated plan → implement → test → review pipeline end to end | Stage chain (AM spec, CM changes, CM tests, optional SM, read-only CM verdict), gates, one durable artifact, no merge — see Pipeline Mode below |
 | `/handoff` | PM (orchestrator seat) | The session is ending, compaction is near, or the Operator is handing off with work in flight | Flush of all durability obligations, then one self-contained snapshot in `minions/handoffs/` committed on the active branch; deleted on pickup — see Handoff Mode below |
-| `/onboard` | PM (orchestrator seat) | The session is starting and needs deterministic context load-in | Read-chain confirmation, code-map freshness (FRESH/PARTIAL), pending-handoff fold-in, gate state, ready-state report — read-only — see Onboarding Mode below |
+| `/onboard` | PM (orchestrator seat) | The session is starting and needs deterministic context load-in | Read-chain confirmation, code-map freshness (FRESH/PARTIAL/unverified), pending-handoff fold-in, gate state, ready-state report — read-only — see Onboarding Mode below |
 | `SME consult` | any consulting role | A change touches a registered SME's Consult When conditions, or a review-matrix row requires one | Findings-only packet (findings, risks, options, recommendation — no DECISION, no NEXT OWNER); consulting role owns the decision — see SME Consult Mode below |
 
 ## Role Mapping
@@ -307,7 +307,16 @@ In order:
    surface was read.
 2. **Code map.** If `docs/MECHANICS.md` is present, read its Summary/Index in
    full, then parse its `verified @ <sha>` and `Mapped areas:` anchor lines.
-   Run `git log --oneline <sha>..HEAD -- <mapped areas>`. A non-empty result
+   Resolve `<sha>` first (e.g. `git cat-file -e <sha>^{commit}`); if it does
+   not name a commit that exists in this repo, report the map
+   **unverified**, treat it as no code map, and proceed — never surface the
+   raw `git` error. This is not a corner case to brush past: the template
+   ships `docs/MECHANICS.md` with the placeholder anchor value
+   `verified @ <sha>` — itself an unresolvable value — so a fresh downstream
+   clone or a public-mirror clone hits this exact branch by construction.
+   That is the desired behavior, the clearest worked example of it, and not
+   an error to fix. When the sha resolves, run
+   `git log --oneline <sha>..HEAD -- <mapped areas>`. A non-empty result
    means the map has drifted since it was last confirmed against HEAD: flag
    it **PARTIAL** and report the commit count and which mapped area(s)
    changed. An empty result means **FRESH**. If `docs/MECHANICS.md` is
@@ -330,7 +339,8 @@ In order:
 → read-chain: AI.md ✓ MEMORY.md ✓ feedback.md ✓ role charter (<seat>) ✓
   capabilities ✓ SMEs/review-matrix ✓
 → code map: docs/MECHANICS.md verified @ <sha> (<N> commits ago;
-  <area> changed <k>× since — PARTIAL, verify that section) | FRESH | none
+  <area> changed <k>× since — PARTIAL, verify that section) | FRESH |
+  unverified (sha does not resolve; treated as no code map) | none
 → handoff: <'<topic>' — VERIFIED, folded below (held); stale: <notes>> | none pending
 → gates: <MINION_* = on/off list> (presumptive)
 → READY: seat=<seat>, posture=autonomous (3 hard-stops: merge-to-main,

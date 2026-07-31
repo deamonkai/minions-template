@@ -90,11 +90,23 @@ clone.
    - If it does not, adopt the seed and fill it in. Do not start from a blank
      file; the seed is what stops every downstream reinventing the format.
 
-   List the class mechanically rather than from memory:
+   List the class mechanically rather than from memory (today it is five
+   files, not three — `feedback.md`, `ROADMAP.md`, `TODO.md`,
+   `docs/MECHANICS.md`, and `docs/DESIGN.md`; always re-derive it, since the
+   set has grown before and will again):
 
    ```bash
    grep 'seed only' .minions-template/docs/export-manifest.md
    ```
+
+   Each `seed only` file must carry a `STUB BOUNDARY` marker at the point
+   where the template's seed content ends and your own begins — see the
+   "seed-only `STUB BOUNDARY` marker" subsection under Manual-Merge Guidance
+   in `docs/downstream-upgrade-playbook.md` for the exact block and the
+   verify command (`bash tools/export-seed-check.sh --completeness .`). This
+   is not optional even for a downstream that never publishes: the
+   completeness leg (Leg S) fails on a marker-less `seed only` file whether
+   or not you run a public mirror.
 8. Run the onboarding checklist with the Operator and fill in project-specific
    decisions.
 9. Wire this project's minion↔plugin pairings: review

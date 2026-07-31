@@ -2,6 +2,539 @@
 
 All notable changes to this repository are tracked here.
 
+## 2026-07-30 (v1.47.0 — PM judgment model: landscape routing + the Hope/Effort creep check)
+
+- Commit hash: (staging→main merge; assigned at merge) — workstream commits `5d63c7a`..`2c8a585`, merged to dev at `6f79885`
+- **The gap this closes.** Every existing rule in the template tells an agent
+  what it may not do — hard-stops, lane boundaries, gate criteria,
+  single-writer durability. None told it how to tell *what kind of problem it is
+  looking at*, or how to tell whether a returned packet is actually done.
+  `minions/roles/PM.md` was 2,025 words of governance mechanics whose entire
+  treatment of the project-management domain was one line ("prevent scope creep
+  and backlog sprawl").
+- **Two forcing functions, both bound to steps that were already mandatory**
+  rather than added as new rituals — the design constraint that keeps this from
+  becoming ceremony:
+  1. **Landscape routing** (`MEMORY.md` → Execution Quality, immediately after
+     the tier-declaration bullet, riding the same already-mandatory
+     dispatch-brief field list). A brief for multi-step work names its
+     goal-clarity × solution-clarity quadrant, and the quadrant selects the
+     stage chain: clear/clear dispatches the implementer; clear goal + unclear
+     solution takes an AM architecture spec first; unclear goal + clear solution
+     is not dispatched until the goal is scoped; both-unclear routes to RM for
+     research only. Single-step consults are exempt, matching Workflow
+     Ownership.
+  2. **The creep check** (`MEMORY.md` → Completion Handoff Contract, at the
+     consolidation step the single writer already performs for
+     `DURABLE LESSONS:` and `SOLE-HOLDER:`). Hope Creep — is success claimed on
+     evidence that survives inspection, or on the claim itself? Effort Creep —
+     is "done" proven by something that would fail if it were not done?
+- **Why the declaration is load-bearing and not a box-tick:** the quadrant
+  *selects the routing*, so a wrong declaration produces visibly wrong routing.
+  A brief claiming "clear/clear" that then dispatches a spec is
+  self-contradicting on its face.
+- **Both motivating failures are from v1.46.0, and both are recorded as case law**
+  in the new doc rather than as abstractions: routing was instinct, not method
+  (item A2 needed an architecture spec first, which was the right call made by
+  feel because the Operator asked — nothing in the repo would have produced it
+  deterministically or caught its absence); and two untrustworthy reports nearly
+  shipped (a fixture green because the script crashed and the crash exited 1,
+  matching the expected code; a guard correct in code but unproven by any test).
+- **New `docs/pm-judgment-model.md`** carries the model in full: the two axes,
+  the routing map and its exemption, two worked examples from this repo's real
+  history, the four creep types, attribution, and the Known Limit. The second
+  worked example is the deferred archive-reporter automation — a case where the
+  solution was *unusually* well-specified (v3 design, three review rounds,
+  SHIP-WITH-CONDITIONS from SM and Shell/Test-Harness) and still correctly not
+  dispatched, because the goal was unvalidated. The lesson it carries: a
+  fully-specified solution is not a licence to build.
+- **Scope Creep and Feature Creep get no second check**, and the law now says why
+  honestly: they are handled *prospectively* by the existing scope-expansion rule,
+  which runs on the actor's self-report and therefore does not catch an expansion
+  nobody flagged. This check does not add that coverage. Recorded as an open
+  question rather than described as "covered" (Governance-Invariant SME).
+- **The both-unclear cell is research-only — a separation-of-duties boundary.**
+  RM is the role *chartered* to ingest untrusted external content and the one
+  pinned read-only for it; its findings return through PM, who dispatches
+  implementation separately. The doc now also states the limit precisely: the pin
+  does **not** mean untrusted content reaches only RM (in the Claude family every
+  other role has `WebFetch`/`WebSearch`), it means the role we deliberately point
+  at untrusted sources cannot write. An earlier draft — and the spec itself —
+  claimed RM was "the one role that ingests untrusted external content" and "the
+  single sanctioned tool-whitelist exception among the seven roles"; both were
+  wrong and are corrected. In the Copilot family *every* launcher pins `tools:`,
+  and RM is distinguished by lacking `edit`.
+- **No new hard-stop; the count stays three.** The doc no longer restates the
+  enumeration at all — it cites `MEMORY.md`/`AI.md` instead. Removing a
+  restatement is cheaper and more durable than guarding one, and the asymmetry
+  made a copy here actively dangerous: this file is `template-replace` and
+  propagates on upgrade, while `MEMORY.md` is `manual-merge` and does not, so a
+  drifted copy would reach downstreams that never took the corresponding law
+  (Governance-Invariant SME, the highest-value edit in its packet).
+- **Eight assertions** added to `tools/tests/governance-consistency.test.sh`: the
+  quadrant rule, PM's duty line, the RM-research-only clause, the
+  not-a-fourth-hard-stop clause, the doc's existence, the creep-check
+  instruction, `Hope Creep`, and `Effort Creep`.
+- **The checks are bounded to the template-owned half of each file.** A new
+  `flat_upstream()` helper stops at the split-merge delimiter before flattening,
+  using the repo's proven anchored delimiter pattern (post-F-U
+  `find_delimited()`/`seed_violations()` shape) so a prose *mention* of the
+  marker phrase cannot truncate the scan — the marker-vs-prose defect class,
+  instances 1–3. Five `_pos`/`_neg` self-tests in house style, including the
+  masked-section case and the no-delimiter case. The three pre-existing tier /
+  Workflow-Ownership checks were routed through it too: leaving four unbounded
+  checks beside eight bounded ones is how the wrong idiom survives to be copied.
+  A deliberate, flagged widening beyond the minimum fix.
+
+### What the review panel found — including in the verification claims
+
+Three matrix-required SMEs reviewed this change (Governance-Invariant,
+Upgrade-Path, Shell/Test-Harness). They found real defects, and the two most
+serious were in the *evidence* rather than the design:
+
+- **BLOCKER-class, Shell/Test-Harness: the original checks were unbounded
+  whole-file greps.** Four one-line edits were *demonstrated* to delete a
+  governance law while keeping the suite green — the realistic one being a
+  downstream hand-merge that drops the law from `MEMORY.md` (`manual-merge`) and
+  writes a note about it below the delimiter, which is that section's designed
+  use. Same defect class as instances 1–3, but failing **open** (false pass)
+  rather than closed (spurious FAIL) — the strictly worse direction, arriving in
+  the same release that hardened against the better one. Fixed by
+  `flat_upstream()`; all four cases re-tested and now fail correctly (3, 3, 1 and
+  1 FAILs respectively).
+- **Two CHANGELOG over-claims, converged on independently by Governance-Invariant
+  and Shell/Test-Harness.** An earlier draft of this fragment said the
+  not-a-fourth-hard-stop clause was "asserted mechanically … so a later edit
+  cannot quietly promote it", and that the RM clause was "documented as
+  load-bearing so a future edit cannot weaken it silently." Neither is true.
+  **Nothing in the suite counts hard-stops** — the checks assert a literal string
+  has not vanished from the template-owned half of a file, which is strictly
+  narrower than "the constraint is still in force." An edit adding a fourth
+  enumerated hard-stop while leaving the disclaimer intact stays green. This is
+  the milestone's own Hope Creep question turned on its own verification claim,
+  and it is exactly the v1.46.0 correction shape (the measurement was fine; the
+  sentence above it claimed more). The claims are narrowed here, in the playbook
+  entry, and in the doc.
+- **Upgrade-Path: the manifest criticality argument was valid at `5d63c7a` and
+  invalidated by `1713a20`.** `reference` was chosen on the `docs/model-tiering.md`
+  precedent — identical structural position, a detail doc behind an unconditional
+  `MEMORY.md` dispatch-brief law. But adding the `[ -f ]` assertion broke the
+  condition that precedent rests on, and the playbook states that condition
+  explicitly in the 1.33.0 entry: `model-tiering.md` is "explicitly outside the
+  governance-scanned invariant set … `governance-consistency.test.sh` does not
+  check it." A `reference` file that the guard requires is a contradiction, proven
+  by running a simulated lazy adoption to a red guard. **Reclassified to
+  `feature`** (required if you run the governance guard — the capability it
+  belongs to), with the divergence from `model-tiering.md` explained in both the
+  manifest row and the playbook.
+- **Upgrade-Path: two dangling `do-not-export` pointers shipped in the new doc.**
+  Both `docs/superpowers/` spec references resolve to nothing in a downstream or
+  public-mirror clone — a direct recurrence of v1.46.0 item C3, in the milestone
+  whose thesis is that pointers must resolve. Annotated per the
+  `docs/skill-adoption-model.md` remedy shape.
+- **Upgrade-Path: `REQUIRED-IF-ADOPTED` was off-idiom and read as skippable.**
+  Every other use in the playbook conditions on a *pre-existing downstream state*;
+  here it meant "if you adopt this milestone", which is circular. Relabelled to
+  the 1.46.0 form, `REQUIRED (unconditional, if you run the governance guard)`,
+  plus a REQUIRED-TOGETHER note (doc + suite) on the 1.29.0 precedent and a
+  name-collision note.
+- **Governance-Invariant: the unclear-goal cell read as an Operator interrupt.**
+  `CLAUDE.md`, `AGENTS.md` and `.github/copilot-instructions.md` phrase the
+  hard-stop list as a *ceiling* ("advance without asking permission unless
+  hitting a hard-stop"), so a law that says "returns to the Operator" *and* "not a
+  fourth hard-stop" lets its own disclaimer license ignoring it. Reworded so the
+  cell describes work not being dispatched until scoped — closing the conflict
+  **without** editing three entry-point files, which is the enlargement of
+  hard-stop-adjacent text this milestone was right to avoid.
+- **Governance-Invariant: the creep check fired only on "a returned packet"**, yet
+  its one piece of real evidence came from applying Effort Creep to this
+  milestone's own work, which has no returned packet. A single-session
+  orchestrator would never have triggered it. Scope widened to cover the writer's
+  own closeout.
+- **Governance-Invariant: likely mis-attribution in a publicly-mirrored file.**
+  The draft credited the creep taxonomy to PMI/PMBOK; *hope creep* and *effort
+  creep* appear to be Wysocki's terms, and PMBOK does not use them. Corrected,
+  explicitly marked `[Likely]` and unverified, and routed to RM
+  (`governance-practices`) rather than asserted from memory — mis-attributing a
+  named taxonomy is more exposed than a vague credit, because a reader can check
+  it.
+- **Also corrected:** the doc's exemption said "one SME question, one RM
+  question, one read", widening `MEMORY.md`'s "one SME **or** RM question" into
+  three steps — an implementation deviation from a spec that had it right.
+
+### Known limits — stated, not implied
+
+- **No guard can verify the judgment was real.** A brief may declare
+  "clear/clear" thoughtlessly and pass every check; the creep check may be run as
+  a formality. The checks prove the rules are *present in upstream law*, never
+  that they were *applied*.
+- **Nothing counts hard-stops.** See above. The not-a-fourth-hard-stop clause has
+  a drop-detector, not a count assertion.
+- **Prose above the delimiter still satisfies a presence check.** `flat_upstream()`
+  closes the below-delimiter vector, not this one. A `## Retired Practices` note
+  naming a token would satisfy the two creep labels — though the added
+  creep-check-instruction assertion means that case now fails the suite anyway (1
+  FAIL, verified). Closing it fully needs per-token *section* bounding, which
+  couples the guard to `manual-merge` heading text and fails on a rename;
+  deliberately not half-solved.
+- **`[ -f ]` passes on a 0-byte file** and is decoupled from the pointer text
+  (Shell/Test-Harness F6). Low stakes given the eight assertions around it.
+
+### Evidence
+
+- All 14 guard suites green. `/bin/bash tools/export-seed-check.sh --completeness .`
+  → `ok - export seed classification complete`.
+- The eight assertions demonstrated in both directions: each token removed in turn
+  from a verified copy produced exactly one correctly-scoped FAIL, no cascade,
+  restore green. Independently re-derived by the Shell/Test-Harness SME (7/7 at
+  review time), instrumented specifically against the v1.46.0 crash shape by
+  counting the `ok` line independently of the exit code.
+- The four demonstrated false-pass cases re-tested against `flat_upstream()`: all
+  four now fail.
+- The playbook's predicted partial-adoption failure mode verified empirically by
+  the Upgrade-Path SME against a synthesized tree (five FAILs, all naming
+  `MEMORY.md`, `PM.md` silent).
+- bash 3.2.57 and 5.1.4 both green. Note the Shell/Test-Harness SME's adjacent
+  correction: the suite's `export PATH="/bin:$PATH"` pin is *inert here* — it
+  cannot change an already-running interpreter and this suite makes zero child
+  `bash` calls. The additions are 3.2-safe on their own merits (POSIX `tr`,
+  `grep -q`, `[ -f ]`, `awk`), not because of the pin. This also narrows the
+  guard-hardening thread's "pin extended to all 14 suites" claim for three
+  suites; flagged for CM, not corrected here.
+- Budgets after the edits: `MEMORY.md` and `minions/roles/PM.md` both under
+  budget (see the release-gate report).
+
+### Provenance
+
+The Operator surfaced a third-party PM skill repository which has no LICENSE
+(default copyright, all rights reserved). This template is publicly mirrored, so
+the constraint is not theoretical. **No text from it is copied.** The underlying
+frameworks are Wysocki's Project Landscape model and the standard creep
+vocabulary, attributed in the doc; the prose, the bindings to this repo's roles
+and gates, the worked examples, and the security rationale are original. This is
+a charter and law edit, **not** a `MINION_SKILLS` airlock adoption — nothing of
+theirs executes and nothing is vendored. The source URL and its repository
+metrics are recorded in the maintainer-local spec rather than here, since this
+fragment assembles into the public `CHANGELOG.md` (Export/Privacy concern raised
+by the Governance-Invariant SME and routed to Export/Privacy).
+
+### Out of scope
+
+- Phase 2 (the Scope Triangle as Operator-facing trade-off vocabulary) —
+  deferred, deliberately not stubbed.
+- The `minion-version.md` bump to 1.47.0 (release-gate action). Note the
+  Upgrade-Path SME's warning: the 1.47.0 playbook heading must broaden to cover
+  the other two pending fragments (`guard-hardening`, `doc-freshness`) before the
+  gate passes, since the required-changes obligation is per-release, not
+  per-fragment.
+- The general doc-pointer-resolution sweep (no guard verifies that *any*
+  governance pointer resolves) — filed in `TODO.md`. Both the Shell/Test-Harness
+  SME and the TODO entry's own reasoning argue for doing it sooner than "later".
+- `AM.md`'s Outputs section does not enumerate "architecture spec" as a
+  deliverable, though the new law mandates one (Governance-Invariant OBS 9). AM
+  charter change, not taken here.
+- The `docs/export-manifest.md` `tools/tests/` row enumerates 11 suites but 14
+  exist. Pre-existing drift, same class as the open Doc Freshness TODO item.
+
+## 2026-07-30 (v1.47.0 — Guard hardening: bash-3.2 pin across all 14 suites; marker-vs-prose defect class contained)
+
+- Commit hash: (staging→main merge; assigned at merge) — workstream commit `89aefe6`, merged to dev at `1e0f661`; precision note added at assembly
+- **Item 1 — bash-3.2 pin extended from 1 of 14 suites to 14 of 14.**
+  `tools/tests/export-seed-check.test.sh` was the only harness carrying the
+  internal `export PATH="/bin:$PATH"` pin (v1.46.0 Fix 3); the other 13
+  relied on the caller typing the prefix, so "verified on bash 3.2" was true
+  by construction for one suite only. The same pin now opens all 14
+  `tools/tests/*.test.sh` files, right after their `set -uo pipefail` line.
+  Evidence: all 14 suites pass under a plain `bash "$t"` invocation with no
+  manual PATH prefix (the acceptance-critical case — the guarantee is now
+  structural), and again under a deliberately hostile PATH with Homebrew
+  bash first (`/usr/local/bin:/opt/homebrew/bin:$PATH`), confirming the
+  internal pin wins over PATH order. No new bash-3.2 defects surfaced in the
+  13 newly-pinned suites (contrast with `be53b13`, which the export-seed-
+  check pin caught on its first real use one day earlier).
+  **Precision note on that null result** (Shell/Test-Harness SME, F2): it is a
+  genuine exercised negative for 11 of the 13, verified by instrumenting a
+  hostile-bash wrapper and sweeping every suite — exactly one hostile
+  invocation each (the outer harness launch, before its own pin runs) and zero
+  leaks into any child, plus a positive control proving the exec-path pin
+  catches a bash-4-only construct.
+  **Second precision note, added at 1.47.0 assembly** (Shell/Test-Harness SME,
+  reviewing the judgment-model branch): in three suites the pin is not merely a
+  narrow measurement, it is **inert**. `export PATH="/bin:$PATH"` cannot change
+  an already-running interpreter — `#!/usr/bin/env bash` resolves before line 9
+  executes — so it only redirects *child* `bash` invocations. Demonstrated with
+  a minimal same-shape script: interpreter 5.1.4 while a child `bash` resolves
+  to 3.2.57. `governance-consistency.test.sh`, `manifest-completeness.test.sh`
+  and `skill-scout.test.sh` make **zero** child `bash` calls, and `/bin` carries
+  no `grep`/`tr`/`awk`/`sed`/`sort`/`mktemp`, so nothing in those three resolves
+  differently with the pin than without it. They are 3.2-safe on their own
+  merits (POSIX constructs only), not because of the pin. "Extended the pin to
+  all 14 suites" is true as a statement about the files; it is not true that the
+  pin does work in all 14. The other 11 do exec child bash and the pin governs
+  them as intended.
+  But `governance-consistency.test.sh` and
+  `manifest-completeness.test.sh` never exec a `tools/*.sh` at all — they are
+  self-contained scanners that read other files as *text*, never as *executed
+  code*. Their pin proves their own inline awk/grep syntax is 3.2-safe and
+  nothing more. "13 suites, no new defects" is true; it is not uniform, and 2
+  of the 13 could not have surfaced an executed-code defect even in principle.
+- **Item 2 — marker-vs-prose defect class, instance 3 fixed + mechanical
+  detector added.** `tools/sme-charter-check.sh`'s `section_nonempty()` used
+  a bare `index($0,"DOWNSTREAM CONTENT BELOW")` substring test to find the
+  split-merge delimiter — the same shape as the F-U defect fixed in
+  `seed_violations()` at v1.45.0, except fail-closed here (a false "section
+  empty" FAIL only, never a false pass). Fixed to the same anchored pattern
+  `find_delimited()`/`seed_violations()` use:
+  `$0 ~ /^[[:space:]]*<!--.*DOWNSTREAM CONTENT BELOW.*-->/`.
+- Added a `bare_marker_index()` detector to
+  `tools/tests/governance-consistency.test.sh`: flags any `tools/*.sh` guard
+  implementation containing an awk `index($N, "TOKEN")` call against one of
+  the two known structural marker tokens (`DOWNSTREAM CONTENT BELOW`,
+  `STUB BOUNDARY`). Scoped deliberately to that one proven shape — both real
+  defects were awk `index()` bare-substring calls — rather than every
+  conceivable substring test, to avoid manufacturing false positives on
+  legitimate `case`/`grep` uses with no observed defect instance. Scans
+  `tools/*.sh` only, not `tools/tests/*.sh` (which legitimately quotes
+  past-defect code in prose, e.g. this file's own F-U comment). Self-tested
+  (positive/negative fixtures) and demonstrated both directions per house
+  rule: catches a reconstructed pre-fix instance-3 line, and passes the live
+  post-fix `tools/sme-charter-check.sh`.
+- Instance 4 (`docs/runbooks/public-export.md`'s prose teaching the
+  personal-context token) is explicitly out of scope for mechanical
+  detection — handled manually at each export per existing runbook
+  discipline; the detector targets guard-script logic, not documentation
+  prose about tokens.
+- Evidence: all 14 suites green under normal and hostile PATH (see Item 1);
+  `governance-consistency`, `instruction-size`, `manifest-completeness` all
+  green; `/bin/bash tools/export-seed-check.sh --completeness .` ->
+  `ok - export seed classification complete`;
+  `tools/tests/sme-charter-check.test.sh` -> 8/8 passed (including the
+  live-repo canonical-charters case); `tools/tests/governance-consistency.test.sh`
+  -> `ok - governance consistent` (40 scanned surfaces, includes the new
+  `bare_marker_index` self-tests and regression demonstration).
+- Out of scope (per dispatch brief): `SEED_ANCHORS` completeness backstop,
+  the two next-public-export preconditions, `TODO.md` retirement, version
+  bump (mined at consolidation), `second-brain.sh` SM-7/SM-9.
+
+## 2026-07-30 (v1.47.0 — Doc freshness: `docs/MECHANICS.md` code map re-verified and re-stamped)
+
+- Commit hash: (staging→main merge; assigned at merge) — workstream commits `7afec03`, `5e9c75a`
+- **`docs/MECHANICS.md` re-verified against HEAD and re-stamped**
+  `verified @ 6ffc721` → `verified @ 4eba0c0`. The stamp had gone 11 commits
+  stale across four mapped areas (`tools/` 9×, `tools/tests/` 7×,
+  `minions/smes/` 2×, `.claude/` 1×, `minions/roles/` 1×), so every `/onboard`
+  was correctly reporting the code map PARTIAL.
+- **Re-verification result: the map's inventories were already accurate.** All
+  11 `tools/*.sh` and all 14 `tools/tests/*.test.sh` suites are named correctly
+  (4 repo-wide + 10 per-tool), the governance bootstrap order matches
+  `CLAUDE.md`'s read-chain, and the release/export flow descriptions still
+  hold. The 11 drift commits changed behavior *inside* mapped areas without
+  changing the component inventory the map records at its stated altitude —
+  worth recording, because a PARTIAL flag says "verify", not "wrong".
+- **Two genuine inaccuracies found and fixed**, both in the
+  `.claude/commands/` bullet:
+  1. It described `onboard` as landing "once Task 2 lands". The command shipped
+     with the session-onboarding feature — `.claude/commands/onboard.md` exists
+     and `minions/capabilities.md` lists `/onboard` as `active`.
+  2. It claimed all five command behaviors are defined tool-neutrally in
+     `docs/minion-prompt-modes.md`. True for `handoff`, `ship`, and `onboard`;
+     `delegate` and `second-opinion` are defined in
+     `docs/cross-tool-orchestration.md`. The bullet now names both sources, so
+     a non-Claude orchestrator implementing command parity is not sent to a
+     file that never documented two of the five.
+- `TODO.md`: the open Gitea transient-failure consolidation item was updated
+  from two entries to three, with a note that the new 2026-07-29 entry raises
+  its priority — that entry invalidates the `ls-remote | grep` verification the
+  2026-07-03 entry prescribes, so the consolidated runbook note must carry the
+  non-empty-output assertion rather than only "retry once".
+- Evidence: all 14 guard suites green (`archive-reporter` 61, `export-seed-check`
+  50, `instruction-size` 59, `issue-board-bootstrap` 36, `issue-sync` 68,
+  `layer-adopted` 22, `manifest-completeness` 29, `second-brain` 177,
+  `skill-airlock` 32, `skill-scout` 15, `sme-charter-check` 8,
+  `upgrade-classify` 37, `xtool-call` 65, `governance-consistency`
+  `ok - governance consistent`). Re-stamp follows the `ae52835` precedent
+  (stamp = the sha verified against = the map commit's parent).
+- **Re-stamped a second time at the 1.47.0 dev merge** (`4eba0c0` → `6f79885`).
+  Merging `feature/pm-judgment-model` touched two mapped areas (`tools/tests/`,
+  `minions/roles/`), which correctly flipped the map back to PARTIAL. Re-verified
+  before re-stamping: the merge added no tool, no test suite, no command, and no
+  role (11 / 14 / 5 / unchanged), so the map's inventories still hold and only
+  behavior inside mapped areas changed. Worth recording as the expected rhythm —
+  a `verified @` stamp goes stale at every merge into a mapped area, and the
+  re-stamp is a re-confirmation, not a formality.
+- Out of scope: the remaining Doc Freshness backlog items
+  (`public-export.md` enumeration drift, `skill-adoption-model.md` describing
+  shipped tooling as absent, the two stale `(in flight)` markers in
+  `feedback.md`, spec `Status:` line reliability) and the DM-owned Gitea-entry
+  consolidation itself.
+
+## 2026-07-29 (v1.46.0 hotfix — `tools/second-brain.sh` bash 3.2 colon-tag mapping; not milestone scope)
+
+- Commit hash: (staging→main merge; assigned at merge)
+- **Not part of the Boundary Coverage milestone.** An unrelated, pre-existing
+  defect in `tools/second-brain.sh`'s colon-to-slash tag mapping
+  (`branch:dev` -> `branch/dev`), reproducing identically on `9f23c33` —
+  before `feature/boundary-coverage` merged — and the milestone never
+  touched this file. It became visible only because this same milestone
+  pinned the guard harness to bash 3.2 (`PATH=/bin:$PATH`); the fix
+  (commit `be53b13` on `staging`) was made solely because it was blocking
+  the v1.46.0 promotion gate, not as milestone scope.
+- `tools/second-brain.sh:229`: bash 5.x strips the backslash before `/` in a
+  `${var//pattern/replacement}` replacement text; bash 3.2 (this repo's
+  target shell, macOS stock `/bin/bash`) does not, so the intended
+  `${tn//:/\/}` emitted the literal `branch\/dev` instead of `branch/dev`
+  for every colon-namespaced tag captured with `MINION_SECONDBRAIN=on`.
+  Fixed by substituting via a `slash='/'` local variable
+  (`${tn//:/$slash}`), removing the escaping ambiguity — behavior identical
+  across both interpreters. Two other known pre-existing `second-brain.sh`
+  defects (`TODO.md`: SM-7 short-write exit status, SM-9 `SOLE-HOLDER:`
+  literal-substring match) are explicitly out of scope for this hotfix.
+- Every other `${var//pattern/replacement}` expansion in `tools/*.sh`
+  audited for the same bash-3.2 escaped-replacement exposure
+  (`second-brain.sh:138` `yaml_dq`; `xtool-call.sh:57-59`); none found.
+- Evidence: `PATH="/bin:$PATH" bash tools/tests/second-brain.test.sh` ->
+  177/177, 0 failed (including the previously-failing fixture at `:434` and
+  its `migrate-frontmatter` sibling at `:782`). Side-by-side repro
+  confirmed pre- and post-fix under both `/usr/local/bin/bash` (5.1.4) and
+  `/bin/bash` (3.2.57). Full 14-suite guard battery green under `/bin/bash`
+  3.2.57; `/bin/bash tools/export-seed-check.sh --completeness .` ->
+  `ok - export seed classification complete`.
+
+## 2026-07-29 (v1.46.0 — Boundary Coverage: seed-only marker enforced inbound + outbound; `AI.md` / `docs/export-manifest.md` split-merge delimiters)
+
+- Commit hash: (staging→main merge; assigned at merge)
+- **Three independent reports converged on one property this milestone
+  closes.** The seed-only boundary (the five `seed only` files —
+  `feedback.md`, `ROADMAP.md`, `TODO.md`, `docs/MECHANICS.md`,
+  `docs/DESIGN.md`) was specified OUTBOUND (public export strips the
+  marker) but never enforced INBOUND (adoption); the split-merge delimiter
+  pattern already covered some governance surfaces (`MEMORY.md`,
+  `minions/smes/README.md`, `minions/review-matrix.md`,
+  `minions/capabilities.md`) but not `AI.md` or `docs/export-manifest.md`;
+  and the gate meant to guard the outbound half could not distinguish
+  "reset correctly" from "never had a marker." Sources: the v1.45.0
+  pre-push SME panel (Export/Privacy F1 — `docs/MECHANICS.md` shipped a
+  live `verified @ 6ffc721` into a fresh-history repo), Gitea #55 §2 (same
+  SHA, inbound, hit by a downstream adopting from source), Gitea #56 §6
+  (same marker, outbound, gate vacuous on a repo that never had one).
+- **WS-B — `AI.md` and `docs/export-manifest.md` gain split-merge
+  delimiters** (`## Template/Downstream Split` in `AI.md`, following
+  `MEMORY.md`'s prose shape; `## Downstream Additions (this repo)` in the
+  manifest, following the registry-shape siblings). Closes the gap where a
+  downstream override had no additive home and had to be expressed as an
+  in-place rewrite of template prose (Gitea #56 §1). Both files enrolled in
+  `tools/export-seed-check.sh`'s `WAIVER` list. This is the deliverable;
+  the delimiters are its consequence.
+- **WS-A wave 1 — `tools/export-seed-check.sh` gains the seed-only marker
+  pair.** Leg S (`--completeness` mode) asserts every manifest `seed only`
+  path CARRIES a `STUB BOUNDARY` marker in source; Leg E (export-tree/
+  `both` mode) asserts none survives — retiring the runbook's old gate-5
+  grep and collapsing gates 4+5 into one invocation. Plus `SEED_ANCHORS`/
+  `anchor_violations()`, asserting `docs/MECHANICS.md`'s above-marker
+  `verified @ <sha>` / `Mapped areas:` lines read back as literal
+  placeholders in the export tree. `feedback.md` gains its own marker in
+  the same commit (Leg S would otherwise fail on canonical immediately).
+  18 new fixtures.
+- **Wave 2a (A5 + WS-C doc-sync sweep):** Onboarding Mode gains a third
+  code-map state (`unverified`) for an unresolvable sha; `minions/roles/
+  DM.md`'s Class-A enumeration corrected (a fifth drifted enumeration
+  site); `CLAUDE.md` gains the archive-reporter partial-surface note; four
+  dangling `docs/superpowers/` pointers resolved; `docs/downstream-
+  upgrade-playbook.md` notes v1.42.0/v1.43.0 tag the same commit.
+- **Wave 2b (A6 + retired-gate-5 sweep):** `docs/runbooks/public-export.md`
+  stops hand-maintaining the seed-only file roster — the drifted four-
+  bullet list that omitted `docs/MECHANICS.md` was the proximate cause of
+  the v1.45.0 mis-publish. Both call sites now point at the manifest as
+  sole authority via a new `manifest_seed_paths()`. Stale gate-5 references
+  fixed on two shipped surfaces.
+- **Panel-fix round 1 — bash 3.2 unbound-variable fix**, found by the
+  Shell/Test-Harness SME: two zero-array `"${arr[@]}"` expansions under
+  `set -u` were fatal on bash 3.2 (this repo's target shell) — one crashed
+  the whole run precisely on the "no markers adopted yet" state Leg S
+  exists to catch; the other crashed only its subshell, so the parent
+  script printed `ok` and exited 0 while silently skipping the anchor
+  check. Both guarded with the file's existing zero-array idiom. Six suite
+  assertions strengthened to check FAIL message text, not just exit code —
+  a crash also exits 1, so the suite had reported 37/37 while actually
+  crashing on the required-failure fixtures.
+- **Panel-fix round 2 — git-grep blindness in `find_marked()`**, found by
+  the Export/Privacy SME and independently reproduced by CM and PM:
+  `git grep` only sees tracked paths, so an export tree whose copied-in
+  seed-only files were not yet `git add`ed went invisible to Leg E,
+  returning a false-clean gate over an unreset tree. Now gated on scan
+  mode, not "is this a git work tree." New regression fixture F-S.
+- **Panel-fix round 3 — gate-stack re-review: a correctly-prepared export
+  tree still could not go green**, found by the Export/Privacy SME by
+  building a real manifest-filtered export tree and running the actual
+  gates (invisible to the diff and to a fixture suite that was green on
+  canonical): `STUB_PATTERN`'s leading-whitespace allowance matched the
+  playbook's own indented, code-fenced example of the marker, reading
+  documentation *about* the marker as a live one — anchored to column 0
+  (fixture F-D2). `seed_violations()`'s bare `index()` substring match read
+  a prose mention of the delimiter phrase in `docs/export-manifest.md` as
+  the delimiter itself, flagging 200 false FAILs on the legitimate Manifest
+  table — now uses `find_delimited()`'s same anchored matcher (fixture
+  F-U). Three fixtures (case 12, F-I, F-R) re-rooted off the live-repo path
+  onto synthetic trees — they had asserted Leg S (a source invariant)
+  against a tree whose markers Step 2 had just stripped, so gates 1 and 4
+  were mutually unsatisfiable by construction. The harness itself pinned to
+  bash 3.2 (`PATH=/bin:$PATH`) — it had invoked the script under test as
+  plain `bash` (resolving to 5.1.4), so every prior "verified on bash 3.2"
+  claim from this suite, including several made during this same
+  milestone's own review, was false by default. New fixture F-T proves the
+  round-1 zero-array guard is actually load-bearing. Suite 45 → 50;
+  verified end to end on a real export tree passing both gate 4 (exit 0)
+  and gate 1 (all 14 suites inside the tree).
+- **DM re-review wave — playbook accuracy/durability fixes**, found by the
+  Upgrade-Path SME ("instructs but not shippable"): fixed a wrong
+  flagship-command path, a mechanism stated backwards (the public-export
+  strip *removes* the marker, never adds it), and three files
+  (`TODO.md`, `ROADMAP.md`, `docs/DESIGN.md`) still claiming
+  `export-seed-check.sh` "does not apply." Added the missing
+  REQUIRED-IF-YOU-PUBLISH `SEED_ANCHORS` obligation (two new hard gate-4
+  conditions this release introduces). Closed the durability gap: the
+  marker instruction now lives in a permanent `### seed-only STUB BOUNDARY
+  marker` subsection under Manual-Merge Guidance, not a one-time
+  version-entry notice that expires on the next release. Corrected
+  `upgrade-classify.sh`'s `LIVE=diverged` framing (a candidate flag, not a
+  signal — it only ever compares LIVE against OLD, never against NEW) and
+  several accuracy/completeness fixes across the playbook.
+- **DM panel-doc wave — the 1.46.0 playbook entry rewrite (the central
+  deliverable) + doc-sync:** rewrote `docs/downstream-upgrade-playbook.md`'s
+  1.46.0 entry as a followable procedure instead of a warning — added the
+  unconditional REQUIRED marker-adoption action (DM's own finding, the
+  panel's highest severity: every existing downstream's five seed-only
+  files never received a `STUB BOUNDARY` marker, since the strip that adds
+  it runs only on canonical, never on a downstream's live copy), fixed the
+  entry's self-contradiction on the `AI.md`/manifest gate-4 reset
+  obligation, replaced an unreachable "diff against the template's
+  pre-1.46.0 copy" instruction with the real base (the downstream's own
+  recorded `minion-version.md` version) plus the `tools/upgrade-
+  classify.sh` mechanical detector, and added OPTIONAL/RECOMMENDED coverage
+  for four previously-uncovered 1.46.0 changes. `docs/export-manifest.md`
+  and `docs/runbooks/public-export.md` doc-synced to match.
+- Reviewed across two panel rounds by the Shell/Test-Harness, Export/
+  Privacy, and Upgrade-Path SMEs (each finding independently verified and
+  fixed), with CM and PM independently reproducing the git-grep finding.
+  OM-Test validated the dev→staging promotion. Full `tools/tests/*.test.sh`
+  suite green (14 suites, `/bin/bash` 3.2.57, 50/50 in
+  `export-seed-check.test.sh`), `governance-consistency.test.sh`,
+  `instruction-size.test.sh`, `manifest-completeness.test.sh`, and
+  `export-seed-check.sh --completeness .` all green. No governance-token
+  change, no new hard-stop.
+- **REQUIRED for every existing downstream:** add the `STUB BOUNDARY`
+  marker to your five `seed only` files (`feedback.md`, `ROADMAP.md`,
+  `TODO.md`, `docs/MECHANICS.md`, `docs/DESIGN.md`) before running the
+  test-suite guard — no version of the template has ever shipped you this
+  line, and the guard now fails on all of them unconditionally, whether or
+  not you publish. **REQUIRED-IF-ADOPTED:** a one-time `AI.md` /
+  `docs/export-manifest.md` delimiter migration if either file carries an
+  in-place override. **REQUIRED-IF-YOU-PUBLISH:** confirm or add the
+  matching `SEED_ANCHORS` row for any `seed only` surface you have filled
+  in with your own above-marker fields. This is not a "no required
+  changes" release — see `docs/downstream-upgrade-playbook.md`'s 1.46.0
+  entry for the full procedure.
+
 ## 2026-07-22 (v1.45.0 — Design/UX Reviewer SME: first product-domain reviewer in the bench)
 
 - Commit hash: (staging→main merge; assigned at merge)
@@ -462,7 +995,7 @@ All notable changes to this repository are tracked here.
   `minions/roles/PM.md`; it checks presence only, never per-dispatch tier
   compliance (that boundary is unchanged from `docs/model-tiering.md`'s
   existing "advisory, safe to ignore" stance).
-- Driven by downstream field report on Gitea issue #33 (SSI-website): a
+- Driven by downstream field report on Gitea issue #33 (a downstream project): a
   frontier orchestrator dispatched a whole milestone at inherited defaults
   because tiering was wired at one layer, and the same downstream reset CM's
   effort lock to let the orchestrator/PM right-size effort per dispatch.
@@ -1361,7 +1894,7 @@ All notable changes to this repository are tracked here.
 ## 2026-07-02 (v1.21.3 — tea v0.14.1 compat, downstream-authored)
 
 - Commit hash: pending (staging→main PR merge)
-- **Provenance:** downstream-authored (a downstream trading-bot project), absorbed
+- **Provenance:** downstream-authored (downstream trading-bot project team), absorbed
   upstream 2026-07-02 so future downstream upgrades stop re-fighting it.
 - `tools/issue-sync.sh`: `tea` v0.14.1 renamed the issue-body flag
   (`--body` → `--description`/`-d`) and the edit-time label flag
@@ -1647,7 +2180,7 @@ All notable changes to this repository are tracked here.
 - **MEMORY.md Deployment Discipline** gains an opt-in pointer to the posture.
 - **export-manifest.md** lists the new doc (`template-replace`, `feature`,
   PM / AM) so downstreams receive it.
-- Distilled from a downstream trading-bot project's implementation (it runs the
+- Distilled from the a downstream trading-bot project downstream's implementation (it runs the
   pattern across multiple independent decision points); trading-specific machinery
   deliberately left out. Class ②/dual-vendor from the same packet was already
   shipped in v1.16.0; this resolves the deferred class ①.
@@ -1660,7 +2193,7 @@ All notable changes to this repository are tracked here.
 ## 2026-06-24 (v1.16.0 — Downstream feedback: review-ergonomics quick wins)
 
 - Commit hash: pending (next commit)
-- Adopted the low-risk, broadly-applicable items from a trading-bot
+- Adopted the low-risk, broadly-applicable items from a a downstream trading-bot project
   downstream feedback packet (heavy-use observations). Bumped template version to
   `1.16.0-1.0.0`. Deferred (Operator's call): parallel/domain-scoped review
   cadence, and the shadow-first risk posture + operator-facing-craft items.
@@ -1744,7 +2277,7 @@ All notable changes to this repository are tracked here.
   (including `--prompt -` with empty stdin) is rejected with exit 2 before any
   provider call; a provider that exits 0 but produces empty/whitespace-only
   output is flagged `review-empty-output` with exit 4 instead of a false `ok`.
-- **context:** the downstream trading-bot project did not modify the script —
+- **context:** the downstream (a downstream trading-bot project) did not modify the script —
   its committed `xtool-call.sh` is the untouched 1.11.1 baseline, and its earlier
   script feedback (F2 slug sanitization, F4 failed-delegate cleanup, the copilot
   web-fetch note) is already absorbed. These three fixes are net-new review-path
@@ -2542,7 +3075,7 @@ All notable changes to this repository are tracked here.
 - Commit hash: pending (next commit)
 - Removed `.mm.md` from `.gitignore` so Manager Minion context can sync across Operator machines
 - Added and tracked `.mm.md` as a repository maintainer context file for the template repo
-- Added Manager Minion scoping, maintainer guardrails, and Operator working-style support guidance in:
+- Added Manager Minion scoping, maintainer guardrails, and Operator continuity-support guidance in:
   - `.mm.md`
 
 ## 2026-04-08 (Initial Entry)

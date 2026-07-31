@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 set -uo pipefail
+
+# Pin to the bash actually stuck at 3.2 on macOS (Apple ships it at /bin/bash and
+# never updates it, for GPLv3 reasons) rather than whatever newer bash (Homebrew,
+# asdf, etc.) resolves first on a dev PATH -- see export-seed-check.test.sh for the
+# full rationale (be53b13). PATH prepend, not a hardcoded /bin/bash literal: this
+# degrades gracefully on a downstream lacking that exact path.
+export PATH="/bin:$PATH"
 # Resolve the repo ROOT to scan. Precedence: --root <dir>  >  $GOV_ROOT  >  the
 # repo this script lives in. The resolved ROOT (and the scanned file set, below) are
 # printed so "what did I just test" is never ambiguous: running a CLONE's copy by
@@ -438,16 +445,166 @@ for f in CLAUDE.md AI.md .claude/agents/README.md .codex/agents/README.md .githu
     || { echo "FAIL - $f missing hard-stop-#2 skill-vendoring instance annotation"; fail=1; }
 done
 
+# Bound a governance surface to its TEMPLATE-OWNED half before flattening: stop
+# at the split-merge delimiter, so a token appearing only in downstream-authored
+# content below it cannot satisfy an upstream-law check. Uses the repo's proven
+# anchored delimiter pattern (find_delimited()/seed_violations(), post-F-U) rather
+# than a bare substring test, so a prose MENTION of the marker phrase cannot
+# truncate the scan early -- that is the marker-vs-prose defect class, instances
+# 1-3.
+#
+# Why this exists (Shell/Test-Harness SME, pm-judgment-model branch): these
+# presence checks were whole-file greps. Four one-line edits were DEMONSTRATED to
+# delete a governance law while keeping the suite green -- e.g. drop the block and
+# mention the token below the delimiter, which is that section's DESIGNED use, and
+# MEMORY.md is manual-merge so a downstream hand-merge is the realistic trigger.
+# Same defect class as instances 1-3 below, but failing OPEN (false pass) rather
+# than closed (spurious FAIL) -- the strictly worse direction.
+#
+# Residual limit, deliberately NOT closed here: prose ABOVE the delimiter still
+# satisfies these checks (a "## Retired Practices" note naming a token would).
+# Closing that needs per-token SECTION bounding, which couples the guard to
+# manual-merge heading text and fails on a rename. Recorded as a known limit in
+# CHANGELOG.d/pm-judgment-model.md instead of half-solved here.
+flat_upstream() { # $1=file -> whitespace-flattened content ABOVE the split-merge delimiter
+  awk '/^[[:space:]]*<!--.*DOWNSTREAM CONTENT BELOW.*-->/{exit} {print}' "$1" \
+    | tr -s '\t\n ' ' '
+}
+
+# Self-test the bound -- an untested bound is the theater this fix removes.
+__u="$(mktemp)"
+_ups() { printf '%b' "$2" > "$__u"; flat_upstream "$__u" | grep -q "$3" \
+  || { echo "FAIL - flat_upstream self-test (missed above-delimiter token): $1"; fail=1; }; }
+_dns() { printf '%b' "$2" > "$__u"; if flat_upstream "$__u" | grep -q "$3"; then \
+  echo "FAIL - flat_upstream self-test (below-delimiter token satisfied it): $1"; fail=1; fi; }
+_ups "token above the delimiter is seen" \
+  'Rule: TOKEN-A applies.\n<!-- ========= DOWNSTREAM CONTENT BELOW — replace above =========  -->\nlocal notes\n' 'TOKEN-A'
+_dns "token ONLY below the delimiter is masked" \
+  'Rule: nothing.\n<!-- ========= DOWNSTREAM CONTENT BELOW — replace above =========  -->\nHistorical: TOKEN-A was retired.\n' 'TOKEN-A'
+_ups "line-wrapped token above the delimiter still seen (flatten works)" \
+  'Rule: TOKEN\nB applies.\n<!-- ========= DOWNSTREAM CONTENT BELOW — replace above =========  -->\n' 'TOKEN B'
+_ups "file with NO delimiter is treated as all-upstream (fail-open on shape)" \
+  'Rule: TOKEN-C applies everywhere.\n' 'TOKEN-C'
+_ups "a prose MENTION of the marker phrase does not truncate the scan" \
+  'Note: files carry a DOWNSTREAM CONTENT BELOW marker.\nRule: TOKEN-D applies.\n' 'TOKEN-D'
+
 # --- Workflow Ownership: the PM-routed-workflows law must stay present.
-tr -s '\t\n ' ' ' < MEMORY.md | grep -q 'Workflow Ownership' || { echo "FAIL - MEMORY.md missing Workflow Ownership (PM-routed) rule"; fail=1; }
+flat_upstream MEMORY.md | grep -q 'Workflow Ownership' || { echo "FAIL - MEMORY.md missing Workflow Ownership (PM-routed) rule"; fail=1; }
 
 # --- Tier declaration: the dispatch-brief tier law must stay present.
-tr -s '\t\n ' ' ' < MEMORY.md | grep -q 'Dispatch briefs declare the capability tier' \
+flat_upstream MEMORY.md | grep -q 'Dispatch briefs declare the capability tier' \
   || { echo "FAIL - MEMORY.md missing tier-declaration dispatch rule"; fail=1; }
-tr -s '\t\n ' ' ' < minions/roles/PM.md | grep -q 'names the model tier' \
+flat_upstream minions/roles/PM.md | grep -q 'names the model tier' \
   || { echo "FAIL - minions/roles/PM.md missing tier-declaration dispatch duty"; fail=1; }
-tr -s '\t\n ' ' ' < MEMORY.md | grep -q 'Launcher pins are fallback defaults' \
+flat_upstream MEMORY.md | grep -q 'Launcher pins are fallback defaults' \
   || { echo "FAIL - MEMORY.md missing pins-are-fallback-defaults clause"; fail=1; }
+
+# --- Landscape quadrant: the dispatch-brief routing law must stay present.
+# Presence checks bounded to the template-owned half (see flat_upstream above).
+# This proves the rule is PRESENT in upstream law, never that the judgment behind
+# a declared quadrant was real -- a limit stated outright in
+# docs/pm-judgment-model.md rather than left for a reviewer to discover.
+flat_upstream MEMORY.md | grep -q 'Dispatch briefs declare the landscape quadrant' \
+  || { echo "FAIL - MEMORY.md missing landscape-quadrant dispatch rule"; fail=1; }
+flat_upstream minions/roles/PM.md | grep -q 'landscape routing map' \
+  || { echo "FAIL - minions/roles/PM.md missing landscape-routing dispatch duty"; fail=1; }
+# The unclear/unclear cell routes to RM for research only. That clause is a
+# separation-of-duties boundary, so it is checked separately from the rule's
+# presence -- the rule could survive while the constraint that makes it safe was
+# edited away.
+flat_upstream MEMORY.md | grep -q 'research ONLY and never an implementation dispatch' \
+  || { echo "FAIL - MEMORY.md missing RM-research-only clause on the both-unclear cell"; fail=1; }
+# The routing map must not be read as adding a hard-stop; the count is three.
+# NOTE this asserts the DISCLAIMER's presence, not the count. Nothing in this
+# suite counts hard-stops (true before this change too). A future edit that adds
+# a fourth enumerated hard-stop AND leaves this sentence intact stays green.
+flat_upstream MEMORY.md | grep -q 'NOT a fourth hard-stop' \
+  || { echo "FAIL - MEMORY.md missing not-a-fourth-hard-stop clause"; fail=1; }
+
+# Both MEMORY.md laws and PM's duty line point at docs/pm-judgment-model.md for
+# detail, so the pointer must resolve. Found by applying this milestone's own
+# Effort Creep check to itself: with the doc deleted, all 14 suites stayed green
+# and the law pointed at nothing. NOTE the general gap this instance exposes --
+# no guard verifies ANY governance doc-pointer resolves (docs/model-tiering.md,
+# the *-model.md docs, etc. are all equally unchecked). That is pre-existing and
+# tracked in TODO.md; this asserts only the pointer this milestone introduces.
+[ -f docs/pm-judgment-model.md ] \
+  || { echo "FAIL - docs/pm-judgment-model.md missing (MEMORY.md + PM.md point at it)"; fail=1; }
+
+# --- Creep check: the consolidation-time packet check must stay present.
+# The two labels are the weakest tokens in this block -- two-word proper nouns in a
+# 53KB file, satisfiable by any passing mention above the delimiter. So the binding
+# sentence is checked too: a file that names both creeps while the instruction to
+# run them has been deleted no longer passes.
+flat_upstream MEMORY.md | grep -q 'the single writer runs the' \
+  || { echo "FAIL - MEMORY.md missing the creep-check instruction to the single writer"; fail=1; }
+flat_upstream MEMORY.md | grep -q 'Hope Creep' \
+  || { echo "FAIL - MEMORY.md missing Hope Creep consolidation check"; fail=1; }
+flat_upstream MEMORY.md | grep -q 'Effort Creep' \
+  || { echo "FAIL - MEMORY.md missing Effort Creep consolidation check"; fail=1; }
+
+# --- Marker-vs-prose defect class: bare `index()` substring test against a
+# structural marker token, instead of an anchored pattern (Export/Privacy SME
+# proposal, guard-hardening branch). Two real defects share this exact shape:
+# seed_violations()'s pre-F-U `index($0, "DOWNSTREAM CONTENT BELOW")` (fixed
+# v1.45.0) and sme-charter-check.sh's section_nonempty() pre-fix
+# `index($0,"DOWNSTREAM CONTENT BELOW")` (instance 3, fixed on this branch).
+# Both fail CLOSED (a spurious FAIL, never a false pass — a prose mention of
+# the token truncates the scan early rather than accepting a leak), but a
+# check that reaches the right verdict for the wrong reason is still a
+# defect, not a coincidence-proof design; a downstream marker or a third
+# instance of the same shape would not be guaranteed to fail closed.
+#
+# Scope decision: target the EXACT proven shape — an awk `index($N, "TOKEN")`
+# call against one of the two known structural marker tokens (the
+# DOWNSTREAM CONTENT BELOW split-merge delimiter, the STUB BOUNDARY seed
+# marker) — rather than every conceivable substring test (bash
+# `[[ == *TOKEN* ]]`, `case *TOKEN*)`, unanchored grep). Both real-world
+# defects were this one shape; broadening the pattern to catch hypothetical
+# forms with zero observed instances would widen the false-positive surface
+# (a `case`/`grep` matching a marker token for some other, already-scoped
+# reason) without a second data point to justify the cost. Scans tools/*.sh
+# (the live guard implementations) ONLY — not tools/tests/*.sh, which
+# legitimately quotes past-defect code in prose (this very file's F-U comment
+# above quotes the literal old `index($0, "DOWNSTREAM CONTENT BELOW")` line)
+# and would false-positive under any textual scan of test files.
+bare_marker_index() { # $1=file -> 0 (true) if a bare index() substring test
+  # against a known structural marker token is present
+  grep -qE 'index\([^)]*,[[:space:]]*"(DOWNSTREAM CONTENT BELOW|STUB BOUNDARY)"' "$1"
+}
+__bm="$(mktemp)"
+printf '%b' 'f && (/^## / || index($0,"DOWNSTREAM CONTENT BELOW")) {exit (found?0:1)}\n' > "$__bm"
+bare_marker_index "$__bm" || { echo "FAIL - bare_marker_index self-test (missed bare index() substring test)"; fail=1; }
+printf '%b' '$0 ~ /^[[:space:]]*<!--.*DOWNSTREAM CONTENT BELOW.*-->/ { below=1; next }\n' > "$__bm"
+! bare_marker_index "$__bm" || { echo "FAIL - bare_marker_index self-test (false positive on a legitimate anchored pattern)"; fail=1; }
+printf '%b' '# not a bare substring search; see the DOWNSTREAM CONTENT BELOW delimiter for detail\n' > "$__bm"
+! bare_marker_index "$__bm" || { echo "FAIL - bare_marker_index self-test (false positive on prose mentioning the token, no index() call)"; fail=1; }
+printf '%b' 'x = index($0, "STUB BOUNDARY")\n' > "$__bm"
+bare_marker_index "$__bm" || { echo "FAIL - bare_marker_index self-test (missed STUB BOUNDARY token)"; fail=1; }
+printf '%b' 'n = index($0, "SOME OTHER TOKEN")\n' > "$__bm"
+! bare_marker_index "$__bm" || { echo "FAIL - bare_marker_index self-test (false positive on an unrelated index() call)"; fail=1; }
+rm -f "$__bm"
+
+# Regression demonstration (guard-hardening branch, Item 2): the detector must
+# have caught sme-charter-check.sh's pre-fix section_nonempty() (instance 3)
+# and must pass the post-fix live file — same before/after proof style as
+# F-U/F-D2 in export-seed-check.test.sh.
+__pre="$(mktemp)"
+printf '%s\n' '    f && (/^## / || index($0,"DOWNSTREAM CONTENT BELOW")) {exit (found?0:1)}' > "$__pre"
+bare_marker_index "$__pre" \
+  || { echo "FAIL - bare_marker_index regression demo (did not catch instance 3's pre-fix line)"; fail=1; }
+rm -f "$__pre"
+! bare_marker_index tools/sme-charter-check.sh \
+  || { echo "FAIL - bare_marker_index regression demo (live sme-charter-check.sh still trips the detector post-fix)"; fail=1; }
+
+# Live sweep: no tools/*.sh guard implementation may carry the bare-index
+# marker-substring shape.
+for f in tools/*.sh; do
+  [ -f "$f" ] || continue
+  if bare_marker_index "$f"; then
+    echo "FAIL - bare index()/substring marker test (not anchored) in $f — marker-vs-prose defect class"; fail=1
+  fi
+done
 
 test "$fail" -eq 0 && echo "ok - governance consistent"
 exit "$fail"

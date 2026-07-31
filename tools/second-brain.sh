@@ -224,9 +224,9 @@ write_note() {
       # [A-Za-z0-9_/-], so a colon (e.g. a `branch:dev` namespace) is not a
       # usable tag; '/' is Obsidian's nested-tag form and preserves the intent.
       echo 'tags:'
-      local t tn
+      local t tn slash='/'
       for t in "${tags[@]}"; do
-        tn="${t#\#}"; tn="${tn//:/\/}"
+        tn="${t#\#}"; tn="${tn//:/$slash}"
         printf '  - %s\n' "$tn"
       done
     fi

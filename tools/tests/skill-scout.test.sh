@@ -12,6 +12,13 @@
 # `env`, never leaked into this shell.
 set -uo pipefail
 
+# Pin to the bash actually stuck at 3.2 on macOS (Apple ships it at /bin/bash and
+# never updates it, for GPLv3 reasons) rather than whatever newer bash (Homebrew,
+# asdf, etc.) resolves first on a dev PATH -- see export-seed-check.test.sh for the
+# full rationale (be53b13). PATH prepend, not a hardcoded /bin/bash literal: this
+# degrades gracefully on a downstream lacking that exact path.
+export PATH="/bin:$PATH"
+
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SC="$ROOT/tools/skill-scout.sh"
 

@@ -25,3 +25,4 @@ driven.
 An entry earns a place here only with evidence — a spec, a scouting packet, an
 Operator decision. Speculative direction stays out of this file until it is
 approved — keep it wherever this project tracks open questions.
+

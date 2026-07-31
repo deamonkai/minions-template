@@ -40,10 +40,19 @@ has_section() { grep -qxF "## $2" "$1"; }
 # fenced code blocks (delimiters and their contents), and HTML-comment-only lines do
 # NOT count — otherwise a gutted section masked by placeholder filler (`<!-- TODO -->`,
 # a stray fence) would false-pass, the same masked-section hole the esc_ok guard hit.
+#
+# The delimiter match MUST be the same anchored pattern export-seed-check.sh's
+# find_delimited()/seed_violations() use (`^[[:space:]]*<!--.*DOWNSTREAM CONTENT
+# BELOW.*-->`), not a bare substring search. A repo that documents its own markers
+# (this one does, extensively — including this very comment) will have prose
+# mentioning "DOWNSTREAM CONTENT BELOW" outside a real delimiter line; a bare
+# `index()` match would stop scanning at that prose and could misjudge a genuinely
+# non-empty section as empty (fails closed — a spurious FAIL, never a false pass —
+# but still the same marker-vs-prose defect class as the F-U/F-D2 fixes).
 section_nonempty() {
   awk -v h="## $2" '
     $0==h {f=1; next}
-    f && (/^## / || index($0,"DOWNSTREAM CONTENT BELOW")) {exit (found?0:1)}
+    f && (/^## / || $0 ~ /^[[:space:]]*<!--.*DOWNSTREAM CONTENT BELOW.*-->/) {exit (found?0:1)}
     f {
       if ($0 ~ /^[[:space:]]*```/)              { fence = !fence; next }  # fence delimiter: toggle, not content
       if (fence)                                  next                     # inside a fenced block: not substance

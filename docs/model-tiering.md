@@ -143,7 +143,7 @@ defaults, not locks**: where the tool exposes a dispatch-time override, the
 orchestrator's declaration wins over any frontmatter or TOML pin. This
 reverses the template's earlier framing, where the Claude pins were presented
 as deterministic enforcement — a 2026-07-10 downstream field report
-(SSI-website, issue #33) showed a frontier orchestrator dispatching a whole
+(a downstream project, issue #33) showed a frontier orchestrator dispatching a whole
 milestone at inherited defaults because tiering was wired at the launcher
 layer only, and separately reset `cm`'s Claude-launcher `effort: xhigh` lock
 to let the orchestrator/PM right-size effort per dispatch instead. The

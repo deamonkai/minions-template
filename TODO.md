@@ -26,3 +26,4 @@ formal milestone scope lives in `minions/plans/`.
 
 Status `done` items are pruned at the next milestone once reflected in
 `CHANGELOG.md` — this file tracks open work, not history.
+
