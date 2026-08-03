@@ -2,6 +2,230 @@
 
 All notable changes to this repository are tracked here.
 
+## 2026-08-02 (v1.48.0 — Prospective acceptance criteria: the `DONE WHEN:` dispatch-brief field)
+
+- Commit hash: (staging→main merge; assigned at merge) — workstream commits `2cea0e1`..`e9f5f8d`, merged to dev at `08295b7`
+- **Origin — an adapted idea, not an adopted one.** RM scouted
+  `github.com/appleaa123/fable_OS` (MIT; a cron-driven autonomous maintenance
+  loop, i.e. a *different problem* wearing similar vocabulary) and returned one
+  strongly-recommended candidate out of five, with seven rejections recorded in
+  `TODO.md`. The repo out-engineers this template on exactly one axis: it makes
+  "done" a **prospective** written artifact rather than a retrospective
+  judgment. Everything else — the four-seat loop, the trust ledger, the dollar
+  budget, the model quorum — was rejected with reasons.
+- **What shipped.** A `DONE WHEN:` line in the dispatch brief for multi-step
+  work, naming what must be true for the work to be done, written before the
+  work starts, in terms a different actor could check, and naming its own limit
+  under the evidence rule. Where the work produces or changes an automated
+  check, the brief also instructs the implementer to confirm that check **red
+  before the change and green after** and report both runs. The implementer may
+  not weaken the criterion to force a pass — a criterion that proves wrong is
+  re-planned by the dispatcher under the existing stop-and-re-plan rule, which
+  routes through the existing escalation contracts and creates no new Operator
+  interrupt. Single-step consults are exempt, as in Workflow Ownership.
+- **Surfaces:** `MEMORY.md` Execution Quality (ordered tier → criterion →
+  quadrant), `minions/roles/PM.md` charter duty, a new **Part 3** in
+  `docs/pm-judgment-model.md` (not a new doc — no manifest row, no new pointer
+  to resolve), `.claude/commands/ship.md` stages 1/3/4/7, and three guard
+  assertions.
+
+### The duplication question — the actual work
+
+AM tested it against **three** candidates, not the two the dispatch named, and
+the third is the one RM's framing missed:
+
+- **vs. the Hope/Effort creep check** — not a duplicate. The strongest form of
+  the argument is not timing but **independence**: under single-writer /
+  direct-return, the actor running the creep check is the same actor that
+  composed the dispatch and now holds the implementer's report. A criterion
+  written before the chain has an outcome to defend is written without that
+  interest.
+- **vs. the Execution Quality evidence sub-bullets** (shipped two days earlier)
+  — not a duplicate; the new rule **cites** "name the property and its limit"
+  rather than restating it, keeping the bar in exactly one place.
+- **vs. the pre-existing "include acceptance criteria" requirements** in
+  `MEMORY.md` Stay-in-Your-Lane, `PM.md` guardrails, `SM.md`/`DM.md` outputs and
+  the launcher preambles — **the real risk.** Resolved as *completeness
+  inventory vs. quality bar*: those say a packet must **contain** acceptance
+  criteria; none says what makes one **valid**, and all are satisfied by "it
+  works". Verified by sweep, not assertion: `red before|green after|both
+  directions|must fail` across `MEMORY.md`, `AI.md`, all seven charters, all
+  `.claude/agents/*.md` and the three entry points returns **exactly one hit —
+  the new line itself**. The inventories are deliberately left as inventories;
+  retargeting them as pointers would touch several more governance surfaces to
+  say the same thing in more places, which is what the
+  prefer-removal-over-restatement rule exists to prevent.
+
+### What the guards prove — and precisely what they do not
+
+Three presence assertions, bounded to the template-owned half via
+`flat_upstream()`. **They detect deletion and relocation, not semantic
+weakening.** Stated here because an earlier draft of the guard's own comment
+claimed more than that, and shipping it would have breached this repo's
+`Never claim a check proves more than it measures` rule — guarded in the same
+file.
+
+The Shell/Test-Harness SME ran a **19-mutation battery**. Confirmed working:
+red-before/green-after reproduces (independently re-derived twice), each removed
+lead phrase yields exactly one correctly-named FAIL, whole-bullet deletion
+yields exactly the expected set, and an intact law **moved below the split-merge
+delimiter fails all three** — a downstream's local notes cannot mask a dropped
+merge. Confirmed *not* caught, and now documented in the guard comment:
+one-word inversion (`carries a` → `carries no`), wrapping the bullet in an HTML
+comment, indenting it into a sub-bullet, and a `## Retired Practices` note above
+the delimiter naming the exact phrases. An inversion detector was deliberately
+**not** added — it would be a `has_old_norm`-class heuristic with a real
+false-positive tax, and the coarse hole is better recorded than half-closed.
+
+Also unguarded, and not to be read as covered: `.claude/commands/ship.md`'s
+stage bindings (no test in `tools/` references it) and `docs/pm-judgment-model.md`
+Part 3 (the assertion checks only that the *file* exists — a stale 1.47.0 copy
+passes while three `Detail:` pointers dangle).
+
+### Review — three matrix-required SMEs, five findings applied
+
+- **Governance-Invariant (MAJOR):** the criterion bound the *reviewer* but the
+  red/green evidence obligation reached **no stage** — a correctly-written
+  tier-1 criterion would have produced a criterion-defect finding on *every*
+  `/ship` run, caused by the pipeline rather than the work. Fixed: stages 3 and
+  4 now carry the criterion, and stage 3 carries the evidence instruction and
+  the named mutation.
+- **Governance-Invariant (MINOR, coupled):** `PM.md` said "every dispatch brief"
+  where `MEMORY.md` binds only multi-step work — and the guard pinned that exact
+  phrase, so the drift was *locked in by its own guard*. Wording and assertion
+  moved in one edit.
+- **Governance-Invariant (MINOR):** `MEMORY.md`'s "the criterion, the spec, and
+  the diff **are what** the review stage is briefed against" read as exhaustive
+  and collided with the verdict-distribution rule (a reviewer brief also carries
+  SM findings and test results). Now "all travel into the review stage's brief".
+- **Shell/Test-Harness (MAJOR):** the guard comment's overclaim, above.
+- **Upgrade-Path (BLOCKER):** this fragment. `CHANGELOG.d/` is the mechanism by
+  which a deferred playbook entry gets authored at the gate; without a fragment,
+  "correctly deferred" degrades into "silently omitted". Reproduced empirically:
+  a downstream following a gate entry written without it gets two red assertions
+  naming clauses the playbook never told them to merge.
+- Verified unchanged: hard-stop count and wording (pure insertion, zero deleted
+  lines in `MEMORY.md`), norm-detector clean, split-merge placement correct in
+  both files (3-way merge test shows a downstream override **conflicts visibly**
+  rather than being silently dropped).
+
+### Release posture — this is **1.48.0**, not 1.47.0
+
+`v1.47.0` is released and tagged; its playbook entry is shipped history, not an
+editable draft. The manifest Notes refresh, the playbook entry and the
+`minion-version.md` bump are **correctly deferred to the release gate** and were
+deliberately not authored here — an entry written from this branch would cover 3
+of the release's 5 new assertions, i.e. a silently-partial entry, the exact
+anti-pattern 1.47.0's own workstream (c) was written to avoid. No manifest change
+is required: `upgrade-classify.sh` returns exit 0 with zero unmanifested changes,
+and `docs/pm-judgment-model.md` stays `feature`.
+
+**Carry to the 1.48.0 gate** (from the Upgrade-Path SME, so the entry enumerates
+rather than summarizes):
+
+- The entry is **joint** over two unreleased workstreams — evidence discipline
+  and this one.
+- **Four** of the release's five new assertions are `MEMORY.md`-bound and
+  therefore droppable by a hand merge; one is `PM.md`-bound and converges. A
+  downstream skipping the `MEMORY.md` merge gets **four** FAILs — measured, not
+  assumed. Do not reuse 1.47.0's count.
+- **`Author for the least-equipped reader` has no detector at all.** It is the
+  one REQUIRED `MEMORY.md` block in this release the guard will not catch, and
+  the law it protects is the one shielding downstreams on restricted machines —
+  i.e. those least able to diagnose its absence. The entry must name it and say
+  plainly that the guard stays green without it.
+- Take the doc's **content**, not merely the file (see the stale-copy case
+  above).
+- No new files → no name-collision risk; record the no-op rather than omitting
+  the heading.
+- `minions/capabilities.md`'s `WebFetch` row sits **below** the delimiter and
+  will be stripped at export, so no downstream will receive it. Decide before the
+  gate whether that was intended.
+
+## 2026-08-02 (v1.48.0 — Evidence discipline promoted into MEMORY.md Execution Quality)
+
+- Commit hash: (staging→main merge; assigned at merge) — workstream commits `a582bdc`, `397bc2c`, `1749461`, `11f591c`, merged to dev at `78d03fb`
+- **Two `feedback.md` promote-candidates graduate into law**, both landing as
+  sub-bullets under the existing `MEMORY.md` → Execution Quality rule *"provide
+  evidence proportionate to the claim"* rather than as free-floating additions.
+  They are two faces of one principle, which is why they are promoted together
+  and placed under a shared parent instead of in separate sections.
+- **Evidence is about the effect, not the invocation.** Exit status, empty
+  stderr, and "the command returned" are properties of the call, not proof that
+  work happened. Three instances in a single session, previously logged as
+  unrelated: `git ls-remote` returning zero refs at exit 0 with empty stderr;
+  `${PIPESTATUS[0]}` coming back empty under zsh (the array is `$pipestatus`
+  there), firing a retry branch on an already-successful push; and — the
+  expensive one — the v1.47.0 public-export neutralization sweep editing
+  **nothing** because BSD `grep -Z` does not NUL-delimit with `-l`, so `xargs`
+  handed `perl` one newline-joined blob while the pipeline reported success. All
+  four export gates then went green on a tree still carrying every personal
+  token. Only the runbook's mandatory zero-hit re-check caught it; without it,
+  the publish would have been irreversible.
+- **Never claim a check proves more than it measures.** Name the property
+  actually checked, ask what else would satisfy it, and write that answer down.
+  A presence check earns "this has not been dropped" — never "this cannot be
+  weakened"; if you write *cannot*, name the mutation that would still pass.
+  Case law: during the v1.47.0 SME panel, Governance-Invariant and
+  Shell/Test-Harness **independently converged** on a claim that a token check
+  meant a later edit "cannot quietly promote" the routing law into a fourth
+  hard-stop — when nothing in the suite counts hard-stops at all. The recurring
+  shape is describing the mechanism accurately and then overstating the
+  guarantee one sentence later, which is what makes the accurate sentence lend
+  false credibility to the inaccurate one.
+- **Why promoted rather than left as capture:** both had been marked
+  `promote-candidate -> MEMORY.md`, and the second was explicitly logged as a
+  *second occurrence* of the first — the same correction v1.46.0 had already
+  required. A lesson that recurs after being captured is evidence the capture
+  layer is the wrong home for it.
+- `feedback.md`: both entries condensed to pointer stubs per the Feedback
+  Capture Rule's stub lifecycle; full text stays in git history. The operational
+  detail for host calls lives in `docs/runbooks/branch-setup.md` → "Transient
+  Host Failures — Retry and Verify", so the law stays short and the recipe stays
+  findable.
+- Budgets after: `MEMORY.md` 7832/9000 (87%), `feedback.md` 1417/3000 (47% —
+  down from 93% before tonight's hygiene pass).
+- **Both sub-bullets are asserted**, bounded to the template-owned half via the
+  existing `flat_upstream()` helper, each with an inline NOTE naming its limit —
+  the house pattern from `2c8a585`: **check AND disclaim, never omit.**
+- **An earlier draft of this fragment omitted the check and argued that adding
+  one would itself overstate.** The Governance-Invariant SME refuted that, and
+  the refutation is worth recording because it is this milestone's own rule
+  turned on the milestone: the argument equivocated on "checkable" (*compliance*
+  is uncheckable — true, and equally true of the tier and quadrant laws;
+  *presence* is trivially checkable), it proved too much (it would equally
+  justify deleting every presence check in the suite), and the repo had already
+  settled the question one commit earlier. The SME **demonstrated** the cost:
+  with both sub-bullets deleted and the parent line untouched, the whole suite
+  stayed green. Nesting made it worse than a top-level bullet would have been —
+  `MEMORY.md` is `manual-merge`, so a downstream hand-merge sees an unchanged
+  anchor line and no signal that anything was added beneath it.
+- Evidence, stated as what was actually observed rather than as a green line:
+  `governance-consistency` reports only `ok`/`FAIL` and emits nothing per
+  passing assertion, so "0 FAIL lines" alone cannot distinguish *assertions
+  passing* from *assertions deleted*. What was therefore run instead —
+  **mutation testing on a scratchpad copy**: each new lead phrase removed in
+  turn yields exactly one correctly-named FAIL; the SME's combined mutation
+  (both sub-bullets deleted, parent intact) yields two FAILs where it previously
+  yielded a clean `ok`; control and restore are green. The SME independently
+  re-derived the same property for all 12 pre-existing assertions (12/12 fire).
+  Plus `instruction-size` 59/59, `manifest-completeness` 29/29,
+  `--completeness` ok, hard-stop count unchanged at three and the disclaimer
+  demonstrated to fire.
+- **Two compression losses restored** from the source entries, both flagged by
+  the SME as the ones that mattered: the escalation that an effect-assertion
+  becomes a *hard gate* for destructive or irreversible steps (the case the
+  whole first sub-bullet rests on), and *"prefer removing a restatement over
+  adding a guard for it"* — a better-grounded reason to be sparing with guards
+  than the unsound one the first draft substituted for it.
+- **Two dangling pointers fixed.** `docs/runbooks/branch-setup.md` and `TODO.md`
+  both referenced the now-promoted `feedback.md` entries. `branch-setup.md` is
+  `export=yes` while `feedback.md` is `seed only` and reset away at export, so
+  in the public mirror and every downstream those pointers would have resolved
+  to content that provably does not exist. Both now name `MEMORY.md` →
+  Execution Quality. Same-commit reference updating is `MEMORY.md`'s own
+  Documentation Sync Rule.
+
 ## 2026-07-30 (v1.47.0 — PM judgment model: landscape routing + the Hope/Effort creep check)
 
 - Commit hash: (staging→main merge; assigned at merge) — workstream commits `5d63c7a`..`2c8a585`, merged to dev at `6f79885`

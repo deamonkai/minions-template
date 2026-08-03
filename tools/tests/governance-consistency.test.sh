@@ -499,6 +499,37 @@ flat_upstream minions/roles/PM.md | grep -q 'names the model tier' \
 flat_upstream MEMORY.md | grep -q 'Launcher pins are fallback defaults' \
   || { echo "FAIL - MEMORY.md missing pins-are-fallback-defaults clause"; fail=1; }
 
+# --- Acceptance criterion: the dispatch-brief DONE WHEN law must stay present.
+# Split into separate assertions because the rule's presence and the evidence
+# clause that gives it teeth are separately editable: DELETING or rewording the
+# evidence clause fails even when the rule name survives (demonstrated).
+#
+# WHAT THIS PROVES, precisely -- the phrase survives above the split-merge
+# delimiter. Nothing more. Shell/Test-Harness SME ran a 19-mutation battery
+# against these three and every one of the following stays GREEN:
+#   - one-word inversion ("carries a" -> "carries no"; "also instructs" ->
+#     "never instructs"; appending NEVER to the PM duty)
+#   - wrapping the whole bullet in an HTML comment (invisible to a reader)
+#   - indenting the bullet so the law becomes a sub-bullet of the tier rule
+#   - deleting all three laws and adding a "## Retired Practices" note above the
+#     delimiter that names the exact phrases
+# So these detect DELETION and RELOCATION, never semantic weakening. An earlier
+# version of this comment claimed a quiet edit removing the obligation "must
+# fail even if the rule name survives" -- that was false, and stating it here
+# would have breached MEMORY.md's own "never claim a check proves more than it
+# measures" rule, which is guarded further down this same file.
+#
+# An inversion detector was deliberately NOT added: it would be a has_old_norm-
+# class heuristic with a real false-positive tax, and the coarse hole is better
+# recorded than half-closed (the same call flat_upstream's own residual-limit
+# note makes above).
+flat_upstream MEMORY.md | grep -q 'Dispatch briefs state the acceptance criterion' \
+  || { echo "FAIL - MEMORY.md missing acceptance-criterion dispatch rule"; fail=1; }
+flat_upstream MEMORY.md | grep -q 'red before the change and green after' \
+  || { echo "FAIL - MEMORY.md missing red-before/green-after evidence clause"; fail=1; }
+flat_upstream minions/roles/PM.md | grep -q 'Carry the acceptance criterion in every multi-step dispatch brief' \
+  || { echo "FAIL - minions/roles/PM.md missing acceptance-criterion dispatch duty"; fail=1; }
+
 # --- Landscape quadrant: the dispatch-brief routing law must stay present.
 # Presence checks bounded to the template-owned half (see flat_upstream above).
 # This proves the rule is PRESENT in upstream law, never that the judgment behind
@@ -521,7 +552,7 @@ flat_upstream MEMORY.md | grep -q 'research ONLY and never an implementation dis
 flat_upstream MEMORY.md | grep -q 'NOT a fourth hard-stop' \
   || { echo "FAIL - MEMORY.md missing not-a-fourth-hard-stop clause"; fail=1; }
 
-# Both MEMORY.md laws and PM's duty line point at docs/pm-judgment-model.md for
+# All three MEMORY.md laws and PM's duty line point at docs/pm-judgment-model.md
 # detail, so the pointer must resolve. Found by applying this milestone's own
 # Effort Creep check to itself: with the doc deleted, all 14 suites stayed green
 # and the law pointed at nothing. NOTE the general gap this instance exposes --
@@ -530,6 +561,22 @@ flat_upstream MEMORY.md | grep -q 'NOT a fourth hard-stop' \
 # tracked in TODO.md; this asserts only the pointer this milestone introduces.
 [ -f docs/pm-judgment-model.md ] \
   || { echo "FAIL - docs/pm-judgment-model.md missing (MEMORY.md + PM.md point at it)"; fail=1; }
+
+# --- Evidence discipline: the two Execution Quality sub-bullets must stay present.
+# NOTE this asserts each lead phrase's PRESENCE, not that anyone applied the rule
+# -- the same limit as the tier and quadrant checks above, and exactly what the
+# second sub-bullet warns about. Stated rather than left for a reviewer.
+# Why checked at all: an earlier draft argued a token check would itself overstate
+# and so omitted one. That argument was wrong and this suite already refutes it --
+# the house pattern is check AND disclaim (see the hard-stop NOTE above), not omit.
+# It also equivocated: compliance is uncheckable, presence is trivially checkable.
+# These bullets are NESTED under an unchanged parent line in a manual-merge file,
+# so a dropped hand-merge leaves the anchor looking untouched -- demonstrated to
+# vanish with the whole suite still green before these two lines existed.
+flat_upstream MEMORY.md | grep -q 'Evidence is about the effect, not the invocation' \
+  || { echo "FAIL - MEMORY.md missing the evidence-is-about-the-effect sub-bullet"; fail=1; }
+flat_upstream MEMORY.md | grep -q 'Never claim a check proves more than it measures' \
+  || { echo "FAIL - MEMORY.md missing the do-not-overstate-a-check sub-bullet"; fail=1; }
 
 # --- Creep check: the consolidation-time packet check must stay present.
 # The two labels are the weakest tokens in this block -- two-word proper nouns in a

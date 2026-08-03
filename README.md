@@ -26,7 +26,7 @@ repository's commit history is never pushed here — it tracks maintainer-local
 files and personal Operator context across past revisions, so only the current,
 filtered tree is published.
 
-- **Source:** canonical release `v1.47.0`.
+- **Source:** canonical release `v1.48.0`.
 - **History:** fresh — this copy carries no canonical commit history, only its
   own publish-only history.
 
@@ -65,31 +65,29 @@ Relative to the canonical repository, this public copy:
   references genericized — runbook examples use `git.example.com` /
   `Your-Org`).
 
-### Upgrading from the previously published `v1.45.0`
+### Upgrading from the previously published `v1.47.0`
 
-This publish jumps `v1.45.0` → `v1.47.0`, so `v1.46.0` never appeared here on
-its own. Both intervening entries are in
+This publish is a single version step, `v1.47.0` → `v1.48.0`, so there is one
+entry to read in
 [docs/downstream-upgrade-playbook.md](docs/downstream-upgrade-playbook.md)
-(Version-Specific Required Changes), and unlike the previous jump these are
-**not** all optional — check both:
+(Version-Specific Required Changes) — but it is **REQUIRED**, not optional:
 
-- **`1.46.0` — REQUIRED (unconditional, if you run the test-suite guard):**
-  adopt the `STUB BOUNDARY` marker on your five `seed only` files. The export
-  strips that marker, so no published version has ever shipped you the line,
-  and the guard's source-side leg fails on all five without it. Plus a
-  REQUIRED-IF-ADOPTED one-time `AI.md` / `docs/export-manifest.md` split-merge
-  delimiter migration.
-- **`1.47.0` — REQUIRED (unconditional, if you run the governance guard):**
-  merge two new `MEMORY.md` blocks (the landscape-routing dispatch rule and the
-  Hope/Effort creep check), and take `docs/pm-judgment-model.md` **together
-  with** the test suite — the guard now asserts that file exists.
-  REQUIRED-IF-ADOPTED if you maintain your own `tools/*.sh`: a new detector
-  sweeps them for a marker-substring pattern.
-- **Name collisions** — rename yours first, or the `template-replace` glob
-  overwrites it: `docs/pm-judgment-model.md` (1.47.0).
-- **Do not blind-copy** these downstream-owned surfaces from the snapshot:
-  `TODO.md` / `ROADMAP.md`, `docs/MECHANICS.md`, `docs/DESIGN.md`. They ship as
-  seeds; yours is the real one.
+- **`1.48.0` — REQUIRED (unconditional, if you run the governance guard):**
+  merge **four** new `MEMORY.md` blocks — two evidence-discipline sub-bullets in
+  Execution Quality, the `Author for the least-equipped reader` block in the
+  Documentation Sync Rule, and the `Dispatch briefs state the acceptance
+  criterion` bullet. Count them.
+- **⚠ One of those four has no detector.** Four of the release's five new guard
+  assertions are `MEMORY.md`-bound and go red if you drop the others. **Nothing
+  checks `Author for the least-equipped reader`** — drop it and the guard stays
+  green while you lose the toolless-fallback authoring law, which is the law
+  keeping this template usable on restricted or enterprise machines with no
+  package manager. The playbook entry says so explicitly; read it before
+  merging.
+- **Take `docs/pm-judgment-model.md`'s content, not just the file.** The guard
+  asserts only that the file exists; a stale copy passes while three `Detail:`
+  pointers resolve into a missing Part 3.
+- **No name collisions** — this version adds no new files.
 
 ## Using Copilot, Codex, or Claude Minion Agents
 

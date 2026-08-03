@@ -506,6 +506,14 @@ the canonical description.
 - AI agents must treat documentation updates as a required part of every task,
   not optional follow-up
 - If a documented item is removed or renamed, all references across all docs must be updated in the same commit
+- **Author for the least-equipped reader.** Any runbook step or charter line
+  that names a specific CLI tool must also document a toolless path — web UI
+  and/or REST API — presented FIRST, with the CLI marked optional/"if
+  available"; enterprise and restricted machines may have no package manager.
+  Model and guardrail docs stay VCS-host-agnostic ("a pull request on the
+  project's VCS host"), with per-host recipes isolated in the runbook as
+  interchangeable sections. Naming one tool or one host without a fallback
+  silently excludes the downstreams that cannot use it.
 
 ## Instruction-File Audit Rule
 
@@ -572,6 +580,24 @@ size is the token cost every session pays at bootstrap.
 - Non-trivial work should begin with a durable plan, packet, or checklist appropriate to the role and scope.
 - If new evidence breaks the active plan, stop and re-plan before continuing under stale assumptions.
 - Verify behavior before declaring work complete; provide evidence proportionate to the claim.
+  - **Evidence is about the effect, not the invocation.** Exit status, empty
+    stderr, and "the command returned" are properties of the call, not proof
+    that work happened — a sweep that edited nothing, a push that never landed,
+    and a remote read that returned zero refs have each reported success in this
+    repo. Verify by re-reading the thing and asserting it changed, and assert
+    non-empty output before believing any negative result. For a destructive or
+    irreversible step, make that effect-assertion a **hard gate**, not a
+    follow-up glance — a publish cannot be un-published.
+  - **Never claim a check proves more than it measures.** Name the property
+    actually checked, ask what else would satisfy it, and write that answer
+    down. A presence check earns "this has not been dropped" — never "this
+    cannot be weakened"; if you write *cannot*, name the mutation that would
+    still pass. Describing the mechanism accurately and then overstating the
+    guarantee one sentence later is the recurring shape. Where a rule is
+    duplicated across surfaces, prefer *removing the restatement* over adding a
+    guard for it — deleting a duplicated enumeration is cheaper and more durable
+    than checking one. This is not licence to skip a check that is cheap and
+    bounded: check and disclaim its limit, rather than omitting it.
 - When a change adds or alters an operator-facing contract — a config flag, journal/log event, metric, or feature — review the operator-facing surfaces (config editor, dashboard, runbooks/docs) for needed updates before calling it done; flags and events drift out of the UI silently otherwise.
 - Prefer the smallest change or action that addresses the root cause without broadening impact.
 - If a temporary containment action is necessary, label it clearly as containment and assign follow-up ownership for the final fix.
@@ -604,6 +630,19 @@ size is the token cost every session pays at bootstrap.
   guarantee, not the implementer's model size. Sending bounded,
   spec-driven work out at Frontier without a stated reason is a review
   finding.
+- Dispatch briefs state the acceptance criterion: a brief for multi-step
+  work carries a `DONE WHEN:` line naming what must be true for the work to
+  be done, written before the work starts and in terms a different actor
+  could check. It names its limit under the evidence rule above — what would
+  still pass if the work were not done. Where the work produces or changes an
+  automated check, the brief also instructs the implementer to confirm that
+  check red before the change and green after and to report both runs; a
+  dispatch that cannot show red states why. The implementer may not weaken
+  the criterion to make it pass — a criterion that proves wrong is re-planned
+  by the dispatcher under the stop-and-re-plan rule above. The criterion, the
+  spec, and the diff all travel into the review stage's brief.
+  Single-step consults are exempt, as in Workflow Ownership.
+  Detail: `docs/pm-judgment-model.md`.
 - Dispatch briefs declare the landscape quadrant: a brief for multi-step
   work names goal clarity and solution clarity, and the quadrant selects
   the stage chain — clear goal with a clear solution dispatches the

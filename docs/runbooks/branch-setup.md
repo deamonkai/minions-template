@@ -485,6 +485,55 @@ blocked.
 - Re-run from the protection steps if branch protection is ever accidentally
   removed.
 
+## Transient Host Failures — Retry and Verify
+
+Self-hosted and cloud VCS hosts both fail transiently under load. This section
+is host-neutral and applies to every step in this runbook, to release promotion
+pushes, and to any API write. It consolidates three separately-observed
+behaviours that turned out to be one problem.
+
+**The three observed shapes** (all against a self-hosted Gitea, but nothing
+here is Gitea-specific):
+
+| Shape | Symptom | What worked |
+| --- | --- | --- |
+| Push auth reset | `git push` fails `Failed to authenticate user`, different refs each time | immediate retry |
+| API write reset | `POST` (PR create, comment) fails `connection reset by peer` while `GET`s keep working — burst rate-limiting, not payload content | back off, retry, then confirm with a `GET` |
+| **Silent read failure** | `git ls-remote` returns **zero refs, exit 0, empty stderr** | retry; the refs were there all along |
+
+**The third shape is the dangerous one**, because it is indistinguishable from
+success and from a legitimate negative result. A verification step that checks
+"is the ref absent?" cannot tell "the ref is absent" from "the transport
+returned nothing." Trusting it means concluding a release is untagged when it is
+correctly tagged — and re-tagging or re-pushing on that basis.
+
+**Rules:**
+
+1. **Retry once before investigating.** All three shapes cleared on an immediate
+   retry every time they were observed. Treat a first failure as noise, not a
+   config problem.
+2. **Assert on non-empty output, never on exit status.** Before believing any
+   negative result from a remote read, confirm the command returned *something*:
+
+   ```bash
+   refs=$(git ls-remote --heads origin)
+   n=$(printf '%s\n' "$refs" | grep -c 'refs/heads/')
+   [ "$n" -eq 0 ] && { echo "INCONCLUSIVE — transport, not absence"; }   # retry
+   printf '%s\n' "$refs" | grep 'refs/heads/dev'                          # now trust it
+   ```
+
+   Corollary: never gate a decision on `git ls-remote ... | grep -q`.
+   Empty-transport and genuinely-absent-ref produce the same exit code.
+3. **Verify the effect, not the invocation.** After a push, compare local and
+   remote SHAs rather than reading the push command's exit status. After an API
+   write, re-`GET` it — a successful write can print nothing.
+4. **Keep API request bodies short.** Attach detail as follow-up comments, so a
+   reset costs less to retry.
+
+This is a specific case of a general rule in `MEMORY.md` → Execution Quality
+("Evidence is about the effect, not the invocation"): *a command's success
+signal is a property of the invocation, not of the effect.*
+
 ## Validation
 
 - `git ls-remote --heads origin` lists `dev` and `staging`.

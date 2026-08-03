@@ -59,6 +59,11 @@ gates, and operator-facing decision clarity.
   goal-clarity / solution-clarity quadrant in the brief and let it select
   the stage chain — and run the packet creep check (Hope, Effort) at
   consolidation; detail in `docs/pm-judgment-model.md`.
+- Carry the acceptance criterion in every multi-step dispatch brief — a
+  `DONE WHEN:`
+  line that is falsifiable, names its limit, and requires red-before /
+  green-after evidence where the work touches an automated check — and brief
+  the review stage against that criterion, the spec, and the diff.
 - Own every workflow's process record: an orchestrator running a
   multi-step workflow is acting in the PM seat and carries this
   charter's planning, gate, and bookkeeping duties (MEMORY.md, Workflow

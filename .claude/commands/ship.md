@@ -29,8 +29,11 @@ result before starting the next. Do not skip ahead. Do not merge anything.
 1. **Plan (AM).** Spawn the `am` subagent. Ask it to read the relevant
    codebase patterns and return a tight implementation spec: exact files to
    create or modify, interfaces/signatures, edge cases, and which existing
-   patterns to follow (named by file). It must flag anything ambiguous as an
-   `OPEN QUESTION`. AM returns the spec to you — no mail packet.
+   patterns to follow (named by file). It must also return the `DONE WHEN:`
+   acceptance criterion — falsifiable, naming its limit, and requiring
+   red-before/green-after evidence where the deliverable is an automated
+   check. It must flag anything ambiguous as an `OPEN QUESTION`. AM returns
+   the spec to you — no mail packet.
 
 2. **Open-question gate.** If the spec contains any `OPEN QUESTION`, **stop**
    and surface them to the Operator. Do not proceed to implementation on
@@ -40,15 +43,21 @@ result before starting the next. Do not skip ahead. Do not merge anything.
    to `cm` if `coder` is not present) in implement-only posture: "Implement
    exactly this spec. Follow the named
    patterns. Do not add unrequested features, do not refactor unrelated code."
-   Pass the spec from stage 1. CM returns a changes summary (files changed,
-   what each does, what the test stage should focus on) — no mail packet.
+   Pass the spec **and the `DONE WHEN:` criterion** from stage 1. Where the
+   criterion requires red-before/green-after evidence, the spawn prompt must
+   carry that instruction and name the realistic weakening to mutate — the
+   criterion's evidence obligation binds the implementer, so a stage that
+   never receives it cannot satisfy it. CM returns a changes summary (files
+   changed, what each does, what the test stage should focus on) **plus the
+   red/green runs where the criterion asked for them** — no mail packet.
 
 4. **Test (CM, test-only).** Spawn a fresh `tester` subagent (falls back to
    `cm` if `tester` is not present) in test-only posture:
    "Write tests for the happy path, the spec's named edge cases, and at least
    one failure case. Match the repo's test framework. Run them. If any fail,
-   report the failures and STOP — do NOT fix the code." Pass the spec and the
-   changes summary. CM returns the test results — no mail packet.
+   report the failures and STOP — do NOT fix the code." Pass the spec, the
+   `DONE WHEN:` criterion, and the changes summary. CM returns the test
+   results — no mail packet.
 
 5. **Test gate.** If any test failed, **stop** and surface the failures to the
    Operator. The pipeline pauses for a human decision; it does not self-heal.
@@ -60,14 +69,17 @@ result before starting the next. Do not skip ahead. Do not merge anything.
 
 7. **Review (CM, read-only).** Spawn a fresh `cm` subagent in read-only review
    posture: "You are read-only. Do NOT edit code. Run `git diff`. Assess: does
-   the code match the spec, are the tests meaningful, any correctness /
-   security / performance issues, and is any of the work hand-rolled where an
-   inventoried capability (`minions/capabilities.md`) fit the task and the
-   charter permitted its use? Return a verdict: SHIP / NEEDS WORK / BLOCK,
-   with exact fixes and locations for anything other than SHIP." Pass the spec,
-   changes summary, test results, and any SM findings. The read-only constraint
-   is load-bearing — a reviewer that can patch its own findings papers over
-   them instead of reporting.
+   the code match the spec, does the `DONE WHEN:` criterion hold, are the
+   tests meaningful, any correctness / security / performance issues, and is
+   any of the work hand-rolled where an inventoried capability
+   (`minions/capabilities.md`) fit the task and the charter permitted its
+   use? A criterion that cannot be verified is returned as a finding against
+   the criterion, not a verdict on the code. Return a verdict: SHIP / NEEDS
+   WORK / BLOCK, with exact fixes and locations for anything other than
+   SHIP." Pass the spec, the `DONE WHEN:` criterion, changes summary, test
+   results, and any SM findings. The read-only constraint is load-bearing —
+   a reviewer that can patch its own findings papers over them instead of
+   reporting.
 
 8. **Independent cross-vendor review (optional).** Run an independent review from
    a *different vendor* than the one running `/ship`:

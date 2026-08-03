@@ -6,17 +6,19 @@ document covers the part none of them address — **how to tell what kind of
 problem you are looking at**, and **how to tell whether a returned packet is
 actually done**.
 
-Two forcing functions, both bound to steps that are already mandatory rather
+Three forcing functions, all bound to steps that are already mandatory rather
 than added as new rituals:
 
 1. **Landscape routing** — a dispatch brief for multi-step work names its
    quadrant, and the quadrant selects the stage chain.
 2. **The creep check** — before consolidating a returned packet, the single
    writer tests two specific failure modes by name.
+3. **The acceptance criterion** — a dispatch brief for multi-step work names,
+   before the work starts, what would have to be true for it to be done.
 
 Binding statements live in `MEMORY.md` (Execution Quality, and the Completion
 Handoff Contract). `minions/roles/PM.md` carries the charter duty. This file is
-the detail those three pointers refer to.
+the detail those pointers refer to.
 
 ## Part 1 — Landscape routing
 
@@ -202,6 +204,105 @@ orchestration posture). It is not a hard-stop.
 Duplicating those two here is what would turn a two-question check into a
 four-item rubber stamp. Two questions that require thought beat four that
 invite skimming.
+
+## Part 3 — Prospective acceptance criteria
+
+Parts 1 and 2 are both retrospective: the quadrant is judged at dispatch but
+the creep check runs after the work exists, by the same chain that produced
+it. Part 3 is the one forcing function that runs **before** the work starts
+and is read by someone other than its author — a `DONE WHEN:` line, carried
+in every multi-step dispatch brief (`MEMORY.md`, Execution Quality;
+`minions/roles/PM.md`, Primary Responsibilities).
+
+### Two tiers, selected by the work
+
+**Tier 1 — the work produces or changes an automated check.** The criterion
+is the check itself. The brief instructs the implementer to confirm it red
+before the change and green after, and to report both runs. A dispatch that
+cannot show red states why, in the same one-line-rationale idiom the tier
+rule already uses for a declared deviation.
+
+**Tier 2 — everything else.** The criterion names the property that must
+hold, in terms a different actor could check, and names its limit — what
+would still pass if the work were not done. The limit clause is the
+anti-ritual device at this tier: a criterion with no statable limit is
+visibly defective on the face of the brief, and the reviewer is the one who
+says so. `DONE WHEN: the change is made` fails this tier on its face — its
+limit is either empty or tautological.
+
+A worked example of a good tier-2 criterion, from this repo's own case law:
+`DONE WHEN: identical behavior with green verify before and after` — a
+definition with a machine-checkable boundary, not an open-ended promise.
+
+### Red-first, precisely
+
+The strongest form is red-before-the-change: it proves the check can fail on
+the real pre-change world. Where the pipeline's stage order makes that
+impossible — a test authored after the code it covers can never have been
+red before that code landed — a green-then-mutate-to-red run is the
+accepted substitute, but only under one condition: **the mutation must be the
+realistic weakening, named in the brief, not a coarse one** (delete the
+file, comment out the whole block). A prior milestone found assertions that
+looked demonstrated where a handful of one-line edits removed a governance
+law while the suite stayed green, because the mutations tested were coarser
+than the realistic failure. The equivalence between the two orderings holds
+only when that condition is met; it is not asserted for free.
+
+### Binding to review
+
+The criterion is not a note the dispatcher keeps to itself. It travels into
+the review stage's brief alongside the spec and the diff, and the reviewer is
+asked whether the criterion **holds** — not only whether the code matches the
+spec. A criterion the reviewer cannot verify is returned as a finding
+against the criterion, not a verdict on the code. That is what keeps the
+field from being ritual: a wrong declaration produces a visible defect
+instead of a silent pass, the same property that makes the Part 1 quadrant
+load-bearing.
+
+### Relationship to the other two parts
+
+The criterion is not a restatement of the creep check. The creep check is
+the same underlying question — what would go red if this were undone? — run
+retrospectively, by the packet's single writer, over a finished outcome. The
+criterion is that question run prospectively, by the dispatcher, before the
+chain has an outcome to defend, and it leaves an artifact — the brief text
+and the two runs — rather than a judgment call. Nor does it restate the
+existing "acceptance criteria" line in completeness inventories elsewhere in
+this template — `MEMORY.md` Stay in Your Lane; `minions/roles/PM.md`
+guardrails; `SM.md` and `DM.md` role outputs; and the launcher preambles a
+spawned minion actually reads at runtime (`.claude/agents/pm.md`, `sm.md`,
+`dm.md`). Those surfaces say a packet must *contain* acceptance criteria;
+this Part states what makes one *valid* and what evidence it demands. The
+standard is stated once, here, and those surfaces are deliberately left as
+completeness inventories rather than retargeted as pointers — retargeting
+them would touch several more governance surfaces to say the same thing in
+more places, which is what this repo's prefer-removal-over-restatement rule
+exists to prevent.
+
+If a criterion proves wrong mid-work, the implementer does not weaken it to
+force a pass — the dispatcher re-plans under the stop-and-re-plan rule
+(`MEMORY.md`, Execution Quality).
+
+### Known limit — Part 3
+
+**This mechanism is not mechanically verifiable, and it is weaker than the
+Part 1 quadrant.** A mis-declared quadrant produces visibly wrong routing
+with no reviewer required; a vacuous criterion produces a finding only if the
+reviewer does its job. Three failure modes, named so they are not discovered
+later:
+
+1. **Criterion drift.** Nothing compares the criterion at review time to the
+   criterion at dispatch time; an orchestrator holding both could soften it
+   while composing the review brief.
+2. **Coarse-mutation theater.** Tier-1 evidence is only as strong as the
+   mutation chosen, and the actor choosing it is the actor being checked.
+3. **Tier-2 limits become boilerplate.** A limit answered with "nothing" is
+   unfalsifiable and costs one word to write; only a reviewer catches it.
+
+The mitigations are the ones this template already has: reviewable briefs,
+matrix-routed SME review, and the creep check at consolidation, which this
+does not replace and which remains the backstop for everything the
+prospective half misses.
 
 ## Known limit — stated, not implied
 

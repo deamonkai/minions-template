@@ -53,6 +53,86 @@ complete until every `REQUIRED` item is confirmed present in the live repo. The
 `Criticality` column in `docs/export-manifest.md` marks the `baseline` files
 that most often carry these.
 
+### 1.48.0 — Evidence discipline + prospective acceptance criteria (`DONE WHEN:`)
+
+**REQUIRED (unconditional, if you run the governance guard) — merge FOUR new
+`MEMORY.md` blocks.** Everything else converges on a per-manifest-row pass.
+
+Three workstreams, all landing in `MEMORY.md`, all about the same thing: not
+claiming more than your evidence supports.
+
+| Workstream | Your action |
+| --- | --- |
+| (a) Evidence discipline (2 blocks) | **REQUIRED** — merge; guard-detected if dropped |
+| (b) Author for the least-equipped reader (1 block) | **REQUIRED** — merge; **NOT guard-detected, see below** |
+| (c) Prospective acceptance criteria / `DONE WHEN:` (1 block) | **REQUIRED** — merge; guard-detected if dropped |
+
+- **Merge these four `MEMORY.md` blocks. Count them; do not skim.**
+  1. **Execution Quality** — `Evidence is about the effect, not the invocation`,
+     nested under the existing *"provide evidence proportionate to the claim"*
+     bullet.
+  2. **Execution Quality** — `Never claim a check proves more than it measures`,
+     the sibling sub-bullet under the same parent.
+  3. **Documentation Sync Rule** — `Author for the least-equipped reader`: a
+     runbook step or charter line naming a CLI must also document a toolless
+     web-UI/REST path, presented first, CLI marked optional; model docs stay
+     VCS-host-agnostic.
+  4. **Execution Quality** — `Dispatch briefs state the acceptance criterion`,
+     placed immediately **before** the landscape-quadrant bullet so the
+     dispatch-brief cluster reads tier → criterion → quadrant.
+- **⚠ Block 3 has NO detector, and it is the one protecting you.** Four of the
+  five new guard assertions are `MEMORY.md`-bound and will go red if you drop
+  blocks 1, 2 or 4. **Nothing checks block 3.** Drop it and the guard stays
+  green while you silently lose the toolless-fallback authoring law — the law
+  that keeps this template usable on restricted or enterprise machines with no
+  package manager. If you are on such a machine, that is the block you can least
+  afford to lose and the one you are least likely to notice missing. Merge it
+  deliberately.
+- **What converges — no action:** `minions/roles/PM.md`'s acceptance-criterion
+  duty line, `docs/pm-judgment-model.md` **Part 3**, `.claude/commands/ship.md`
+  (stages 1/3/4/7), the five new assertions in
+  `tools/tests/governance-consistency.test.sh`, and the new "Transient Host
+  Failures — Retry and Verify" section in `docs/runbooks/branch-setup.md`. All
+  `template-replace`.
+- **Take `docs/pm-judgment-model.md`'s CONTENT, not just the file.** The guard
+  asserts only that the file *exists*. A 1.47.0 copy passes that check while
+  three `Detail:` pointers in `MEMORY.md` resolve into a missing Part 3 — the
+  entire specification of the criterion (its two tiers, the limit clause, the
+  red-first substitution rule, three named failure modes) lives there. The
+  existence assertion earns "not dropped", never "current".
+- **Exact failure mode if you drop the `MEMORY.md` merge** — measured against a
+  synthesized partial-adoption tree, not assumed. Four FAILs, all naming
+  `MEMORY.md`, with `PM.md` converged and pointing at a law that is not present:
+  ```
+  FAIL - MEMORY.md missing acceptance-criterion dispatch rule
+  FAIL - MEMORY.md missing red-before/green-after evidence clause
+  FAIL - MEMORY.md missing the evidence-is-about-the-effect sub-bullet
+  FAIL - MEMORY.md missing the do-not-overstate-a-check sub-bullet
+  ```
+  Note there is no fifth line for block 3. That absence is the point.
+- **Local notes below the delimiter are safe.** The assertions bound to the
+  template-owned half via `flat_upstream()`, verified: an intact law moved below
+  the split-merge delimiter fails all of them, and downstream content below it
+  cannot mask a dropped merge.
+- **Read the guards' coverage precisely.** They detect **deletion and
+  relocation, not semantic weakening**. A 19-mutation battery confirmed that
+  one-word inversion (`carries a` → `carries no`), wrapping a bullet in an HTML
+  comment, indenting it into a sub-bullet, and a `## Retired Practices` note
+  naming the exact phrases all stay green. An inversion detector was
+  deliberately not added — it would be a heuristic with a real false-positive
+  tax, and the hole is better recorded than half-closed. `ship.md`'s stage
+  bindings and Part 3's content are unguarded.
+- **No new files, so no name-collision check is needed.** Recorded as a
+  deliberate no-op rather than omitted — every path this version touches already
+  existed at 1.47.0.
+- **No new hard-stop.** The count stays three, unchanged and unmoved: the
+  `MEMORY.md` diff for this version is a pure insertion with zero deleted lines.
+- **`/ship` soft pairing worth knowing:** `.claude/commands/ship.md` and the
+  `DONE WHEN:` law degrade each other but neither breaks alone. If you have
+  customized `/ship` and lag the `template-replace`, you get the law with no
+  pipeline wiring — AM is never asked for a criterion and the review stage is
+  never briefed against one. Silent, and guard-green.
+
 ### 1.47.0 — PM judgment model + guard hardening + doc freshness
 
 Three workstreams ship in this version. Summary of what each asks of you:
